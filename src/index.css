@@ -54,6 +54,13 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 12%;
 
+    /* Chart colors */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 12%;
     --sidebar-primary: 0 0% 12%;
@@ -62,6 +69,67 @@
     --sidebar-accent-foreground: 0 0% 12%;
     --sidebar-border: 0 0% 90%;
     --sidebar-ring: 0 0% 12%;
+  }
+
+  .dark {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 12%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%;
+
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 83%;
+
+    /* Custom tokens */
+    --elegant-black: 0 0% 98%;
+    --elegant-gray: 0 0% 64%;
+    --elegant-light: 0 0% 15%;
+    --elegant-white: 0 0% 8%;
+    --elegant-border: 0 0% 20%;
+
+    /* Success/Positive */
+    --success: 142 76% 42%;
+    --success-foreground: 0 0% 98%;
+
+    /* Warning */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 12%;
+
+    /* Chart colors */
+    --chart-1: 220 70% 60%;
+    --chart-2: 160 60% 50%;
+    --chart-3: 30 80% 60%;
+    --chart-4: 280 65% 65%;
+    --chart-5: 340 75% 60%;
+
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 12%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 0 0% 83%;
   }
 }
 

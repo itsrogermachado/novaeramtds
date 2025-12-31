@@ -78,6 +78,7 @@ export type Database = {
           created_at: string
           current_amount: number
           deadline: string | null
+          goal_type: Database["public"]["Enums"]["goal_type"]
           id: string
           start_date: string
           target_amount: number
@@ -88,6 +89,7 @@ export type Database = {
           created_at?: string
           current_amount?: number
           deadline?: string | null
+          goal_type?: Database["public"]["Enums"]["goal_type"]
           id?: string
           start_date?: string
           target_amount: number
@@ -98,6 +100,7 @@ export type Database = {
           created_at?: string
           current_amount?: number
           deadline?: string | null
+          goal_type?: Database["public"]["Enums"]["goal_type"]
           id?: string
           start_date?: string
           target_amount?: number
@@ -231,6 +234,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      goal_type: "monthly" | "daily"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -359,6 +363,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      goal_type: ["monthly", "daily"],
     },
   },
 } as const

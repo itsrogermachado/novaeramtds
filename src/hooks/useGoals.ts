@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+export type GoalType = 'monthly' | 'daily';
+
 export interface Goal {
   id: string;
   user_id: string;
@@ -11,6 +13,7 @@ export interface Goal {
   start_date: string;
   deadline: string | null;
   created_at: string;
+  goal_type: GoalType;
 }
 
 export function useGoals() {
@@ -30,7 +33,7 @@ export function useGoals() {
       .order('created_at', { ascending: false });
 
     if (!error && data) {
-      setGoals(data);
+      setGoals(data as Goal[]);
     }
     
     setIsLoading(false);
@@ -41,6 +44,7 @@ export function useGoals() {
     target_amount: number;
     current_amount?: number;
     deadline?: string;
+    goal_type?: GoalType;
   }) => {
     if (!user) return { error: new Error('Usuário não autenticado') };
 
@@ -48,6 +52,7 @@ export function useGoals() {
       .from('goals')
       .insert({
         ...goal,
+        goal_type: goal.goal_type || 'monthly',
         user_id: user.id,
       });
 
