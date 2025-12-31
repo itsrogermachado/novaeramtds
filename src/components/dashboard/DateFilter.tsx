@@ -1,4 +1,4 @@
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -12,6 +12,14 @@ interface DateFilterProps {
 }
 
 export function DateFilter({ dateRange, onDateRangeChange }: DateFilterProps) {
+  const setToday = () => {
+    const now = new Date();
+    onDateRangeChange({
+      start: startOfDay(now),
+      end: endOfDay(now),
+    });
+  };
+
   const setThisMonth = () => {
     const now = new Date();
     onDateRangeChange({
@@ -20,10 +28,27 @@ export function DateFilter({ dateRange, onDateRangeChange }: DateFilterProps) {
     });
   };
 
+  const isToday = 
+    format(dateRange.start, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
+    format(dateRange.end, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+
+  const isThisMonth = 
+    format(dateRange.start, 'yyyy-MM-dd') === format(startOfMonth(new Date()), 'yyyy-MM-dd') &&
+    format(dateRange.end, 'yyyy-MM-dd') === format(endOfMonth(new Date()), 'yyyy-MM-dd');
+
   return (
     <div className="flex items-center gap-3">
       <Button
-        variant="outline"
+        variant={isToday ? "default" : "outline"}
+        size="sm"
+        onClick={setToday}
+        className="text-sm"
+      >
+        Hoje
+      </Button>
+
+      <Button
+        variant={isThisMonth ? "default" : "outline"}
         size="sm"
         onClick={setThisMonth}
         className="text-sm"

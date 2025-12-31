@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from './ThemeToggle';
 import { LogOut, Target, Plus } from 'lucide-react';
 import logo from '@/assets/logo-nova-era-elegant.jpg';
 
@@ -54,6 +55,8 @@ export function DashboardHeader({ onOpenGoals, onOpenNewOperation }: DashboardHe
             <Plus className="h-4 w-4" />
             Nova Operação
           </Button>
+
+          <ThemeToggle />
 
           <Button
             variant="ghost"
