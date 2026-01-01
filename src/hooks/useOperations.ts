@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -62,8 +63,8 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
 
     if (dateRange) {
       query = query
-        .gte('operation_date', dateRange.start.toISOString().split('T')[0])
-        .lte('operation_date', dateRange.end.toISOString().split('T')[0]);
+        .gte('operation_date', format(dateRange.start, 'yyyy-MM-dd'))
+        .lte('operation_date', format(dateRange.end, 'yyyy-MM-dd'));
     }
 
     const { data, error } = await query;
