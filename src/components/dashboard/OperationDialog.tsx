@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseDateOnly } from '@/lib/dateOnly';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -62,7 +63,7 @@ export function OperationDialog({
       setMethodId(operation.method_id || '');
       setInvestedAmount(String(operation.invested_amount));
       setReturnAmount(String(operation.return_amount));
-      setDate(new Date(operation.operation_date));
+      setDate(parseDateOnly(operation.operation_date));
       setNotes(operation.notes || '');
     } else {
       setMethodId('');

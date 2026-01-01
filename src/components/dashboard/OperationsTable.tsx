@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Operation } from '@/hooks/useOperations';
+import { parseDateOnly } from '@/lib/dateOnly';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -94,7 +95,7 @@ export function OperationsTable({ operations, onEdit, onDelete, onAdd, isLoading
                   return (
                     <TableRow key={operation.id}>
                       <TableCell>
-                        {format(new Date(operation.operation_date), "dd/MM/yyyy", { locale: ptBR })}
+                        {format(parseDateOnly(operation.operation_date), "dd/MM/yyyy", { locale: ptBR })}
                       </TableCell>
                       <TableCell>
                         {operation.method && (

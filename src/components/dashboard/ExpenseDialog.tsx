@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseDateOnly } from '@/lib/dateOnly';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -54,7 +55,7 @@ export function ExpenseDialog({
       setCategoryId(expense.category_id || '');
       setDescription(expense.description);
       setAmount(String(expense.amount));
-      setDate(new Date(expense.expense_date));
+      setDate(parseDateOnly(expense.expense_date));
     } else {
       setCategoryId('');
       setDescription('');

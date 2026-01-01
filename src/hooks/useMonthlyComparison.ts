@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { format, subMonths, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { format, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Operation } from './useOperations';
 import { Expense } from './useExpenses';
@@ -30,15 +30,9 @@ export function useMonthlyComparison(
       const monthKey = format(monthDate, 'yyyy-MM');
       const displayMonth = format(monthDate, 'MMM/yy', { locale: ptBR });
 
-      const monthOps = operations.filter(op => {
-        const opDate = parseISO(op.operation_date);
-        return format(opDate, 'yyyy-MM') === monthKey;
-      });
+      const monthOps = operations.filter(op => op.operation_date.slice(0, 7) === monthKey);
 
-      const monthExps = expenses.filter(exp => {
-        const expDate = parseISO(exp.expense_date);
-        return format(expDate, 'yyyy-MM') === monthKey;
-      });
+      const monthExps = expenses.filter(exp => exp.expense_date.slice(0, 7) === monthKey);
 
       const totalInvested = monthOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
       const totalReturn = monthOps.reduce((sum, op) => sum + Number(op.return_amount), 0);

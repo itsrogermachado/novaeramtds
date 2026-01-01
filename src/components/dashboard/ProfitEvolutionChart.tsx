@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Operation } from '@/hooks/useOperations';
+import { parseDateOnly } from '@/lib/dateOnly';
 
 interface ProfitEvolutionChartProps {
   operations: Operation[];
@@ -11,7 +12,7 @@ interface ProfitEvolutionChartProps {
 export function ProfitEvolutionChart({ operations }: ProfitEvolutionChartProps) {
   const chartData = useMemo(() => {
     const sortedOps = [...operations].sort(
-      (a, b) => new Date(a.operation_date).getTime() - new Date(b.operation_date).getTime()
+      (a, b) => a.operation_date.localeCompare(b.operation_date)
     );
 
     const dailyData: Record<string, { profit: number; date: string }> = {};
@@ -31,7 +32,7 @@ export function ProfitEvolutionChart({ operations }: ProfitEvolutionChartProps) 
       cumulative += item.profit;
       return {
         date: item.date,
-        displayDate: format(parseISO(item.date), 'dd/MM', { locale: ptBR }),
+        displayDate: format(parseDateOnly(item.date), 'dd/MM', { locale: ptBR }),
         profit: item.profit,
         cumulative,
       };
