@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseDateOnly } from '@/lib/dateOnly';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -243,7 +244,7 @@ export function GoalsDialog({
                           </div>
                           {goal.deadline && goal.goal_type === 'monthly' && (
                             <p className="text-xs text-muted-foreground">
-                              Até {format(new Date(goal.deadline), "dd/MM/yyyy", { locale: ptBR })}
+                              Até {format(parseDateOnly(goal.deadline), "dd/MM/yyyy", { locale: ptBR })}
                             </p>
                           )}
                         </div>

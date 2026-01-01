@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Expense } from '@/hooks/useExpenses';
+import { parseDateOnly } from '@/lib/dateOnly';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -85,7 +86,7 @@ export function ExpensesTable({ expenses, onEdit, onDelete, onAdd, isLoading }: 
                 expenses.map((expense) => (
                   <TableRow key={expense.id}>
                     <TableCell>
-                      {format(new Date(expense.expense_date), "dd/MM/yyyy", { locale: ptBR })}
+                      {format(parseDateOnly(expense.expense_date), "dd/MM/yyyy", { locale: ptBR })}
                     </TableCell>
                     <TableCell>
                       {expense.category && (
