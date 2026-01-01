@@ -5,7 +5,7 @@ import { ExpensesByCategoryChart } from './ExpensesByCategoryChart';
 import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 import { UserProfile } from '@/hooks/useAllUsers';
-import { Receipt, Wallet, TrendingUp, TrendingDown, Scale, Users, Trophy } from 'lucide-react';
+import { Receipt, Wallet, TrendingUp, Users, Trophy } from 'lucide-react';
 
 interface AdminGlobalTabProps {
   operations: Operation[];
@@ -18,10 +18,7 @@ export function AdminGlobalTab({ operations, expenses, users }: AdminGlobalTabPr
     const totalInvested = operations.reduce((sum, op) => sum + Number(op.invested_amount), 0);
     const totalReturn = operations.reduce((sum, op) => sum + Number(op.return_amount), 0);
     const profit = totalReturn - totalInvested;
-    const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-    const netBalance = profit - totalExpenses;
-
-    return { totalInvested, totalReturn, profit, totalExpenses, netBalance };
+    return { totalInvested, totalReturn, profit };
   }, [operations, expenses]);
 
   const userRankings = useMemo(() => {
@@ -48,7 +45,7 @@ export function AdminGlobalTab({ operations, expenses, users }: AdminGlobalTabPr
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="Total Usuários"
           value={String(users.length)}
@@ -69,12 +66,6 @@ export function AdminGlobalTab({ operations, expenses, users }: AdminGlobalTabPr
           value={formatCurrency(stats.profit)}
           trend={stats.profit >= 0 ? 'up' : 'down'}
           icon={<TrendingUp className="h-5 w-5 text-success" />}
-        />
-        <StatsCard
-          title="Balanço Global"
-          value={formatCurrency(stats.netBalance)}
-          trend={stats.netBalance >= 0 ? 'up' : 'down'}
-          icon={<Scale className="h-5 w-5 text-muted-foreground" />}
         />
       </div>
 
