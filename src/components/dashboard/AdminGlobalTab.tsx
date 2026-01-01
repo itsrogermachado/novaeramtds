@@ -48,7 +48,7 @@ export function AdminGlobalTab({ operations, expenses, users }: AdminGlobalTabPr
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatsCard
           title="Total Usuários"
           value={String(users.length)}
@@ -69,11 +69,6 @@ export function AdminGlobalTab({ operations, expenses, users }: AdminGlobalTabPr
           value={formatCurrency(stats.profit)}
           trend={stats.profit >= 0 ? 'up' : 'down'}
           icon={<TrendingUp className="h-5 w-5 text-success" />}
-        />
-        <StatsCard
-          title="Total Gastos"
-          value={formatCurrency(stats.totalExpenses)}
-          icon={<TrendingDown className="h-5 w-5 text-destructive" />}
         />
         <StatsCard
           title="Balanço Global"

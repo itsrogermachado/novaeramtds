@@ -21,6 +21,7 @@ import { ProfitEvolutionChart } from '@/components/dashboard/ProfitEvolutionChar
 import { ExpensesByCategoryChart } from '@/components/dashboard/ExpensesByCategoryChart';
 import { AdminIndividualTab } from '@/components/dashboard/AdminIndividualTab';
 import { AdminGlobalTab } from '@/components/dashboard/AdminGlobalTab';
+import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, TrendingDown, Wallet, Receipt, Scale } from 'lucide-react';
 import { Operation } from '@/hooks/useOperations';
@@ -124,6 +125,7 @@ export default function Dashboard() {
           <TabsList>
             <TabsTrigger value="my-operations">Minhas Operações</TabsTrigger>
             <TabsTrigger value="my-expenses">Meus Gastos</TabsTrigger>
+            <TabsTrigger value="comparison">Comparativo</TabsTrigger>
             {isAdmin && <TabsTrigger value="individual">Usuários Individuais</TabsTrigger>}
             {isAdmin && <TabsTrigger value="global">Visão Global</TabsTrigger>}
           </TabsList>
@@ -173,6 +175,10 @@ export default function Dashboard() {
               onEdit={(exp) => { setEditingExpense(exp); setExpenseDialogOpen(true); }}
               onDelete={handleDeleteExpense}
             />
+          </TabsContent>
+
+          <TabsContent value="comparison">
+            <ComparisonTab operations={operations} expenses={expenses} />
           </TabsContent>
 
           {isAdmin && (
