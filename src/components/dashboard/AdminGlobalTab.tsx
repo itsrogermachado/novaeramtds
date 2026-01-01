@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { StatsCard } from './StatsCard';
 import { ProfitEvolutionChart } from './ProfitEvolutionChart';
-import { ExpensesByCategoryChart } from './ExpensesByCategoryChart';
+
 import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 import { UserProfile } from '@/hooks/useAllUsers';
@@ -69,14 +69,7 @@ export function AdminGlobalTab({ operations, expenses, users }: AdminGlobalTabPr
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <ProfitEvolutionChart operations={operations} />
-        </div>
-        <div>
-          <ExpensesByCategoryChart expenses={expenses} />
-        </div>
-      </div>
+      <ProfitEvolutionChart operations={operations} />
 
       <div className="bg-card border border-border rounded-lg p-5 shadow-elegant">
         <div className="flex items-center gap-2 mb-4">
