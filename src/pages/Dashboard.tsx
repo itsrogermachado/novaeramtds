@@ -47,9 +47,9 @@ export default function Dashboard() {
   const { operations: adminOperations, methods: adminMethods, isLoading: adminOpsLoading } = useOperations(dateRange, selectedUserId || undefined);
   const { expenses: adminExpenses, isLoading: adminExpLoading } = useExpenses(dateRange, selectedUserId || undefined);
 
-  // All data for global view (no user filter)
-  const { operations: allOperations } = useOperations(dateRange, undefined);
-  const { expenses: allExpenses } = useExpenses(dateRange, undefined);
+  // All data for global view (showAll = true for admin)
+  const { operations: allOperations } = useOperations(dateRange, undefined, true);
+  const { expenses: allExpenses } = useExpenses(dateRange, undefined, true);
 
   const [operationDialogOpen, setOperationDialogOpen] = useState(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);

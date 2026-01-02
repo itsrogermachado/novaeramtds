@@ -25,7 +25,7 @@ export interface OperationMethod {
   color: string;
 }
 
-export function useOperations(dateRange?: { start: Date; end: Date }, userId?: string) {
+export function useOperations(dateRange?: { start: Date; end: Date }, userId?: string, showAll?: boolean) {
   const [operations, setOperations] = useState<Operation[]>([]);
   const [methods, setMethods] = useState<OperationMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,11 +53,14 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
       `)
       .order('operation_date', { ascending: false });
 
-    // If userId is provided and user is admin, filter by that user
-    if (userId && isAdmin) {
+    // If showAll is true and user is admin, don't filter (global view)
+    if (showAll && isAdmin) {
+      // No user_id filter - admin sees all operations
+    } else if (userId && isAdmin) {
+      // Admin viewing specific user
       query = query.eq('user_id', userId);
-    } else if (!isAdmin && user) {
-      // Regular users can only see their own operations
+    } else if (user) {
+      // Any user (including admin) viewing their own data
       query = query.eq('user_id', user.id);
     }
 
@@ -150,7 +153,7 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
     if (user) {
       fetchOperations();
     }
-  }, [user, dateRange, userId, isAdmin]);
+  }, [user, dateRange, userId, isAdmin, showAll]);
 
   return {
     operations,

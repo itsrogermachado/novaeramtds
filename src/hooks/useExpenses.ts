@@ -24,7 +24,7 @@ export interface ExpenseCategory {
   color: string;
 }
 
-export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: string) {
+export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: string, showAll?: boolean) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,9 +52,14 @@ export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: str
       `)
       .order('expense_date', { ascending: false });
 
-    if (userId && isAdmin) {
+    // If showAll is true and user is admin, don't filter (global view)
+    if (showAll && isAdmin) {
+      // No user_id filter - admin sees all expenses
+    } else if (userId && isAdmin) {
+      // Admin viewing specific user
       query = query.eq('user_id', userId);
-    } else if (!isAdmin && user) {
+    } else if (user) {
+      // Any user (including admin) viewing their own data
       query = query.eq('user_id', user.id);
     }
 
@@ -129,7 +134,7 @@ export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: str
     if (user) {
       fetchExpenses();
     }
-  }, [user, dateRange, userId, isAdmin]);
+  }, [user, dateRange, userId, isAdmin, showAll]);
 
   return {
     expenses,
