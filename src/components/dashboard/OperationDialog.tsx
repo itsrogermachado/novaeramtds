@@ -21,9 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CalendarIcon, Plus } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Operation, OperationMethod } from '@/hooks/useOperations';
+import { toast } from 'sonner';
 
 interface OperationDialogProps {
   open: boolean;
@@ -38,6 +39,7 @@ interface OperationDialogProps {
     notes?: string;
   }) => Promise<{ error: Error | null }>;
   onCreateMethod: (data: { name: string; color: string }) => Promise<{ error: Error | null }>;
+  onDeleteMethod?: (methodId: string) => Promise<{ error: Error | null }>;
 }
 
 export function OperationDialog({
@@ -47,6 +49,7 @@ export function OperationDialog({
   methods,
   onSubmit,
   onCreateMethod,
+  onDeleteMethod,
 }: OperationDialogProps) {
   const [methodId, setMethodId] = useState('');
   const [investedAmount, setInvestedAmount] = useState('');
@@ -108,6 +111,22 @@ export function OperationDialog({
     }
   };
 
+  const handleDeleteMethod = async (methodId: string, methodName: string) => {
+    if (!onDeleteMethod) return;
+    
+    if (methodId === methodId) {
+      setMethodId('');
+    }
+    
+    const { error } = await onDeleteMethod(methodId);
+    
+    if (error) {
+      toast.error('Erro ao excluir método');
+    } else {
+      toast.success(`Método "${methodName}" excluído`);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -162,15 +181,31 @@ export function OperationDialog({
                   </SelectTrigger>
                   <SelectContent>
                     {methods.map((method) => (
-                      <SelectItem key={method.id} value={method.id}>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-2.5 h-2.5 rounded-full"
-                            style={{ backgroundColor: method.color }}
-                          />
-                          {method.name}
-                        </div>
-                      </SelectItem>
+                      <div key={method.id} className="flex items-center justify-between group">
+                        <SelectItem value={method.id} className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-2.5 h-2.5 rounded-full"
+                              style={{ backgroundColor: method.color }}
+                            />
+                            {method.name}
+                          </div>
+                        </SelectItem>
+                        {method.created_by && onDeleteMethod && (
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6 text-destructive opacity-0 group-hover:opacity-100 transition-opacity mr-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteMethod(method.id, method.name);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
                     ))}
                   </SelectContent>
                 </Select>

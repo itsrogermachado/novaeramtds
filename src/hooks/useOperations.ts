@@ -23,6 +23,7 @@ export interface OperationMethod {
   id: string;
   name: string;
   color: string;
+  created_by?: string | null;
 }
 
 export function useOperations(dateRange?: { start: Date; end: Date }, userId?: string, showAll?: boolean) {
@@ -32,9 +33,13 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
   const { user, isAdmin } = useAuth();
 
   const fetchMethods = async () => {
+    if (!user) return;
+    
+    // Filter methods: user's own methods + global methods (created_by is null)
     const { data, error } = await supabase
       .from('operation_methods')
       .select('*')
+      .or(`created_by.eq.${user.id},created_by.is.null`)
       .order('name');
     
     if (!error && data) {
@@ -145,9 +150,27 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
     return { error };
   };
 
+  const deleteMethod = async (methodId: string) => {
+    if (!user) return { error: new Error('Usuário não autenticado') };
+
+    const { error } = await supabase
+      .from('operation_methods')
+      .delete()
+      .eq('id', methodId)
+      .eq('created_by', user.id);
+
+    if (!error) {
+      fetchMethods();
+    }
+
+    return { error };
+  };
+
   useEffect(() => {
-    fetchMethods();
-  }, []);
+    if (user) {
+      fetchMethods();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -163,6 +186,7 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
     updateOperation,
     deleteOperation,
     createMethod,
+    deleteMethod,
     refetch: fetchOperations,
   };
 }
