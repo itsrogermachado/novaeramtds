@@ -38,7 +38,7 @@ export default function Dashboard() {
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  const { operations, methods, isLoading: opsLoading, createOperation, updateOperation, deleteOperation, createMethod } = useOperations(dateRange);
+  const { operations, methods, isLoading: opsLoading, createOperation, updateOperation, deleteOperation, createMethod, deleteMethod } = useOperations(dateRange);
   const { expenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
   const { users, isLoading: usersLoading } = useAllUsers();
@@ -217,6 +217,7 @@ export default function Dashboard() {
           return createOperation(data);
         }}
         onCreateMethod={createMethod}
+        onDeleteMethod={deleteMethod}
       />
 
       <ExpenseDialog
