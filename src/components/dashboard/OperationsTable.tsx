@@ -95,7 +95,12 @@ export function OperationsTable({ operations, onEdit, onDelete, onAdd, isLoading
                   return (
                     <TableRow key={operation.id}>
                       <TableCell>
-                        {format(parseDateOnly(operation.operation_date), "dd/MM/yyyy", { locale: ptBR })}
+                        <div className="flex flex-col">
+                          <span>{format(parseDateOnly(operation.operation_date), "dd/MM/yyyy", { locale: ptBR })}</span>
+                          <span className="text-xs text-muted-foreground">
+                            às {format(new Date(operation.created_at), "HH:mm", { locale: ptBR })}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {operation.method && (
