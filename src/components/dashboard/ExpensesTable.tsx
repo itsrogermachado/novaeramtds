@@ -86,7 +86,12 @@ export function ExpensesTable({ expenses, onEdit, onDelete, onAdd, isLoading }: 
                 expenses.map((expense) => (
                   <TableRow key={expense.id}>
                     <TableCell>
-                      {format(parseDateOnly(expense.expense_date), "dd/MM/yyyy", { locale: ptBR })}
+                      <div className="flex flex-col">
+                        <span>{format(parseDateOnly(expense.expense_date), "dd/MM/yyyy", { locale: ptBR })}</span>
+                        <span className="text-xs text-muted-foreground">
+                          às {format(new Date(expense.created_at), "HH:mm", { locale: ptBR })}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       {expense.category && (
