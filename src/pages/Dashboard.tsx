@@ -124,16 +124,16 @@ export default function Dashboard() {
         onOpenNewOperation={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
       />
 
-      <main className="p-6 space-y-6">
+      <main className="p-4 md:p-6 space-y-4 md:space-y-6">
         <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
 
-        <Tabs defaultValue="my-operations" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="my-operations">Minhas Operações</TabsTrigger>
-            <TabsTrigger value="my-expenses">Meus Gastos</TabsTrigger>
-            <TabsTrigger value="comparison">Comparativo</TabsTrigger>
-            {isAdmin && <TabsTrigger value="individual">Usuários Individuais</TabsTrigger>}
-            {isAdmin && <TabsTrigger value="global">Visão Global</TabsTrigger>}
+        <Tabs defaultValue="my-operations" className="space-y-4 md:space-y-6">
+          <TabsList className="w-full md:w-auto overflow-x-auto flex-nowrap justify-start">
+            <TabsTrigger value="my-operations" className="text-xs md:text-sm whitespace-nowrap">Operações</TabsTrigger>
+            <TabsTrigger value="my-expenses" className="text-xs md:text-sm whitespace-nowrap">Gastos</TabsTrigger>
+            <TabsTrigger value="comparison" className="text-xs md:text-sm whitespace-nowrap">Comparativo</TabsTrigger>
+            {isAdmin && <TabsTrigger value="individual" className="text-xs md:text-sm whitespace-nowrap">Individuais</TabsTrigger>}
+            {isAdmin && <TabsTrigger value="global" className="text-xs md:text-sm whitespace-nowrap">Global</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="my-operations" className="space-y-6">

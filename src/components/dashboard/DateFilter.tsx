@@ -37,25 +37,29 @@ export function DateFilter({ dateRange, onDateRangeChange }: DateFilterProps) {
     format(dateRange.end, 'yyyy-MM-dd') === format(endOfMonth(new Date()), 'yyyy-MM-dd');
 
   return (
-    <div className="flex items-center gap-3">
-      <Button
-        variant={isToday ? "default" : "outline"}
-        size="sm"
-        onClick={setToday}
-        className="text-sm"
-      >
-        Hoje
-      </Button>
+    <div className="flex flex-wrap items-center gap-2 md:gap-3">
+      {/* Quick filter buttons */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant={isToday ? "default" : "outline"}
+          size="sm"
+          onClick={setToday}
+          className="text-xs md:text-sm h-8"
+        >
+          Hoje
+        </Button>
 
-      <Button
-        variant={isThisMonth ? "default" : "outline"}
-        size="sm"
-        onClick={setThisMonth}
-        className="text-sm"
-      >
-        Este mês
-      </Button>
+        <Button
+          variant={isThisMonth ? "default" : "outline"}
+          size="sm"
+          onClick={setThisMonth}
+          className="text-xs md:text-sm h-8"
+        >
+          Este mês
+        </Button>
+      </div>
 
+      {/* Date range pickers */}
       <div className="flex items-center gap-2">
         <Popover>
           <PopoverTrigger asChild>
@@ -63,12 +67,12 @@ export function DateFilter({ dateRange, onDateRangeChange }: DateFilterProps) {
               variant="outline"
               size="sm"
               className={cn(
-                "justify-start text-left font-normal gap-2",
+                "justify-start text-left font-normal gap-1.5 md:gap-2 text-xs md:text-sm h-8",
                 !dateRange.start && "text-muted-foreground"
               )}
             >
-              <CalendarIcon className="h-4 w-4" />
-              {format(dateRange.start, "dd/MM/yyyy", { locale: ptBR })}
+              <CalendarIcon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              {format(dateRange.start, "dd/MM/yy", { locale: ptBR })}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -81,7 +85,7 @@ export function DateFilter({ dateRange, onDateRangeChange }: DateFilterProps) {
           </PopoverContent>
         </Popover>
 
-        <span className="text-muted-foreground">até</span>
+        <span className="text-xs md:text-sm text-muted-foreground">até</span>
 
         <Popover>
           <PopoverTrigger asChild>
@@ -89,12 +93,12 @@ export function DateFilter({ dateRange, onDateRangeChange }: DateFilterProps) {
               variant="outline"
               size="sm"
               className={cn(
-                "justify-start text-left font-normal gap-2",
+                "justify-start text-left font-normal gap-1.5 md:gap-2 text-xs md:text-sm h-8",
                 !dateRange.end && "text-muted-foreground"
               )}
             >
-              <CalendarIcon className="h-4 w-4" />
-              {format(dateRange.end, "dd/MM/yyyy", { locale: ptBR })}
+              <CalendarIcon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              {format(dateRange.end, "dd/MM/yy", { locale: ptBR })}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
