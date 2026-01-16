@@ -111,7 +111,14 @@ export default function Dashboard() {
   };
 
   if (authLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-background"><p>Carregando...</p></div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-muted-foreground animate-pulse">Carregando...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
@@ -120,98 +127,130 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader
-        onOpenNewOperation={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
-      />
+      {/* Subtle background pattern */}
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-muted/30 via-background to-background pointer-events-none" />
+      
+      <div className="relative">
+        <DashboardHeader
+          onOpenNewOperation={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
+        />
 
-      <main className="p-4 md:p-6 space-y-4 md:space-y-6">
-        <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
+        <main className="p-4 md:p-6 space-y-4 md:space-y-6">
+          <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
 
-        <Tabs defaultValue="my-operations" className="space-y-4 md:space-y-6">
-          <TabsList className="w-full md:w-auto overflow-x-auto flex-nowrap justify-start">
-            <TabsTrigger value="my-operations" className="text-xs md:text-sm whitespace-nowrap">Operações</TabsTrigger>
-            <TabsTrigger value="my-expenses" className="text-xs md:text-sm whitespace-nowrap">Gastos</TabsTrigger>
-            <TabsTrigger value="comparison" className="text-xs md:text-sm whitespace-nowrap">Comparativo</TabsTrigger>
-            {isAdmin && <TabsTrigger value="individual" className="text-xs md:text-sm whitespace-nowrap">Individuais</TabsTrigger>}
-            {isAdmin && <TabsTrigger value="global" className="text-xs md:text-sm whitespace-nowrap">Global</TabsTrigger>}
-          </TabsList>
+          <Tabs defaultValue="my-operations" className="space-y-4 md:space-y-6">
+            <TabsList className="w-full md:w-auto overflow-x-auto flex-nowrap justify-start">
+              <TabsTrigger value="my-operations" className="text-xs md:text-sm whitespace-nowrap">Operações</TabsTrigger>
+              <TabsTrigger value="my-expenses" className="text-xs md:text-sm whitespace-nowrap">Gastos</TabsTrigger>
+              <TabsTrigger value="comparison" className="text-xs md:text-sm whitespace-nowrap">Comparativo</TabsTrigger>
+              {isAdmin && <TabsTrigger value="individual" className="text-xs md:text-sm whitespace-nowrap">Individuais</TabsTrigger>}
+              {isAdmin && <TabsTrigger value="global" className="text-xs md:text-sm whitespace-nowrap">Global</TabsTrigger>}
+            </TabsList>
 
-          <TabsContent value="my-operations" className="space-y-4 md:space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
-              <StatsCard title="Operações" value={String(operations.length)} icon={<Receipt className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} />
-              <StatsCard title="Investido" value={formatCurrency(totalInvested)} icon={<Wallet className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} />
-              <StatsCard title="Lucro" value={formatCurrency(profit)} trend={profit >= 0 ? 'up' : 'down'} icon={<TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-success" />} />
-              <StatsCard title="Gastos" value={formatCurrency(totalExpenses)} icon={<TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />} />
-              <StatsCard title="Balanço" value={formatCurrency(netBalance)} trend={netBalance >= 0 ? 'up' : 'down'} icon={<Scale className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} className="col-span-2 md:col-span-1" />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
-              <div className="lg:col-span-3 space-y-4 md:space-y-6">
-                {!isSingleDayView && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                    <ProfitEvolutionChart operations={operations} />
-                    <ExpensesByCategoryChart expenses={expenses} />
-                  </div>
-                )}
-                <OperationsTable
-                  operations={operations}
-                  isLoading={opsLoading}
-                  onAdd={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
-                  onEdit={(op) => { setEditingOperation(op); setOperationDialogOpen(true); }}
-                  onDelete={handleDeleteOperation}
+            <TabsContent value="my-operations" className="space-y-4 md:space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
+                <StatsCard 
+                  title="Operações" 
+                  value={String(operations.length)} 
+                  icon={<Receipt className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
+                  className="animation-delay-100"
+                />
+                <StatsCard 
+                  title="Investido" 
+                  value={formatCurrency(totalInvested)} 
+                  icon={<Wallet className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
+                  className="animation-delay-200"
+                />
+                <StatsCard 
+                  title="Lucro" 
+                  value={formatCurrency(profit)} 
+                  trend={profit >= 0 ? 'up' : 'down'} 
+                  icon={<TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-success" />} 
+                  className="animation-delay-300"
+                />
+                <StatsCard 
+                  title="Gastos" 
+                  value={formatCurrency(totalExpenses)} 
+                  icon={<TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />} 
+                  className="animation-delay-400"
+                />
+                <StatsCard 
+                  title="Balanço" 
+                  value={formatCurrency(netBalance)} 
+                  trend={netBalance >= 0 ? 'up' : 'down'} 
+                  icon={<Scale className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
+                  className="col-span-2 md:col-span-1 animation-delay-500"
                 />
               </div>
-              <div className="space-y-3 md:space-y-4">
-                <GoalsCard
-                  goals={goals}
-                  todayProfit={todayStats.todayProfit}
-                  weeklyProfit={weeklyProfit}
-                  netBalance={netBalance}
-                  onCreate={createGoal}
-                  onUpdate={updateGoal}
-                  onDelete={deleteGoal}
-                />
-                <ProfitByMethodCard operations={operations} methods={methods} />
-                <UpcomingExpensesCard expenses={upcomingExpenses} />
+
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
+                <div className="lg:col-span-3 space-y-4 md:space-y-6">
+                  {!isSingleDayView && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                      <ProfitEvolutionChart operations={operations} />
+                      <ExpensesByCategoryChart expenses={expenses} />
+                    </div>
+                  )}
+                  <OperationsTable
+                    operations={operations}
+                    isLoading={opsLoading}
+                    onAdd={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
+                    onEdit={(op) => { setEditingOperation(op); setOperationDialogOpen(true); }}
+                    onDelete={handleDeleteOperation}
+                  />
+                </div>
+                <div className="space-y-3 md:space-y-4">
+                  <GoalsCard
+                    goals={goals}
+                    todayProfit={todayStats.todayProfit}
+                    weeklyProfit={weeklyProfit}
+                    netBalance={netBalance}
+                    onCreate={createGoal}
+                    onUpdate={updateGoal}
+                    onDelete={deleteGoal}
+                  />
+                  <ProfitByMethodCard operations={operations} methods={methods} />
+                  <UpcomingExpensesCard expenses={upcomingExpenses} />
+                </div>
               </div>
-            </div>
-          </TabsContent>
+            </TabsContent>
 
-          <TabsContent value="my-expenses" className="space-y-6">
-            <ExpensesTable
-              expenses={expenses}
-              isLoading={expLoading}
-              onAdd={() => { setEditingExpense(null); setExpenseDialogOpen(true); }}
-              onEdit={(exp) => { setEditingExpense(exp); setExpenseDialogOpen(true); }}
-              onDelete={handleDeleteExpense}
-            />
-          </TabsContent>
-
-          <TabsContent value="comparison">
-            <ComparisonTab operations={operations} expenses={expenses} />
-          </TabsContent>
-
-          {isAdmin && (
-            <TabsContent value="individual">
-              <AdminIndividualTab
-                users={users}
-                allOperations={allOperations}
-                isLoading={usersLoading}
+            <TabsContent value="my-expenses" className="space-y-6">
+              <ExpensesTable
+                expenses={expenses}
+                isLoading={expLoading}
+                onAdd={() => { setEditingExpense(null); setExpenseDialogOpen(true); }}
+                onEdit={(exp) => { setEditingExpense(exp); setExpenseDialogOpen(true); }}
+                onDelete={handleDeleteExpense}
               />
             </TabsContent>
-          )}
 
-          {isAdmin && (
-            <TabsContent value="global">
-              <AdminGlobalTab
-                operations={allOperations}
-                expenses={allExpenses}
-                users={users}
-              />
+            <TabsContent value="comparison">
+              <ComparisonTab operations={operations} expenses={expenses} />
             </TabsContent>
-          )}
-        </Tabs>
-      </main>
+
+            {isAdmin && (
+              <TabsContent value="individual">
+                <AdminIndividualTab
+                  users={users}
+                  allOperations={allOperations}
+                  isLoading={usersLoading}
+                />
+              </TabsContent>
+            )}
+
+            {isAdmin && (
+              <TabsContent value="global">
+                <AdminGlobalTab
+                  operations={allOperations}
+                  expenses={allExpenses}
+                  users={users}
+                />
+              </TabsContent>
+            )}
+          </Tabs>
+        </main>
+      </div>
 
       <OperationDialog
         open={operationDialogOpen}

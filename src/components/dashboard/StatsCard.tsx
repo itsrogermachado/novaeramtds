@@ -13,14 +13,19 @@ interface StatsCardProps {
 export function StatsCard({ title, value, subtitle, icon, trend, className }: StatsCardProps) {
   return (
     <div className={cn(
-      "bg-card border border-border rounded-lg p-3 md:p-5 shadow-elegant transition-shadow hover:shadow-elegant-md",
+      "group relative bg-card border border-border rounded-xl p-3 md:p-5 transition-all duration-300",
+      "hover-3d premium-shadow gradient-border",
+      "animate-slide-up-fade",
       className
     )}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="space-y-0.5 md:space-y-1 min-w-0 flex-1">
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent to-muted/30 pointer-events-none" />
+      
+      <div className="relative flex items-start justify-between gap-2">
+        <div className="space-y-1 md:space-y-2 min-w-0 flex-1">
           <p className="text-xs md:text-sm font-medium text-muted-foreground truncate">{title}</p>
           <p className={cn(
-            "text-base md:text-2xl font-semibold truncate",
+            "text-lg md:text-2xl font-semibold truncate transition-all duration-300",
             trend === 'up' && "text-success",
             trend === 'down' && "text-destructive",
             !trend && "text-foreground"
@@ -32,11 +37,21 @@ export function StatsCard({ title, value, subtitle, icon, trend, className }: St
           )}
         </div>
         {icon && (
-          <div className="p-1.5 md:p-2 bg-muted rounded-lg shrink-0">
-            {icon}
+          <div className={cn(
+            "relative p-2 md:p-2.5 rounded-xl shrink-0 transition-all duration-300",
+            "bg-gradient-to-br from-muted to-muted/50",
+            "group-hover:scale-110",
+            trend === 'up' && "icon-glow"
+          )}>
+            <div className="animate-float">
+              {icon}
+            </div>
           </div>
         )}
       </div>
+
+      {/* Bottom decorative line */}
+      <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
     </div>
   );
 }
