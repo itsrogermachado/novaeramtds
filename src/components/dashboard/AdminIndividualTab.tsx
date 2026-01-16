@@ -1,121 +1,144 @@
-import { UserSelector } from './UserSelector';
-import { StatsCard } from './StatsCard';
-import { OperationsTable } from './OperationsTable';
-import { ExpensesTable } from './ExpensesTable';
-import { ProfitByMethodCard } from './ProfitByMethodCard';
+import { useMemo } from 'react';
 import { UserProfile } from '@/hooks/useAllUsers';
-import { Operation, OperationMethod } from '@/hooks/useOperations';
-import { Expense } from '@/hooks/useExpenses';
-import { Receipt, Wallet, TrendingUp, TrendingDown, Scale } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Operation } from '@/hooks/useOperations';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableFooter,
+} from '@/components/ui/table';
+import { Users, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface AdminIndividualTabProps {
   users: UserProfile[];
-  selectedUserId: string | null;
-  onSelectUser: (userId: string | null) => void;
-  operations: Operation[];
-  expenses: Expense[];
-  methods: OperationMethod[];
+  allOperations: Operation[];
   isLoading: boolean;
 }
 
 export function AdminIndividualTab({
   users,
-  selectedUserId,
-  onSelectUser,
-  operations,
-  expenses,
-  methods,
+  allOperations,
   isLoading,
 }: AdminIndividualTabProps) {
-  const totalInvested = operations.reduce((sum, op) => sum + Number(op.invested_amount), 0);
-  const totalReturn = operations.reduce((sum, op) => sum + Number(op.return_amount), 0);
-  const profit = totalReturn - totalInvested;
-  const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-  const netBalance = profit - totalExpenses;
+  const usersProfits = useMemo(() => {
+    return users
+      .map(user => {
+        const userOps = allOperations.filter(op => op.user_id === user.id);
+        const invested = userOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
+        const returned = userOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
+        const profit = returned - invested;
+
+        return {
+          ...user,
+          profit,
+          operationsCount: userOps.length,
+        };
+      })
+      .sort((a, b) => b.profit - a.profit);
+  }, [users, allOperations]);
+
+  const totalProfit = useMemo(() => {
+    return usersProfits.reduce((sum, user) => sum + user.profit, 0);
+  }, [usersProfits]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-  const selectedUser = users.find(u => u.id === selectedUserId);
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-muted-foreground text-center">Carregando...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <UserSelector
-          users={users}
-          selectedUserId={selectedUserId}
-          onSelectUser={onSelectUser}
-          isLoading={isLoading}
-        />
-        {selectedUser && (
-          <span className="text-sm text-muted-foreground">
-            Visualizando: <strong className="text-foreground">{selectedUser.full_name}</strong>
-          </span>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <StatsCard
-          title="Operações"
-          value={String(operations.length)}
-          icon={<Receipt className="h-5 w-5 text-muted-foreground" />}
-        />
-        <StatsCard
-          title="Total Investido"
-          value={formatCurrency(totalInvested)}
-          icon={<Wallet className="h-5 w-5 text-muted-foreground" />}
-        />
-        <StatsCard
-          title="Lucro"
-          value={formatCurrency(profit)}
-          trend={profit >= 0 ? 'up' : 'down'}
-          icon={<TrendingUp className="h-5 w-5 text-success" />}
-        />
-        <StatsCard
-          title="Total Gastos"
-          value={formatCurrency(totalExpenses)}
-          icon={<TrendingDown className="h-5 w-5 text-destructive" />}
-        />
-        <StatsCard
-          title="Balanço Líquido"
-          value={formatCurrency(netBalance)}
-          trend={netBalance >= 0 ? 'up' : 'down'}
-          icon={<Scale className="h-5 w-5 text-muted-foreground" />}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3">
-          <Tabs defaultValue="operations" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="operations">Operações</TabsTrigger>
-              <TabsTrigger value="expenses">Gastos</TabsTrigger>
-            </TabsList>
-            <TabsContent value="operations">
-              <OperationsTable
-                operations={operations}
-                isLoading={isLoading}
-                onAdd={() => {}}
-                onEdit={() => {}}
-                onDelete={() => {}}
-              />
-            </TabsContent>
-            <TabsContent value="expenses">
-              <ExpensesTable
-                expenses={expenses}
-                isLoading={isLoading}
-                onAdd={() => {}}
-                onEdit={() => {}}
-                onDelete={() => {}}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
-        <div>
-          <ProfitByMethodCard operations={operations} methods={methods} />
-        </div>
-      </div>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Users className="h-5 w-5" />
+          Lucro por Usuário
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Usuário</TableHead>
+              <TableHead className="text-center">Operações</TableHead>
+              <TableHead className="text-right">Lucro</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {usersProfits.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                  Nenhum usuário encontrado
+                </TableCell>
+              </TableRow>
+            ) : (
+              usersProfits.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{user.full_name || 'Sem nome'}</span>
+                      {user.role === 'admin' && (
+                        <Badge variant="secondary" className="text-xs">
+                          Admin
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center text-muted-foreground">
+                    {user.operationsCount}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      {user.profit >= 0 ? (
+                        <TrendingUp className="h-4 w-4 text-success" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-destructive" />
+                      )}
+                      <span
+                        className={
+                          user.profit >= 0 ? 'text-success font-medium' : 'text-destructive font-medium'
+                        }
+                      >
+                        {formatCurrency(user.profit)}
+                      </span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={2} className="font-semibold">
+                Total
+              </TableCell>
+              <TableCell className="text-right">
+                <span
+                  className={
+                    totalProfit >= 0
+                      ? 'text-success font-semibold'
+                      : 'text-destructive font-semibold'
+                  }
+                >
+                  {formatCurrency(totalProfit)}
+                </span>
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }

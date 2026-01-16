@@ -36,16 +36,10 @@ export default function Dashboard() {
     end: endOfMonth(new Date()),
   });
 
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-
   const { operations, methods, isLoading: opsLoading, createOperation, updateOperation, deleteOperation, createMethod, deleteMethod } = useOperations(dateRange);
   const { expenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
   const { users, isLoading: usersLoading } = useAllUsers();
-
-  // Admin data for selected user
-  const { operations: adminOperations, methods: adminMethods, isLoading: adminOpsLoading } = useOperations(dateRange, selectedUserId || undefined);
-  const { expenses: adminExpenses, isLoading: adminExpLoading } = useExpenses(dateRange, selectedUserId || undefined);
 
   // All data for global view (showAll = true for admin)
   const { operations: allOperations } = useOperations(dateRange, undefined, true);
@@ -201,12 +195,8 @@ export default function Dashboard() {
             <TabsContent value="individual">
               <AdminIndividualTab
                 users={users}
-                selectedUserId={selectedUserId}
-                onSelectUser={setSelectedUserId}
-                operations={selectedUserId ? adminOperations : []}
-                expenses={selectedUserId ? adminExpenses : []}
-                methods={adminMethods}
-                isLoading={adminOpsLoading || adminExpLoading || usersLoading}
+                allOperations={allOperations}
+                isLoading={usersLoading}
               />
             </TabsContent>
           )}
