@@ -19,6 +19,7 @@ import { GoalsDialog } from '@/components/dashboard/GoalsDialog';
 import { DailyStatsCard } from '@/components/dashboard/DailyStatsCard';
 import { ProfitEvolutionChart } from '@/components/dashboard/ProfitEvolutionChart';
 import { ExpensesByCategoryChart } from '@/components/dashboard/ExpensesByCategoryChart';
+import { UpcomingExpensesCard } from '@/components/dashboard/UpcomingExpensesCard';
 import { AdminIndividualTab } from '@/components/dashboard/AdminIndividualTab';
 import { AdminGlobalTab } from '@/components/dashboard/AdminGlobalTab';
 import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
@@ -39,7 +40,7 @@ export default function Dashboard() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const { operations, methods, isLoading: opsLoading, createOperation, updateOperation, deleteOperation, createMethod, deleteMethod } = useOperations(dateRange);
-  const { expenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
+  const { expenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
   const { users, isLoading: usersLoading } = useAllUsers();
 
@@ -86,6 +87,13 @@ export default function Dashboard() {
       monthlyAvgProfit,
     };
   }, [operations, expenses, profit, dateRange]);
+
+  // Detect if viewing a single day (e.g., "Hoje")
+  const isSingleDayView = useMemo(() => {
+    const startDate = format(dateRange.start, 'yyyy-MM-dd');
+    const endDate = format(dateRange.end, 'yyyy-MM-dd');
+    return startDate === endDate;
+  }, [dateRange]);
 
   const dailyGoals = goals.filter(g => g.goal_type === 'daily');
 
@@ -142,10 +150,12 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-3 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ProfitEvolutionChart operations={operations} />
-                  <ExpensesByCategoryChart expenses={expenses} />
-                </div>
+                {!isSingleDayView && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <ProfitEvolutionChart operations={operations} />
+                    <ExpensesByCategoryChart expenses={expenses} />
+                  </div>
+                )}
                 <OperationsTable
                   operations={operations}
                   isLoading={opsLoading}
@@ -163,6 +173,7 @@ export default function Dashboard() {
                   dailyGoals={dailyGoals}
                 />
                 <ProfitByMethodCard operations={operations} methods={methods} />
+                <UpcomingExpensesCard expenses={upcomingExpenses} />
               </div>
             </div>
           </TabsContent>

@@ -26,6 +26,7 @@ export interface ExpenseCategory {
 
 export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: string, showAll?: boolean) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [upcomingExpenses, setUpcomingExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user, isAdmin } = useAuth();
@@ -126,6 +127,23 @@ export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: str
     return { error };
   };
 
+  const fetchUpcomingExpenses = async () => {
+    if (!user) return;
+    
+    const today = format(new Date(), 'yyyy-MM-dd');
+    
+    const { data, error } = await supabase
+      .from('expenses')
+      .select(`*, category:expense_categories(id, name, color)`)
+      .eq('user_id', user.id)
+      .gt('expense_date', today)
+      .order('expense_date', { ascending: true });
+
+    if (!error && data) {
+      setUpcomingExpenses(data);
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -133,11 +151,13 @@ export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: str
   useEffect(() => {
     if (user) {
       fetchExpenses();
+      fetchUpcomingExpenses();
     }
   }, [user, dateRange, userId, isAdmin, showAll]);
 
   return {
     expenses,
+    upcomingExpenses,
     categories,
     isLoading,
     createExpense,
