@@ -2,15 +2,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
-import { LogOut, Target, Plus } from 'lucide-react';
+import { LogOut, Plus } from 'lucide-react';
 import logo from '@/assets/logo-nova-era-elegant.jpg';
 
 interface DashboardHeaderProps {
-  onOpenGoals: () => void;
   onOpenNewOperation: () => void;
 }
 
-export function DashboardHeader({ onOpenGoals, onOpenNewOperation }: DashboardHeaderProps) {
+export function DashboardHeader({ onOpenNewOperation }: DashboardHeaderProps) {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -37,16 +36,6 @@ export function DashboardHeader({ onOpenGoals, onOpenNewOperation }: DashboardHe
         </div>
 
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onOpenGoals}
-            className="gap-2"
-          >
-            <Target className="h-4 w-4" />
-            Minhas Metas
-          </Button>
-          
           <Button
             size="sm"
             onClick={onOpenNewOperation}
