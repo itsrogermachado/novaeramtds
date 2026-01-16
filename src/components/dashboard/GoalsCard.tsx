@@ -238,12 +238,12 @@ export function GoalsCard({
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">Metas</CardTitle>
+      <CardHeader className="pb-2 md:pb-3 p-3 md:p-6">
+        <CardTitle className="text-sm md:text-base">Metas</CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
-        <ScrollArea className="h-[400px] pr-3">
-          <div className="space-y-5">
+      <CardContent className="pt-0 p-3 md:p-6 md:pt-0">
+        <ScrollArea className="h-[200px] md:h-[400px] pr-2 md:pr-3">
+          <div className="space-y-4 md:space-y-5">
             {renderGoalSection('daily')}
             {renderGoalSection('weekly')}
             {renderGoalSection('monthly')}

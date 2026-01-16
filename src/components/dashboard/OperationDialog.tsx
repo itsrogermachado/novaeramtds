@@ -221,9 +221,9 @@ export function OperationDialog({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
             <div className="space-y-2">
-              <Label>Valor Investido (R$)</Label>
+              <Label className="text-sm">Valor Investido (R$)</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -234,7 +234,7 @@ export function OperationDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>Retorno (R$)</Label>
+              <Label className="text-sm">Retorno (R$)</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -282,15 +282,16 @@ export function OperationDialog({
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || !methodId}>
+            <Button type="submit" disabled={isSubmitting || !methodId} className="w-full sm:w-auto">
               {isSubmitting ? 'Salvando...' : operation ? 'Salvar' : 'Criar'}
             </Button>
           </div>
