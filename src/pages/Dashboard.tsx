@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
-import { startOfMonth, endOfMonth, format } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfWeek, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOperations } from '@/hooks/useOperations';
 import { useExpenses } from '@/hooks/useExpenses';
@@ -15,11 +15,10 @@ import { OperationsTable } from '@/components/dashboard/OperationsTable';
 import { ExpensesTable } from '@/components/dashboard/ExpensesTable';
 import { OperationDialog } from '@/components/dashboard/OperationDialog';
 import { ExpenseDialog } from '@/components/dashboard/ExpenseDialog';
-import { GoalsDialog } from '@/components/dashboard/GoalsDialog';
-import { DailyStatsCard } from '@/components/dashboard/DailyStatsCard';
 import { ProfitEvolutionChart } from '@/components/dashboard/ProfitEvolutionChart';
 import { ExpensesByCategoryChart } from '@/components/dashboard/ExpensesByCategoryChart';
 import { UpcomingExpensesCard } from '@/components/dashboard/UpcomingExpensesCard';
+import { GoalsCard } from '@/components/dashboard/GoalsCard';
 import { AdminIndividualTab } from '@/components/dashboard/AdminIndividualTab';
 import { AdminGlobalTab } from '@/components/dashboard/AdminGlobalTab';
 import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
@@ -54,7 +53,6 @@ export default function Dashboard() {
 
   const [operationDialogOpen, setOperationDialogOpen] = useState(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
-  const [goalsDialogOpen, setGoalsDialogOpen] = useState(false);
   const [editingOperation, setEditingOperation] = useState<Operation | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
@@ -69,24 +67,33 @@ export default function Dashboard() {
   const todayStats = useMemo(() => {
     const today = format(new Date(), 'yyyy-MM-dd');
     const todayOps = operations.filter(op => op.operation_date === today);
-    const todayExps = expenses.filter(exp => exp.expense_date === today);
     
     const todayInvested = todayOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
     const todayReturn = todayOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
     const todayProfit = todayReturn - todayInvested;
-    const todayExpenses = todayExps.reduce((sum, exp) => sum + Number(exp.amount), 0);
-
-    // Calculate monthly average
-    const daysInPeriod = Math.max(1, Math.ceil((dateRange.end.getTime() - dateRange.start.getTime()) / (1000 * 60 * 60 * 24)));
-    const monthlyAvgProfit = profit / daysInPeriod;
 
     return {
       todayProfit,
       todayOperations: todayOps.length,
-      todayExpenses,
-      monthlyAvgProfit,
     };
-  }, [operations, expenses, profit, dateRange]);
+  }, [operations]);
+
+  // Calculate weekly profit
+  const weeklyProfit = useMemo(() => {
+    const today = new Date();
+    const weekStart = startOfWeek(today, { weekStartsOn: 0 });
+    const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+    const todayStr = format(today, 'yyyy-MM-dd');
+    
+    const weekOps = operations.filter(op => 
+      op.operation_date >= weekStartStr && op.operation_date <= todayStr
+    );
+    
+    const invested = weekOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
+    const returned = weekOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
+    
+    return returned - invested;
+  }, [operations]);
 
   // Detect if viewing a single day (e.g., "Hoje")
   const isSingleDayView = useMemo(() => {
@@ -94,8 +101,6 @@ export default function Dashboard() {
     const endDate = format(dateRange.end, 'yyyy-MM-dd');
     return startDate === endDate;
   }, [dateRange]);
-
-  const dailyGoals = goals.filter(g => g.goal_type === 'daily');
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
@@ -122,7 +127,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader
-        onOpenGoals={() => setGoalsDialogOpen(true)}
         onOpenNewOperation={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
       />
 
@@ -139,12 +143,11 @@ export default function Dashboard() {
           </TabsList>
 
           <TabsContent value="my-operations" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <StatsCard title="Operações" value={String(operations.length)} icon={<Receipt className="h-5 w-5 text-muted-foreground" />} />
               <StatsCard title="Total Investido" value={formatCurrency(totalInvested)} icon={<Wallet className="h-5 w-5 text-muted-foreground" />} />
               <StatsCard title="Meu Lucro" value={formatCurrency(profit)} trend={profit >= 0 ? 'up' : 'down'} icon={<TrendingUp className="h-5 w-5 text-success" />} />
               <StatsCard title="Total Gastos" value={formatCurrency(totalExpenses)} icon={<TrendingDown className="h-5 w-5 text-destructive" />} />
-              <StatsCard title="Lucro Operações" value={formatCurrency(profit)} trend={profit >= 0 ? 'up' : 'down'} />
               <StatsCard title="Balanço Líquido" value={formatCurrency(netBalance)} trend={netBalance >= 0 ? 'up' : 'down'} icon={<Scale className="h-5 w-5 text-muted-foreground" />} />
             </div>
 
@@ -165,12 +168,14 @@ export default function Dashboard() {
                 />
               </div>
               <div className="space-y-4">
-                <DailyStatsCard
+                <GoalsCard
+                  goals={goals}
                   todayProfit={todayStats.todayProfit}
-                  todayOperations={todayStats.todayOperations}
-                  todayExpenses={todayStats.todayExpenses}
-                  monthlyAvgProfit={todayStats.monthlyAvgProfit}
-                  dailyGoals={dailyGoals}
+                  weeklyProfit={weeklyProfit}
+                  netBalance={netBalance}
+                  onCreate={createGoal}
+                  onUpdate={updateGoal}
+                  onDelete={deleteGoal}
                 />
                 <ProfitByMethodCard operations={operations} methods={methods} />
                 <UpcomingExpensesCard expenses={upcomingExpenses} />
@@ -240,17 +245,6 @@ export default function Dashboard() {
           if (editingExpense) return updateExpense(editingExpense.id, data);
           return createExpense(data);
         }}
-      />
-
-      <GoalsDialog
-        open={goalsDialogOpen}
-        onOpenChange={setGoalsDialogOpen}
-        goals={goals}
-        netBalance={netBalance}
-        todayProfit={todayStats.todayProfit}
-        onCreate={createGoal}
-        onUpdate={updateGoal}
-        onDelete={deleteGoal}
       />
     </div>
   );

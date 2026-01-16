@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-export type GoalType = 'monthly' | 'daily';
+export type GoalType = 'monthly' | 'daily' | 'weekly';
 
 export interface Goal {
   id: string;
