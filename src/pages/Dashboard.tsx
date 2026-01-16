@@ -136,19 +136,19 @@ export default function Dashboard() {
             {isAdmin && <TabsTrigger value="global" className="text-xs md:text-sm whitespace-nowrap">Global</TabsTrigger>}
           </TabsList>
 
-          <TabsContent value="my-operations" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              <StatsCard title="Operações" value={String(operations.length)} icon={<Receipt className="h-5 w-5 text-muted-foreground" />} />
-              <StatsCard title="Total Investido" value={formatCurrency(totalInvested)} icon={<Wallet className="h-5 w-5 text-muted-foreground" />} />
-              <StatsCard title="Meu Lucro" value={formatCurrency(profit)} trend={profit >= 0 ? 'up' : 'down'} icon={<TrendingUp className="h-5 w-5 text-success" />} />
-              <StatsCard title="Total Gastos" value={formatCurrency(totalExpenses)} icon={<TrendingDown className="h-5 w-5 text-destructive" />} />
-              <StatsCard title="Balanço Líquido" value={formatCurrency(netBalance)} trend={netBalance >= 0 ? 'up' : 'down'} icon={<Scale className="h-5 w-5 text-muted-foreground" />} />
+          <TabsContent value="my-operations" className="space-y-4 md:space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
+              <StatsCard title="Operações" value={String(operations.length)} icon={<Receipt className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} />
+              <StatsCard title="Investido" value={formatCurrency(totalInvested)} icon={<Wallet className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} />
+              <StatsCard title="Lucro" value={formatCurrency(profit)} trend={profit >= 0 ? 'up' : 'down'} icon={<TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-success" />} />
+              <StatsCard title="Gastos" value={formatCurrency(totalExpenses)} icon={<TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />} />
+              <StatsCard title="Balanço" value={formatCurrency(netBalance)} trend={netBalance >= 0 ? 'up' : 'down'} icon={<Scale className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} className="col-span-2 md:col-span-1" />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-3 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="lg:col-span-3 space-y-4 md:space-y-6">
                 {!isSingleDayView && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <ProfitEvolutionChart operations={operations} />
                     <ExpensesByCategoryChart expenses={expenses} />
                   </div>
@@ -161,7 +161,7 @@ export default function Dashboard() {
                   onDelete={handleDeleteOperation}
                 />
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <GoalsCard
                   goals={goals}
                   todayProfit={todayStats.todayProfit}

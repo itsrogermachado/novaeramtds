@@ -27,24 +27,24 @@ export function ProfitByMethodCard({ operations, methods }: ProfitByMethodCardPr
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-5 shadow-elegant">
-      <h3 className="text-sm font-medium text-muted-foreground mb-4">Lucro por Método</h3>
+    <div className="bg-card border border-border rounded-lg p-3 md:p-5 shadow-elegant">
+      <h3 className="text-xs md:text-sm font-medium text-muted-foreground mb-3 md:mb-4">Lucro por Método</h3>
       
       {profitByMethod.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhuma operação no período</p>
+        <p className="text-xs md:text-sm text-muted-foreground">Nenhuma operação no período</p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2 md:space-y-3">
           {profitByMethod.map(({ method, profit, count }) => (
-            <div key={method.id} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div key={method.id} className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 md:gap-2 min-w-0 flex-1">
                 <div 
-                  className="w-3 h-3 rounded-full"
+                  className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shrink-0"
                   style={{ backgroundColor: method.color }}
                 />
-                <span className="text-sm font-medium text-foreground">{method.name}</span>
-                <span className="text-xs text-muted-foreground">({count})</span>
+                <span className="text-xs md:text-sm font-medium text-foreground truncate">{method.name}</span>
+                <span className="text-xs text-muted-foreground shrink-0">({count})</span>
               </div>
-              <span className={`text-sm font-semibold ${profit >= 0 ? 'text-success' : 'text-destructive'}`}>
+              <span className={`text-xs md:text-sm font-semibold shrink-0 ${profit >= 0 ? 'text-success' : 'text-destructive'}`}>
                 {formatCurrency(profit)}
               </span>
             </div>
