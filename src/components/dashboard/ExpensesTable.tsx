@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Expense } from '@/hooks/useExpenses';
+import { Expense, isExpenseEffective } from '@/hooks/useExpenses';
 import { parseDateOnly } from '@/lib/dateOnly';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Pencil, Trash2, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Pencil, Trash2, Plus, ChevronLeft, ChevronRight, CheckCircle, Clock } from 'lucide-react';
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 import { cn } from '@/lib/utils';
 
@@ -78,6 +78,7 @@ export function ExpensesTable({ expenses, onEdit, onDelete, onAdd, isLoading }: 
                 <TableHead className="text-xs md:text-sm font-semibold">Data</TableHead>
                 <TableHead className="text-xs md:text-sm font-semibold">Categoria</TableHead>
                 <TableHead className="text-xs md:text-sm hidden md:table-cell font-semibold">Descrição</TableHead>
+                <TableHead className="text-xs md:text-sm font-semibold">Status</TableHead>
                 <TableHead className="text-xs md:text-sm text-right font-semibold">Valor</TableHead>
                 <TableHead className="text-xs md:text-sm text-right font-semibold">Ações</TableHead>
               </TableRow>
@@ -85,7 +86,7 @@ export function ExpensesTable({ expenses, onEdit, onDelete, onAdd, isLoading }: 
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                       Carregando...
@@ -94,7 +95,7 @@ export function ExpensesTable({ expenses, onEdit, onDelete, onAdd, isLoading }: 
                 </TableRow>
               ) : expenses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     Nenhum gasto encontrado
                   </TableCell>
                 </TableRow>
@@ -127,6 +128,19 @@ export function ExpensesTable({ expenses, onEdit, onDelete, onAdd, isLoading }: 
                       )}
                     </TableCell>
                     <TableCell className="text-xs md:text-sm hidden md:table-cell">{expense.description}</TableCell>
+                    <TableCell className="py-2 md:py-4">
+                      {isExpenseEffective(expense) ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-success/20 text-success">
+                          <CheckCircle className="h-3 w-3" />
+                          <span className="hidden sm:inline">Efetivado</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-warning/20 text-warning">
+                          <Clock className="h-3 w-3" />
+                          <span className="hidden sm:inline">Agendado</span>
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right py-2 md:py-4">
                       <span className="text-destructive font-semibold text-xs md:text-sm px-2 py-1 rounded-md bg-destructive/10">
                         -{formatCurrency(Number(expense.amount))}

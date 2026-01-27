@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +22,12 @@ export interface ExpenseCategory {
   id: string;
   name: string;
   color: string;
+}
+
+// Helper function to check if an expense is effective (date <= today)
+export function isExpenseEffective(expense: Expense): boolean {
+  const today = format(new Date(), 'yyyy-MM-dd');
+  return expense.expense_date <= today;
 }
 
 export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: string, showAll?: boolean) {
@@ -155,8 +161,15 @@ export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: str
     }
   }, [user, dateRange, userId, isAdmin, showAll]);
 
+  // Filter only effective expenses (date <= today) for calculations
+  const effectiveExpenses = useMemo(() => 
+    expenses.filter(isExpenseEffective), 
+    [expenses]
+  );
+
   return {
     expenses,
+    effectiveExpenses,
     upcomingExpenses,
     categories,
     isLoading,

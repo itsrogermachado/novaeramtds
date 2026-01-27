@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { format, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Operation } from './useOperations';
-import { Expense } from './useExpenses';
+import { Expense, isExpenseEffective } from './useExpenses';
 
 export interface MonthlyData {
   month: string;
@@ -32,7 +32,10 @@ export function useMonthlyComparison(
 
       const monthOps = operations.filter(op => op.operation_date.slice(0, 7) === monthKey);
 
-      const monthExps = expenses.filter(exp => exp.expense_date.slice(0, 7) === monthKey);
+      // Filter only effective expenses (date <= today) for monthly comparison
+      const monthExps = expenses.filter(exp => 
+        exp.expense_date.slice(0, 7) === monthKey && isExpenseEffective(exp)
+      );
 
       const totalInvested = monthOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
       const totalReturn = monthOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
