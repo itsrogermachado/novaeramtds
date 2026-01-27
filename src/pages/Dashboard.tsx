@@ -37,24 +37,24 @@ export default function Dashboard() {
   });
 
   const { operations, methods, isLoading: opsLoading, createOperation, updateOperation, deleteOperation, createMethod, deleteMethod } = useOperations(dateRange);
-  const { expenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
+  const { expenses, effectiveExpenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
   const { users, isLoading: usersLoading } = useAllUsers();
 
   // All data for global view (showAll = true for admin)
   const { operations: allOperations } = useOperations(dateRange, undefined, true);
-  const { expenses: allExpenses } = useExpenses(dateRange, undefined, true);
+  const { expenses: allExpenses, effectiveExpenses: allEffectiveExpenses } = useExpenses(dateRange, undefined, true);
 
   const [operationDialogOpen, setOperationDialogOpen] = useState(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [editingOperation, setEditingOperation] = useState<Operation | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
-  // Calculate stats
+  // Calculate stats - use effectiveExpenses for calculations (only expenses with date <= today)
   const totalInvested = operations.reduce((sum, op) => sum + Number(op.invested_amount), 0);
   const totalReturn = operations.reduce((sum, op) => sum + Number(op.return_amount), 0);
   const profit = totalReturn - totalInvested;
-  const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+  const totalExpenses = effectiveExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
   const netBalance = profit - totalExpenses;
 
   // Calculate today's stats
@@ -188,7 +188,7 @@ export default function Dashboard() {
                   {!isSingleDayView && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <ProfitEvolutionChart operations={operations} />
-                      <ExpensesByCategoryChart expenses={expenses} />
+                      <ExpensesByCategoryChart expenses={effectiveExpenses} />
                     </div>
                   )}
                   <OperationsTable
@@ -226,7 +226,7 @@ export default function Dashboard() {
             </TabsContent>
 
             <TabsContent value="comparison">
-              <ComparisonTab operations={operations} expenses={expenses} />
+              <ComparisonTab operations={operations} expenses={effectiveExpenses} />
             </TabsContent>
 
             {isAdmin && (
@@ -243,7 +243,7 @@ export default function Dashboard() {
               <TabsContent value="global">
                 <AdminGlobalTab
                   operations={allOperations}
-                  expenses={allExpenses}
+                  expenses={allEffectiveExpenses}
                   users={users}
                 />
               </TabsContent>
