@@ -69,7 +69,7 @@ export function MethodPostBubble({ post, isAdmin, onEdit, onDelete }: MethodPost
             <img
               src={post.image_url}
               alt="Imagem do método"
-              className="w-full h-auto max-h-80 object-cover"
+              className="w-full h-auto"
             />
           </div>
         )}
@@ -80,7 +80,7 @@ export function MethodPostBubble({ post, isAdmin, onEdit, onDelete }: MethodPost
             <video
               src={post.video_url}
               controls
-              className="w-full max-h-80"
+              className="w-full h-auto"
             />
           </div>
         )}
