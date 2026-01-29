@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
-import { LogOut, Plus, Sparkles } from 'lucide-react';
+import { LogOut, Plus, Sparkles, ExternalLink, Shield } from 'lucide-react';
 import logo from '@/assets/logo-nova-era-elegant.jpg';
 
 interface DashboardHeaderProps {
@@ -64,7 +64,7 @@ export function DashboardHeader({ onOpenNewOperation }: DashboardHeaderProps) {
         </div>
 
         {/* Actions row */}
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-2 md:gap-3 flex-wrap">
           <Button
             size="sm"
             onClick={onOpenNewOperation}
@@ -72,6 +72,30 @@ export function DashboardHeader({ onOpenNewOperation }: DashboardHeaderProps) {
           >
             <Plus className="h-4 w-4" />
             <span className="md:inline">Nova Operação</span>
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            asChild
+            className="flex-1 md:flex-none gap-2"
+          >
+            <a href="https://novaeramtdsloja.lovable.app/" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-4 w-4" />
+              <span>Proxys aqui!</span>
+            </a>
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            asChild
+            className="flex-1 md:flex-none gap-2"
+          >
+            <a href="https://check.proxynovaera.shop/" target="_blank" rel="noopener noreferrer">
+              <Shield className="h-4 w-4" />
+              <span>Verificar proxy</span>
+            </a>
           </Button>
 
           {/* Desktop-only controls */}
