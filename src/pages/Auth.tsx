@@ -108,28 +108,28 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-3 sm:p-4">
       <div className="w-full max-w-md animate-fade-in">
-        <div className="bg-card border border-border rounded-lg p-8 shadow-elegant-lg">
+        <div className="bg-card border border-border rounded-lg p-5 sm:p-6 md:p-8 shadow-elegant-lg">
           {/* Logo */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-5 sm:mb-6 md:mb-8">
             <img 
               src={logo} 
               alt="Nova Era" 
-              className="h-28 w-auto object-contain"
+              className="h-20 sm:h-24 md:h-28 w-auto object-contain"
             />
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl font-display font-semibold text-center text-foreground mb-2">
+          <h1 className="text-xl sm:text-2xl font-display font-semibold text-center text-foreground mb-1.5 sm:mb-2">
             {isLogin ? 'Entrar na sua conta' : 'Criar conta'}
           </h1>
-          <p className="text-sm text-muted-foreground text-center mb-8">
+          <p className="text-xs sm:text-sm text-muted-foreground text-center mb-5 sm:mb-6 md:mb-8">
             {isLogin ? 'Bem-vindo de volta!' : 'Preencha os dados abaixo'}
           </p>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             {!isLogin && (
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="text-sm font-medium">
@@ -193,7 +193,7 @@ export default function Auth() {
           </form>
 
           {/* Toggle */}
-          <div className="mt-6 text-center">
+          <div className="mt-5 sm:mt-6 text-center">
             <button
               type="button"
               onClick={() => {
