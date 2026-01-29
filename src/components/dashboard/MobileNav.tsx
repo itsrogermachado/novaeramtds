@@ -38,9 +38,10 @@ interface MobileNavProps {
   onTabChange: (tab: string) => void;
   onSignOut: () => void;
   hasNewMethods?: boolean;
+  hasNewTutorials?: boolean;
 }
 
-export function MobileNav({ currentTab, onTabChange, onSignOut, hasNewMethods }: MobileNavProps) {
+export function MobileNav({ currentTab, onTabChange, onSignOut, hasNewMethods, hasNewTutorials }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const { isAdmin, isVip, membershipTier } = useAuth();
 
@@ -105,6 +106,9 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, hasNewMethods }:
                   )}>
                     {item.icon}
                     {item.id === 'methods' && hasNewMethods && (
+                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-destructive rounded-full animate-pulse" />
+                    )}
+                    {item.id === 'tutorials' && hasNewTutorials && (
                       <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-destructive rounded-full animate-pulse" />
                     )}
                   </span>

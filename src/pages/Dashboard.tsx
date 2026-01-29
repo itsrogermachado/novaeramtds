@@ -7,6 +7,7 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { useGoals } from '@/hooks/useGoals';
 import { useAllUsers } from '@/hooks/useAllUsers';
 import { useNewMethodsNotification } from '@/hooks/useNewMethodsNotification';
+import { useNewTutorialsNotification } from '@/hooks/useNewTutorialsNotification';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { MobileNav } from '@/components/dashboard/MobileNav';
@@ -48,14 +49,22 @@ export default function Dashboard() {
   const { expenses, effectiveExpenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
   const { users, isLoading: usersLoading } = useAllUsers();
-  const { hasNewMethods, markAsViewed } = useNewMethodsNotification();
+  const { hasNewMethods, markAsViewed: markMethodsAsViewed } = useNewMethodsNotification();
+  const { hasNewTutorials, markAsViewed: markTutorialsAsViewed } = useNewTutorialsNotification();
 
   // Mark methods as viewed when tab changes to methods
   useEffect(() => {
     if (currentTab === 'methods') {
-      markAsViewed();
+      markMethodsAsViewed();
     }
-  }, [currentTab, markAsViewed]);
+  }, [currentTab, markMethodsAsViewed]);
+
+  // Mark tutorials as viewed when tab changes to tutorials
+  useEffect(() => {
+    if (currentTab === 'tutorials') {
+      markTutorialsAsViewed();
+    }
+  }, [currentTab, markTutorialsAsViewed]);
 
   // All data for global view (showAll = true for admin)
   const { operations: allOperations } = useOperations(dateRange, undefined, true);
@@ -160,6 +169,7 @@ export default function Dashboard() {
               onTabChange={setCurrentTab}
               onSignOut={handleSignOut}
               hasNewMethods={hasNewMethods}
+              hasNewTutorials={hasNewTutorials}
             />
           }
         />
@@ -179,10 +189,13 @@ export default function Dashboard() {
               <TabsTrigger value="comparison" className="text-sm whitespace-nowrap">
                 Comparativo
               </TabsTrigger>
-              <TabsTrigger value="tutorials" className="text-sm whitespace-nowrap gap-1">
+              <TabsTrigger value="tutorials" className="text-sm whitespace-nowrap gap-1 relative">
                 {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
                 <Video className="h-3.5 w-3.5" />
                 Tutoriais
+                {hasNewTutorials && (
+                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-destructive rounded-full animate-pulse" />
+                )}
               </TabsTrigger>
               <TabsTrigger value="methods" className="text-sm whitespace-nowrap gap-1 relative">
                 {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
