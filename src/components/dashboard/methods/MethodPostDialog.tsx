@@ -299,7 +299,7 @@ export function MethodPostDialog({
                   <FormControl>
                     <Textarea
                       placeholder="Escreva o conteúdo do método..."
-                      className="min-h-[100px] resize-none"
+                      className="min-h-[200px] resize-y"
                       {...field}
                     />
                   </FormControl>
