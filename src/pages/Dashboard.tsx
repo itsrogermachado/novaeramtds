@@ -145,11 +145,11 @@ export default function Dashboard() {
             <TabsList className="w-full md:w-auto overflow-x-auto flex-nowrap justify-start">
               <TabsTrigger value="my-operations" className="text-xs md:text-sm whitespace-nowrap">Operações</TabsTrigger>
               <TabsTrigger value="my-expenses" className="text-xs md:text-sm whitespace-nowrap">Gastos</TabsTrigger>
-              <TabsTrigger value="comparison" className="text-xs md:text-sm whitespace-nowrap gap-1">
-                {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
+              <TabsTrigger value="comparison" className="text-xs md:text-sm whitespace-nowrap">
                 Comparativo
               </TabsTrigger>
               <TabsTrigger value="tutorials" className="text-xs md:text-sm whitespace-nowrap gap-1">
+                {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
                 <Video className="h-3.5 w-3.5" />
                 Tutoriais
               </TabsTrigger>
@@ -200,30 +200,11 @@ export default function Dashboard() {
 
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
                 <div className="lg:col-span-3 space-y-4 md:space-y-6">
-                  {/* Charts - VIP only */}
+                  {/* Charts - Available to all */}
                   {!isSingleDayView && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                      {(isVip || isAdmin) ? (
-                        <>
-                          <ProfitEvolutionChart operations={operations} />
-                          <ExpensesByCategoryChart expenses={effectiveExpenses} />
-                        </>
-                      ) : (
-                        <>
-                          <div className="relative">
-                            <div className="blur-sm pointer-events-none">
-                              <ProfitEvolutionChart operations={[]} />
-                            </div>
-                            <UpgradePrompt feature="Gráficos de evolução" variant="overlay" />
-                          </div>
-                          <div className="relative">
-                            <div className="blur-sm pointer-events-none">
-                              <ExpensesByCategoryChart expenses={[]} />
-                            </div>
-                            <UpgradePrompt feature="Gráficos de gastos" variant="overlay" />
-                          </div>
-                        </>
-                      )}
+                      <ProfitEvolutionChart operations={operations} />
+                      <ExpensesByCategoryChart expenses={effectiveExpenses} />
                     </div>
                   )}
                   <OperationsTable
@@ -235,33 +216,16 @@ export default function Dashboard() {
                   />
                 </div>
                 <div className="space-y-3 md:space-y-4">
-                  {/* Goals Card - VIP only */}
-                  {(isVip || isAdmin) ? (
-                    <GoalsCard
-                      goals={goals}
-                      todayProfit={todayStats.todayProfit}
-                      weeklyProfit={weeklyProfit}
-                      netBalance={netBalance}
-                      onCreate={createGoal}
-                      onUpdate={updateGoal}
-                      onDelete={deleteGoal}
-                    />
-                  ) : (
-                    <div className="relative">
-                      <div className="blur-sm pointer-events-none opacity-50">
-                        <GoalsCard
-                          goals={[]}
-                          todayProfit={0}
-                          weeklyProfit={0}
-                          netBalance={0}
-                          onCreate={async () => ({ error: null })}
-                          onUpdate={async () => ({ error: null })}
-                          onDelete={async () => ({ error: null })}
-                        />
-                      </div>
-                      <UpgradePrompt feature="Metas financeiras" variant="overlay" />
-                    </div>
-                  )}
+                  {/* Goals Card - Available to all */}
+                  <GoalsCard
+                    goals={goals}
+                    todayProfit={todayStats.todayProfit}
+                    weeklyProfit={weeklyProfit}
+                    netBalance={netBalance}
+                    onCreate={createGoal}
+                    onUpdate={updateGoal}
+                    onDelete={deleteGoal}
+                  />
                   <ProfitByMethodCard operations={operations} methods={methods} />
                   <UpcomingExpensesCard expenses={upcomingExpenses} />
                 </div>
@@ -279,15 +243,15 @@ export default function Dashboard() {
             </TabsContent>
 
             <TabsContent value="comparison">
-              {(isVip || isAdmin) ? (
-                <ComparisonTab operations={operations} expenses={effectiveExpenses} />
-              ) : (
-                <UpgradePrompt feature="O comparativo mensal detalhado" />
-              )}
+              <ComparisonTab operations={operations} expenses={effectiveExpenses} />
             </TabsContent>
 
             <TabsContent value="tutorials">
-              <TutorialsTab />
+              {(isVip || isAdmin) ? (
+                <TutorialsTab />
+              ) : (
+                <UpgradePrompt feature="Os tutoriais exclusivos" />
+              )}
             </TabsContent>
 
             <TabsContent value="dutching">
