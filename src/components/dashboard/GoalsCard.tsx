@@ -260,7 +260,7 @@ export function GoalsCard({
 
   return (
     <Card className="premium-shadow gradient-border animate-slide-up-fade animation-delay-200">
-      <CardHeader className="pb-2 md:pb-3 p-3 md:p-6">
+      <CardHeader className="pb-2 md:pb-3 p-3 sm:p-4 md:p-6">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-gold/10">
             <Target className="h-4 w-4 text-gold" />
@@ -268,9 +268,9 @@ export function GoalsCard({
           <CardTitle className="text-sm md:text-base">Metas</CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="pt-0 p-3 md:p-6 md:pt-0">
-        <ScrollArea className="h-[200px] md:h-[400px] pr-2 md:pr-3">
-          <div className="space-y-5 md:space-y-6">
+      <CardContent className="pt-0 p-3 sm:p-4 md:p-6 md:pt-0">
+        <ScrollArea className="h-[250px] sm:h-[300px] md:h-[400px] pr-2 md:pr-3">
+          <div className="space-y-4 sm:space-y-5 md:space-y-6">
             {renderGoalSection('daily')}
             <div className="decorative-line" />
             {renderGoalSection('weekly')}

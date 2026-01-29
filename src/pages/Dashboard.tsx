@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { startOfMonth, endOfMonth, startOfWeek, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOperations } from '@/hooks/useOperations';
@@ -8,6 +8,7 @@ import { useGoals } from '@/hooks/useGoals';
 import { useAllUsers } from '@/hooks/useAllUsers';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { MobileNav } from '@/components/dashboard/MobileNav';
 import { DateFilter } from '@/components/dashboard/DateFilter';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { ProfitByMethodCard } from '@/components/dashboard/ProfitByMethodCard';
@@ -32,9 +33,11 @@ import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 
 export default function Dashboard() {
-  const { user, isLoading: authLoading, isAdmin, isVip } = useAuth();
+  const { user, isLoading: authLoading, isAdmin, isVip, signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
+  const [currentTab, setCurrentTab] = useState('my-operations');
   const [dateRange, setDateRange] = useState({
     start: startOfMonth(new Date()),
     end: endOfMonth(new Date()),
@@ -53,6 +56,11 @@ export default function Dashboard() {
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [editingOperation, setEditingOperation] = useState<Operation | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   // Calculate stats - use effectiveExpenses for calculations (only expenses with date <= today)
   const totalInvested = operations.reduce((sum, op) => sum + Number(op.invested_amount), 0);
@@ -137,57 +145,68 @@ export default function Dashboard() {
       <div className="relative">
         <DashboardHeader
           onOpenNewOperation={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
+          mobileNav={
+            <MobileNav
+              currentTab={currentTab}
+              onTabChange={setCurrentTab}
+              onSignOut={handleSignOut}
+            />
+          }
         />
 
-        <main className="p-4 md:p-6 space-y-4 md:space-y-6">
+        <main className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
           <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
 
-          <Tabs defaultValue="my-operations" className="space-y-4 md:space-y-6">
-            {/* Enhanced mobile tabs with better scroll indication */}
-            <div className="relative">
-              {/* Fade gradient indicators for scroll */}
-              <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none md:hidden" />
-              <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none md:hidden" />
-              
-              <TabsList className="w-full md:w-auto overflow-x-auto flex-nowrap justify-start px-2 md:px-0 scrollbar-hide">
-                <TabsTrigger value="my-operations" className="text-xs md:text-sm whitespace-nowrap gap-1 px-2.5 sm:px-3">
-                  <span className="hidden xs:inline">Operações</span>
-                  <span className="xs:hidden">Ops</span>
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-4 md:space-y-6">
+            {/* Desktop tabs - hidden on mobile (use drawer instead) */}
+            <TabsList className="hidden md:flex w-auto overflow-x-auto flex-nowrap justify-start">
+              <TabsTrigger value="my-operations" className="text-sm whitespace-nowrap">
+                Operações
+              </TabsTrigger>
+              <TabsTrigger value="my-expenses" className="text-sm whitespace-nowrap">
+                Gastos
+              </TabsTrigger>
+              <TabsTrigger value="comparison" className="text-sm whitespace-nowrap">
+                Comparativo
+              </TabsTrigger>
+              <TabsTrigger value="tutorials" className="text-sm whitespace-nowrap gap-1">
+                {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
+                <Video className="h-3.5 w-3.5" />
+                Tutoriais
+              </TabsTrigger>
+              <TabsTrigger value="methods" className="text-sm whitespace-nowrap gap-1">
+                {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
+                <MessageSquare className="h-3.5 w-3.5" />
+                Métodos
+              </TabsTrigger>
+              <TabsTrigger value="dutching" className="text-sm whitespace-nowrap gap-1">
+                <Calculator className="h-3.5 w-3.5" />
+                Dutching
+              </TabsTrigger>
+              {isAdmin && (
+                <TabsTrigger value="individual" className="text-sm whitespace-nowrap">
+                  Individuais
                 </TabsTrigger>
-                <TabsTrigger value="my-expenses" className="text-xs md:text-sm whitespace-nowrap gap-1 px-2.5 sm:px-3">
-                  <span className="hidden xs:inline">Gastos</span>
-                  <span className="xs:hidden">$$</span>
+              )}
+              {isAdmin && (
+                <TabsTrigger value="global" className="text-sm whitespace-nowrap">
+                  Global
                 </TabsTrigger>
-                <TabsTrigger value="comparison" className="text-xs md:text-sm whitespace-nowrap gap-1 px-2.5 sm:px-3">
-                  <span className="hidden sm:inline">Comparativo</span>
-                  <span className="sm:hidden">Comp</span>
-                </TabsTrigger>
-                <TabsTrigger value="tutorials" className="text-xs md:text-sm whitespace-nowrap gap-1 px-2.5 sm:px-3">
-                  {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
-                  <Video className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Tutoriais</span>
-                </TabsTrigger>
-                <TabsTrigger value="methods" className="text-xs md:text-sm whitespace-nowrap gap-1 px-2.5 sm:px-3">
-                  {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Métodos</span>
-                </TabsTrigger>
-                <TabsTrigger value="dutching" className="text-xs md:text-sm whitespace-nowrap gap-1 px-2.5 sm:px-3">
-                  <Calculator className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Dutching</span>
-                </TabsTrigger>
-                {isAdmin && (
-                  <TabsTrigger value="individual" className="text-xs md:text-sm whitespace-nowrap px-2.5 sm:px-3">
-                    <span className="hidden sm:inline">Individuais</span>
-                    <span className="sm:hidden">Indiv</span>
-                  </TabsTrigger>
-                )}
-                {isAdmin && (
-                  <TabsTrigger value="global" className="text-xs md:text-sm whitespace-nowrap px-2.5 sm:px-3">
-                    Global
-                  </TabsTrigger>
-                )}
-              </TabsList>
+              )}
+            </TabsList>
+
+            {/* Mobile section title */}
+            <div className="md:hidden flex items-center gap-2 px-1">
+              <span className="text-sm font-medium text-foreground">
+                {currentTab === 'my-operations' && 'Minhas Operações'}
+                {currentTab === 'my-expenses' && 'Meus Gastos'}
+                {currentTab === 'comparison' && 'Comparativo'}
+                {currentTab === 'tutorials' && 'Tutoriais'}
+                {currentTab === 'methods' && 'Métodos'}
+                {currentTab === 'dutching' && 'Calculadora Dutching'}
+                {currentTab === 'individual' && 'Usuários Individuais'}
+                {currentTab === 'global' && 'Visão Global'}
+              </span>
             </div>
 
             <TabsContent value="my-operations" className="space-y-4 md:space-y-6">
