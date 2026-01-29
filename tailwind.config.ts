@@ -76,10 +76,17 @@ export default {
           white: "hsl(var(--elegant-white))",
           border: "hsl(var(--elegant-border))",
         },
+        dutching: {
+          orange: "hsl(30 100% 50%)",
+          blue: "hsl(197 100% 68%)",
+          dark: "hsl(235 30% 15%)",
+        },
       },
       fontFamily: {
         display: ["Playfair Display", "serif"],
         body: ["Inter", "sans-serif"],
+        game: ["Rubik", "sans-serif"],
+        "game-body": ["Nunito", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
