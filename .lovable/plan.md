@@ -1,201 +1,84 @@
+# Plano de Otimização Mobile - Nova Era Dashboard
 
-## Plano: Separar Gastos Efetivados vs Agendados
+## 📱 Diagnóstico Atual
 
-### Objetivo
-Garantir que gastos futuros (data > hoje) NÃO impactem os cálculos financeiros do dashboard, mantendo-os visíveis como "Agendados" para projeção.
+### Problemas Identificados:
 
----
+#### 1. **Página de Login (Auth.tsx)**
+- ✅ Já está bem responsivo
+- ⚠️ Logo pode ficar grande demais em telas muito pequenas (h-28)
+- ⚠️ Padding do card (p-8) pode ser excessivo em mobile
 
-### Regras de Negócio
+#### 2. **Header do Dashboard (DashboardHeader.tsx)**
+- ⚠️ Botões "Nossa Loja" e "Consulte sua proxy" ocupam muito espaço horizontal
+- ⚠️ Em mobile, os 3 botões com flex-1 podem ficar apertados
+- ⚠️ Texto dos botões pode quebrar em telas pequenas
 
-| Tipo de Gasto | Impacta Cálculos? | Exibição |
-|---------------|-------------------|----------|
-| `expense_date <= hoje` | SIM | Badge "Efetivado" (verde) |
-| `expense_date > hoje` | NAO | Badge "Agendado" (amarelo) |
+#### 3. **Abas do Dashboard (Dashboard.tsx)**
+- ⚠️ TabsList com muitas abas (8 no total) - difícil navegar em mobile
+- ⚠️ Ícones + texto nas abas ocupam muito espaço
+- ⚠️ Overflow horizontal pode não ser óbvio para usuário
 
----
+#### 4. **Filtro de Data (DateFilter.tsx)**
+- ⚠️ Em telas muito pequenas, os 4 elementos (2 botões + 2 date pickers) podem empilhar mal
+- ⚠️ Formato de data "dd/MM/yy" está ok, mas layout pode melhorar
 
-### Arquivos a Modificar
+#### 5. **Cards de Estatísticas (StatsCard.tsx)**
+- ⚠️ Grid 2 colunas em mobile pode fazer cards ficarem apertados
+- ⚠️ Valores monetários longos podem não caber
 
-#### 1. `src/hooks/useExpenses.ts`
-Adicionar uma função auxiliar e exportar gastos separados:
-
-```typescript
-// Função helper para verificar se gasto está efetivado
-export function isExpenseEffective(expense: Expense): boolean {
-  const today = format(new Date(), 'yyyy-MM-dd');
-  return expense.expense_date <= today;
-}
-
-// No retorno do hook, adicionar:
-return {
-  expenses,           // Todos os gastos (para exibição na tabela)
-  effectiveExpenses,  // Apenas gastos efetivados (para cálculos)
-  upcomingExpenses,
-  ...
-}
-```
+#### 6. **Métodos Tab (MethodsTab.tsx / MethodPostBubble.tsx)**
+- ✅ Já otimizado recentemente
+- ⚠️ Pode precisar ajustes finos
 
 ---
 
-#### 2. `src/pages/Dashboard.tsx`
-Usar `effectiveExpenses` para todos os cálculos:
+## 🎯 Plano de Ação
 
-**Antes:**
-```typescript
-const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-```
+### Fase 1: Header Mobile (Prioridade Alta) ⬅️ COMEÇAR AQUI
+- [ ] Reorganizar botões do header em mobile para layout vertical
+- [ ] Usar texto menor nos botões em mobile
+- [ ] Empilhar "Nova Operação" separado dos links externos
+- [ ] Reduzir padding geral do header em mobile
 
-**Depois:**
-```typescript
-const { expenses, effectiveExpenses } = useExpenses(dateRange);
+### Fase 2: Navegação por Abas (Prioridade Alta)
+- [ ] Melhorar indicador visual de scroll horizontal
+- [ ] Mostrar apenas ícones em mobile com tooltips
+- [ ] Adicionar gradiente de fade nas bordas para indicar scroll
+- [ ] Aumentar padding lateral para melhor scroll touch
 
-// Para cálculos - usar apenas efetivados
-const totalExpenses = effectiveExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+### Fase 3: Página de Login (Prioridade Média)
+- [ ] Reduzir tamanho do logo em telas pequenas (h-20 sm:h-28)
+- [ ] Ajustar padding do card (p-5 sm:p-8)
+- [ ] Reduzir espaçamento vertical entre elementos
 
-// Para exibição na tabela - usar todos
-<ExpensesTable expenses={expenses} ... />
-```
+### Fase 4: Filtros de Data (Prioridade Média)
+- [ ] Empilhar filtros em 2 linhas em mobile
+- [ ] Usar layout mais compacto com gap menor
 
----
+### Fase 5: Cards de Stats (Prioridade Baixa)
+- [ ] Ajustar auto-scale de fonte para valores grandes
+- [ ] Melhorar truncamento com tooltip
 
-#### 3. `src/components/dashboard/ExpensesTable.tsx`
-Adicionar badge de status visual:
-
-```text
-+--------------------------------------------------+
-| Data       | Categoria | Status      | Valor    |
-+--------------------------------------------------+
-| 20/01      | Aluguel   | [Efetivado] | -R$ 500  |
-| 25/01      | Internet  | [Efetivado] | -R$ 100  |
-| 15/02      | Energia   | [Agendado]  | -R$ 200  |
-+--------------------------------------------------+
-```
-
-- Adicionar coluna "Status" com badge colorido
-- "Efetivado" = verde (`bg-success/20 text-success`)
-- "Agendado" = amarelo (`bg-warning/20 text-warning`)
+### Fase 6: Testes Finais
+- [ ] Testar em 320px (iPhone SE)
+- [ ] Testar em 375px (iPhone 12/13)  
+- [ ] Testar em 390px (iPhone 14)
+- [ ] Verificar touch targets (mínimo 44x44px)
 
 ---
 
-#### 4. `src/components/dashboard/ExpensesByCategoryChart.tsx`
-Filtrar apenas gastos efetivados antes de montar o grafico:
+## 📐 Breakpoints de Referência
 
-```typescript
-const effectiveExpenses = expenses.filter(exp => exp.expense_date <= today);
-// usar effectiveExpenses para o chartData
-```
-
----
-
-#### 5. `src/hooks/useMonthlyComparison.ts`
-Filtrar gastos futuros nos comparativos mensais:
-
-```typescript
-const today = format(new Date(), 'yyyy-MM-dd');
-
-// Filtrar apenas gastos efetivados
-const monthExps = expenses.filter(exp => 
-  exp.expense_date.slice(0, 7) === monthKey &&
-  exp.expense_date <= today
-);
-```
+| Breakpoint | Tamanho | Dispositivos |
+|------------|---------|--------------|
+| default | < 640px | Mobile |
+| sm | 640px+ | Mobile grande |
+| md | 768px+ | Tablet |
+| lg | 1024px+ | Desktop |
 
 ---
 
-#### 6. `src/components/dashboard/AdminGlobalTab.tsx`
-Receber `effectiveExpenses` para calculos globais corretamente.
+## Status: 🟡 Aguardando Aprovação
 
----
-
-### Fluxo de Dados Atualizado
-
-```text
-useExpenses()
-    |
-    +-- expenses (todos) ---------> ExpensesTable (exibição)
-    |
-    +-- effectiveExpenses --------> Dashboard (cálculos)
-                                    |
-                                    +-> Card "Gastos"
-                                    +-> Card "Saldo" 
-                                    +-> Card "Lucro"
-                                    +-> Gráficos
-                                    +-> Comparativos
-```
-
----
-
-### Detalhes Técnicos
-
-#### Helper de Verificação (useExpenses.ts)
-```typescript
-import { format } from 'date-fns';
-
-export function isExpenseEffective(expense: Expense): boolean {
-  const today = format(new Date(), 'yyyy-MM-dd');
-  return expense.expense_date <= today;
-}
-```
-
-#### Filtro no Hook
-```typescript
-const effectiveExpenses = useMemo(() => 
-  expenses.filter(isExpenseEffective), 
-  [expenses]
-);
-```
-
-#### Badge de Status (ExpensesTable.tsx)
-```tsx
-import { isExpenseEffective } from '@/hooks/useExpenses';
-import { Clock, CheckCircle } from 'lucide-react';
-
-// Na célula de status:
-{isExpenseEffective(expense) ? (
-  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-success/20 text-success">
-    <CheckCircle className="h-3 w-3" />
-    Efetivado
-  </span>
-) : (
-  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-warning/20 text-warning">
-    <Clock className="h-3 w-3" />
-    Agendado
-  </span>
-)}
-```
-
----
-
-### Resumo das Alterações
-
-| Arquivo | Alteração |
-|---------|-----------|
-| `src/hooks/useExpenses.ts` | Adicionar `isExpenseEffective()` e `effectiveExpenses` |
-| `src/pages/Dashboard.tsx` | Usar `effectiveExpenses` para cálculos |
-| `src/components/dashboard/ExpensesTable.tsx` | Adicionar coluna "Status" com badges |
-| `src/components/dashboard/ExpensesByCategoryChart.tsx` | Filtrar gastos futuros |
-| `src/hooks/useMonthlyComparison.ts` | Filtrar gastos futuros nos comparativos |
-| `src/components/dashboard/AdminGlobalTab.tsx` | Usar gastos efetivados |
-
----
-
-### Resultado Esperado
-
-**Cards do Dashboard:**
-- "Gastos" mostra apenas valores de gastos com data <= hoje
-- "Saldo" calcula corretamente sem gastos futuros
-- "Lucro" não é afetado por projeções
-
-**Tabela de Gastos:**
-- Exibe todos os gastos (passados e futuros)
-- Badge visual distingue "Efetivado" de "Agendado"
-- Gastos agendados aparecem mas não impactam totais
-
-**Gráficos:**
-- Apenas gastos efetivados aparecem nos gráficos
-- Comparativos mensais usam dados reais apenas
-
-**Comportamento Automático:**
-- Quando a data do gasto chegar, ele automaticamente passa a impactar os cálculos
-- Nenhuma ação manual necessária
+Deseja que eu inicie a implementação começando pelo **Header do Dashboard**?
