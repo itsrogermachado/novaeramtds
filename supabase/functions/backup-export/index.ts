@@ -83,6 +83,52 @@ Deno.serve(async (req) => {
       supabase.from('method_links').select('*'),
     ])
 
+    // Fetch storage files from buckets
+    const [tutorialsFiles, methodsFiles] = await Promise.all([
+      supabase.storage.from('tutorials').list('', { limit: 1000 }),
+      supabase.storage.from('methods').list('', { limit: 1000 }),
+    ])
+
+    // Get nested files for tutorials bucket
+    const tutorialFolders = tutorialsFiles.data || []
+    const tutorialStorageFiles: { folder: string; files: string[]; urls: string[] }[] = []
+    
+    for (const folder of tutorialFolders) {
+      if (folder.id === null) { // It's a folder
+        const { data: files } = await supabase.storage.from('tutorials').list(folder.name, { limit: 100 })
+        if (files && files.length > 0) {
+          const urls = files.map(f => 
+            `${supabaseUrl}/storage/v1/object/public/tutorials/${folder.name}/${f.name}`
+          )
+          tutorialStorageFiles.push({
+            folder: folder.name,
+            files: files.map(f => f.name),
+            urls
+          })
+        }
+      }
+    }
+
+    // Get nested files for methods bucket
+    const methodFolders = methodsFiles.data || []
+    const methodStorageFiles: { folder: string; files: string[]; urls: string[] }[] = []
+    
+    for (const folder of methodFolders) {
+      if (folder.id === null) { // It's a folder
+        const { data: files } = await supabase.storage.from('methods').list(folder.name, { limit: 100 })
+        if (files && files.length > 0) {
+          const urls = files.map(f => 
+            `${supabaseUrl}/storage/v1/object/public/methods/${folder.name}/${f.name}`
+          )
+          methodStorageFiles.push({
+            folder: folder.name,
+            files: files.map(f => f.name),
+            urls
+          })
+        }
+      }
+    }
+
     const backup = {
       exported_at: new Date().toISOString(),
       exported_by: user.email,
@@ -101,6 +147,10 @@ Deno.serve(async (req) => {
         method_categories: methodCategories.data || [],
         method_posts: methodPosts.data || [],
         method_links: methodLinks.data || [],
+      },
+      storage: {
+        tutorials: tutorialStorageFiles,
+        methods: methodStorageFiles,
       },
       counts: {
         profiles: profiles.data?.length || 0,
