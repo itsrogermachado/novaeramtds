@@ -2,6 +2,21 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+export interface TutorialLink {
+  id: string;
+  tutorial_id: string;
+  title: string;
+  url: string;
+  display_order: number;
+  created_at: string;
+}
+
+export interface TutorialLinkInput {
+  title: string;
+  url: string;
+  display_order?: number;
+}
+
 export interface Tutorial {
   id: string;
   title: string;
@@ -13,6 +28,7 @@ export interface Tutorial {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  links?: TutorialLink[];
 }
 
 export interface TutorialInput {
@@ -22,6 +38,7 @@ export interface TutorialInput {
   duration_minutes?: number;
   video_url: string;
   thumbnail_url?: string;
+  links?: TutorialLinkInput[];
 }
 
 export function useTutorials() {
@@ -35,20 +52,34 @@ export function useTutorials() {
     
     setIsLoading(true);
 
-    const { data, error } = await supabase
+    // Fetch tutorials
+    const { data: tutorialsData, error: tutorialsError } = await supabase
       .from('tutorials')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (!error && data) {
-      // Cast data as Tutorial[] since types may not be updated yet
-      const typedData = data as unknown as Tutorial[];
-      setTutorials(typedData);
-      
-      // Extract unique categories
-      const uniqueCategories = [...new Set(typedData.map(t => t.category))];
-      setCategories(uniqueCategories);
+    if (tutorialsError || !tutorialsData) {
+      setIsLoading(false);
+      return;
     }
+
+    // Fetch links for all tutorials
+    const { data: linksData } = await supabase
+      .from('tutorial_links')
+      .select('*')
+      .order('display_order', { ascending: true });
+
+    // Map links to tutorials
+    const typedTutorials = (tutorialsData as unknown as Tutorial[]).map(tutorial => ({
+      ...tutorial,
+      links: (linksData as unknown as TutorialLink[] || []).filter(link => link.tutorial_id === tutorial.id)
+    }));
+
+    setTutorials(typedTutorials);
+    
+    // Extract unique categories
+    const uniqueCategories = [...new Set(typedTutorials.map(t => t.category))];
+    setCategories(uniqueCategories);
     
     setIsLoading(false);
   };
@@ -56,38 +87,83 @@ export function useTutorials() {
   const createTutorial = async (tutorial: TutorialInput) => {
     if (!user || !isAdmin) return { error: new Error('Sem permissão') };
 
-    const { error } = await supabase
+    const { links, ...tutorialData } = tutorial;
+
+    const { data, error } = await supabase
       .from('tutorials')
       .insert({
-        ...tutorial,
+        ...tutorialData,
         created_by: user.id,
-      } as any);
+      } as any)
+      .select()
+      .single();
 
-    if (!error) {
-      fetchTutorials();
+    if (error) return { error };
+
+    // Create links if provided
+    if (links && links.length > 0 && data) {
+      const linksToInsert = links.map((link, index) => ({
+        tutorial_id: data.id,
+        title: link.title,
+        url: link.url,
+        display_order: link.display_order ?? index,
+      }));
+
+      await supabase
+        .from('tutorial_links')
+        .insert(linksToInsert as any);
     }
 
-    return { error };
+    fetchTutorials();
+    return { error: null };
   };
 
   const updateTutorial = async (id: string, tutorial: Partial<TutorialInput>) => {
     if (!user || !isAdmin) return { error: new Error('Sem permissão') };
 
-    const { error } = await supabase
-      .from('tutorials')
-      .update(tutorial as any)
-      .eq('id', id);
+    const { links, ...tutorialData } = tutorial;
 
-    if (!error) {
-      fetchTutorials();
+    // Update tutorial data
+    if (Object.keys(tutorialData).length > 0) {
+      const { error } = await supabase
+        .from('tutorials')
+        .update(tutorialData as any)
+        .eq('id', id);
+
+      if (error) return { error };
     }
 
-    return { error };
+    // Update links if provided
+    if (links !== undefined) {
+      // Delete existing links
+      await supabase
+        .from('tutorial_links')
+        .delete()
+        .eq('tutorial_id', id);
+
+      // Insert new links
+      if (links.length > 0) {
+        const linksToInsert = links.map((link, index) => ({
+          tutorial_id: id,
+          title: link.title,
+          url: link.url,
+          display_order: link.display_order ?? index,
+        }));
+
+        await supabase
+          .from('tutorial_links')
+          .insert(linksToInsert as any);
+      }
+    }
+
+    fetchTutorials();
+    return { error: null };
   };
 
   const deleteTutorial = async (id: string) => {
     if (!user || !isAdmin) return { error: new Error('Sem permissão') };
 
+    // Links are deleted automatically via ON DELETE CASCADE
     const { error } = await supabase
       .from('tutorials')
       .delete()

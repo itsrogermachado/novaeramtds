@@ -18,7 +18,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Upload, X, Video, Image, Loader2 } from 'lucide-react';
-import { Tutorial, TutorialInput } from '@/hooks/useTutorials';
+import { Tutorial, TutorialInput, TutorialLinkInput } from '@/hooks/useTutorials';
+import { TutorialLinksEditor } from './TutorialLinksEditor';
 import { cn } from '@/lib/utils';
 
 interface TutorialDialogProps {
@@ -46,6 +47,7 @@ export function TutorialDialog({
   const [durationMinutes, setDurationMinutes] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [links, setLinks] = useState<TutorialLinkInput[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
@@ -65,6 +67,11 @@ export function TutorialDialog({
         setDurationMinutes(tutorial.duration_minutes?.toString() || '');
         setVideoUrl(tutorial.video_url);
         setThumbnailUrl(tutorial.thumbnail_url || '');
+        setLinks(tutorial.links?.map(l => ({
+          title: l.title,
+          url: l.url,
+          display_order: l.display_order
+        })) || []);
       } else {
         setTitle('');
         setDescription('');
@@ -72,6 +79,7 @@ export function TutorialDialog({
         setDurationMinutes('');
         setVideoUrl('');
         setThumbnailUrl('');
+        setLinks([]);
       }
       setNewCategory('');
     }
@@ -127,6 +135,7 @@ export function TutorialDialog({
       duration_minutes: durationMinutes ? parseInt(durationMinutes) : undefined,
       video_url: videoUrl,
       thumbnail_url: thumbnailUrl || undefined,
+      links: links,
     });
 
     setIsSubmitting(false);
@@ -312,6 +321,9 @@ export function TutorialDialog({
               </div>
             )}
           </div>
+
+          {/* Links Editor */}
+          <TutorialLinksEditor links={links} onChange={setLinks} />
 
           <DialogFooter className="mt-6">
             <Button

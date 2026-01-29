@@ -198,6 +198,41 @@ export type Database = {
         }
         Relationships: []
       }
+      tutorial_links: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          title: string
+          tutorial_id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          title: string
+          tutorial_id: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          title?: string
+          tutorial_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutorial_links_tutorial_id_fkey"
+            columns: ["tutorial_id"]
+            isOneToOne: false
+            referencedRelation: "tutorials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tutorials: {
         Row: {
           category: string
