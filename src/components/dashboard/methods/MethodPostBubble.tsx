@@ -21,9 +21,15 @@ function getYouTubeEmbedUrl(url: string): string | null {
   return null;
 }
 
+function isVideoFile(url: string): boolean {
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
+  return videoExtensions.some(ext => url.toLowerCase().includes(ext));
+}
+
 export function MethodPostBubble({ post, isAdmin, onEdit, onDelete }: MethodPostBubbleProps) {
   const categoryColor = post.category?.color || '#3B82F6';
-  const embedUrl = post.video_url ? getYouTubeEmbedUrl(post.video_url) : null;
+  const youtubeEmbedUrl = post.video_url ? getYouTubeEmbedUrl(post.video_url) : null;
+  const isDirectVideo = post.video_url && isVideoFile(post.video_url);
 
   return (
     <div className="flex flex-col gap-1 max-w-[85%] md:max-w-[70%] animate-fade-in">
@@ -73,11 +79,22 @@ export function MethodPostBubble({ post, isAdmin, onEdit, onDelete }: MethodPost
           </div>
         )}
 
-        {/* Video embed */}
-        {embedUrl && (
+        {/* Video - Direct upload */}
+        {isDirectVideo && post.video_url && (
+          <div className="mt-3 rounded-lg overflow-hidden">
+            <video
+              src={post.video_url}
+              controls
+              className="w-full max-h-80"
+            />
+          </div>
+        )}
+
+        {/* Video - YouTube embed */}
+        {youtubeEmbedUrl && (
           <div className="mt-3 rounded-lg overflow-hidden aspect-video">
             <iframe
-              src={embedUrl}
+              src={youtubeEmbedUrl}
               className="w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -86,17 +103,22 @@ export function MethodPostBubble({ post, isAdmin, onEdit, onDelete }: MethodPost
           </div>
         )}
 
-        {/* Link */}
-        {post.link_url && (
-          <a
-            href={post.link_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 flex items-center gap-2 text-sm text-primary hover:underline"
-          >
-            <Link2 className="h-4 w-4" />
-            {post.link_text || post.link_url}
-          </a>
+        {/* Links */}
+        {post.links && post.links.length > 0 && (
+          <div className="mt-3 space-y-1">
+            {post.links.map((link, index) => (
+              <a
+                key={link.id || index}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-primary hover:underline"
+              >
+                <Link2 className="h-4 w-4 shrink-0" />
+                {link.title}
+              </a>
+            ))}
+          </div>
         )}
 
         {/* Admin actions */}

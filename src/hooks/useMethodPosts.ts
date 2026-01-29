@@ -8,17 +8,23 @@ export interface MethodCategory {
   created_at: string;
 }
 
+export interface MethodLink {
+  id?: string;
+  title: string;
+  url: string;
+  display_order: number;
+}
+
 export interface MethodPost {
   id: string;
   category_id: string;
   content: string;
   image_url: string | null;
   video_url: string | null;
-  link_url: string | null;
-  link_text: string | null;
   created_at: string;
   updated_at: string;
   category?: MethodCategory;
+  links?: MethodLink[];
 }
 
 export function useMethodCategories() {
@@ -49,7 +55,7 @@ export function useMethodCategories() {
         .single();
       
       if (error) throw error;
-      return result;
+      return result as MethodCategory;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['method-categories'] });
@@ -104,7 +110,8 @@ export function useMethodPosts(categoryId?: string) {
         .from('method_posts')
         .select(`
           *,
-          category:method_categories(*)
+          category:method_categories(*),
+          links:method_links(*)
         `)
         .order('created_at', { ascending: false });
       
@@ -114,7 +121,12 @@ export function useMethodPosts(categoryId?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as MethodPost[];
+      
+      // Sort links by display_order
+      return (data as MethodPost[]).map(post => ({
+        ...post,
+        links: post.links?.sort((a, b) => a.display_order - b.display_order) || []
+      }));
     },
   });
 
@@ -122,21 +134,39 @@ export function useMethodPosts(categoryId?: string) {
     mutationFn: async (data: {
       category_id: string;
       content: string;
-      image_url?: string;
-      video_url?: string;
-      link_url?: string;
-      link_text?: string;
+      image_url?: string | null;
+      video_url?: string | null;
+      links?: MethodLink[];
     }) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error('Not authenticated');
 
+      const { links, ...postData } = data;
+
       const { data: result, error } = await supabase
         .from('method_posts')
-        .insert({ ...data, created_by: user.user.id })
+        .insert({ ...postData, created_by: user.user.id })
         .select()
         .single();
       
       if (error) throw error;
+
+      // Insert links if provided
+      if (links && links.length > 0) {
+        const linksToInsert = links.map((link, index) => ({
+          method_id: result.id,
+          title: link.title,
+          url: link.url,
+          display_order: index,
+        }));
+
+        const { error: linksError } = await supabase
+          .from('method_links')
+          .insert(linksToInsert);
+        
+        if (linksError) throw linksError;
+      }
+
       return result;
     },
     onSuccess: () => {
@@ -145,14 +175,13 @@ export function useMethodPosts(categoryId?: string) {
   });
 
   const updatePost = useMutation({
-    mutationFn: async ({ id, ...data }: {
+    mutationFn: async ({ id, links, ...data }: {
       id: string;
       category_id: string;
       content: string;
       image_url?: string | null;
       video_url?: string | null;
-      link_url?: string | null;
-      link_text?: string | null;
+      links?: MethodLink[];
     }) => {
       const { error } = await supabase
         .from('method_posts')
@@ -160,6 +189,27 @@ export function useMethodPosts(categoryId?: string) {
         .eq('id', id);
       
       if (error) throw error;
+
+      // Delete existing links and insert new ones
+      await supabase
+        .from('method_links')
+        .delete()
+        .eq('method_id', id);
+
+      if (links && links.length > 0) {
+        const linksToInsert = links.map((link, index) => ({
+          method_id: id,
+          title: link.title,
+          url: link.url,
+          display_order: index,
+        }));
+
+        const { error: linksError } = await supabase
+          .from('method_links')
+          .insert(linksToInsert);
+        
+        if (linksError) throw linksError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['method-posts'] });
@@ -180,11 +230,29 @@ export function useMethodPosts(categoryId?: string) {
     },
   });
 
+  const uploadFile = async (file: File, type: 'image' | 'video'): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${type}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('methods')
+      .upload(fileName, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from('methods')
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  };
+
   return {
     posts,
     isLoading,
     createPost: createPost.mutateAsync,
     updatePost: updatePost.mutateAsync,
     deletePost: deletePost.mutateAsync,
+    uploadFile,
   };
 }
