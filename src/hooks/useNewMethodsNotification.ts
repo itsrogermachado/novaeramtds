@@ -9,7 +9,7 @@ export function useNewMethodsNotification() {
   const { user, isVip, isAdmin } = useAuth();
 
   const checkForNewMethods = useCallback(async () => {
-    if (!user || (!isVip && !isAdmin)) {
+    if (!user) {
       setHasNewMethods(false);
       return;
     }
@@ -48,7 +48,7 @@ export function useNewMethodsNotification() {
 
   // Subscribe to realtime changes for new posts
   useEffect(() => {
-    if (!user || (!isVip && !isAdmin)) return;
+    if (!user) return;
 
     const channel = supabase
       .channel('method_posts_notifications')
