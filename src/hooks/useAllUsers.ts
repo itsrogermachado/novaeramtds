@@ -6,6 +6,7 @@ export interface UserProfile {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
+  email: string | null;
   role: 'admin' | 'user';
 }
 
@@ -24,7 +25,7 @@ export function useAllUsers() {
 
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, full_name, avatar_url')
+      .select('id, full_name, avatar_url, email')
       .order('full_name');
 
     if (profilesError) {
