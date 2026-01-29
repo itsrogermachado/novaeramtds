@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ThemeToggle } from './ThemeToggle';
 import { MembershipBadge } from './MembershipBadge';
+import { NotificationBadge } from './NotificationBadge';
 import {
   Menu,
   X,
@@ -37,11 +38,11 @@ interface MobileNavProps {
   currentTab: string;
   onTabChange: (tab: string) => void;
   onSignOut: () => void;
-  hasNewMethods?: boolean;
-  hasNewTutorials?: boolean;
+  newMethodsCount?: number;
+  newTutorialsCount?: number;
 }
 
-export function MobileNav({ currentTab, onTabChange, onSignOut, hasNewMethods, hasNewTutorials }: MobileNavProps) {
+export function MobileNav({ currentTab, onTabChange, onSignOut, newMethodsCount = 0, newTutorialsCount = 0 }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const { isAdmin, isVip, membershipTier } = useAuth();
 
@@ -105,12 +106,8 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, hasNewMethods, h
                     currentTab === item.id ? "text-primary-foreground" : "text-muted-foreground"
                   )}>
                     {item.icon}
-                    {item.id === 'methods' && hasNewMethods && (
-                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-destructive rounded-full animate-pulse" />
-                    )}
-                    {item.id === 'tutorials' && hasNewTutorials && (
-                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-destructive rounded-full animate-pulse" />
-                    )}
+                    {item.id === 'methods' && <NotificationBadge count={newMethodsCount} />}
+                    {item.id === 'tutorials' && <NotificationBadge count={newTutorialsCount} />}
                   </span>
                   <span className="flex-1 font-medium">{item.label}</span>
                   {item.locked && (

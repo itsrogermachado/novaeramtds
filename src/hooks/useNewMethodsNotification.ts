@@ -5,40 +5,37 @@ import { useAuth } from '@/contexts/AuthContext';
 const LAST_VIEWED_KEY = 'methods_last_viewed';
 
 export function useNewMethodsNotification() {
-  const [hasNewMethods, setHasNewMethods] = useState(false);
-  const { user, isVip, isAdmin } = useAuth();
+  const [newMethodsCount, setNewMethodsCount] = useState(0);
+  const { user } = useAuth();
 
   const checkForNewMethods = useCallback(async () => {
     if (!user) {
-      setHasNewMethods(false);
+      setNewMethodsCount(0);
       return;
     }
 
     const lastViewed = localStorage.getItem(`${LAST_VIEWED_KEY}_${user.id}`);
+    const lastViewedTime = lastViewed ? parseInt(lastViewed, 10) : 0;
+    const lastViewedDate = new Date(lastViewedTime).toISOString();
     
-    // Fetch the most recent method post
-    const { data, error } = await supabase
+    // Count new method posts since last viewed
+    const { count, error } = await supabase
       .from('method_posts')
-      .select('created_at')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .select('*', { count: 'exact', head: true })
+      .gt('created_at', lastViewedDate);
 
-    if (error || !data) {
-      setHasNewMethods(false);
+    if (error) {
+      setNewMethodsCount(0);
       return;
     }
 
-    const latestPostTime = new Date(data.created_at).getTime();
-    const lastViewedTime = lastViewed ? parseInt(lastViewed, 10) : 0;
-
-    setHasNewMethods(latestPostTime > lastViewedTime);
-  }, [user, isVip, isAdmin]);
+    setNewMethodsCount(count || 0);
+  }, [user]);
 
   const markAsViewed = useCallback(() => {
     if (user) {
       localStorage.setItem(`${LAST_VIEWED_KEY}_${user.id}`, Date.now().toString());
-      setHasNewMethods(false);
+      setNewMethodsCount(0);
     }
   }, [user]);
 
@@ -60,7 +57,7 @@ export function useNewMethodsNotification() {
           table: 'method_posts',
         },
         () => {
-          setHasNewMethods(true);
+          setNewMethodsCount(prev => prev + 1);
         }
       )
       .subscribe();
@@ -68,10 +65,11 @@ export function useNewMethodsNotification() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, isVip, isAdmin]);
+  }, [user]);
 
   return {
-    hasNewMethods,
+    newMethodsCount,
+    hasNewMethods: newMethodsCount > 0,
     markAsViewed,
     checkForNewMethods,
   };
