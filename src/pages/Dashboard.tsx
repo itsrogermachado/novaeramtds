@@ -143,29 +143,52 @@ export default function Dashboard() {
           <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
 
           <Tabs defaultValue="my-operations" className="space-y-4 md:space-y-6">
-            <TabsList className="w-full md:w-auto overflow-x-auto flex-nowrap justify-start">
-              <TabsTrigger value="my-operations" className="text-xs md:text-sm whitespace-nowrap">Operações</TabsTrigger>
-              <TabsTrigger value="my-expenses" className="text-xs md:text-sm whitespace-nowrap">Gastos</TabsTrigger>
-              <TabsTrigger value="comparison" className="text-xs md:text-sm whitespace-nowrap">
-                Comparativo
-              </TabsTrigger>
-              <TabsTrigger value="tutorials" className="text-xs md:text-sm whitespace-nowrap gap-1">
-                {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
-                <Video className="h-3.5 w-3.5" />
-                Tutoriais
-              </TabsTrigger>
-              <TabsTrigger value="methods" className="text-xs md:text-sm whitespace-nowrap gap-1">
-                {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
-                <MessageSquare className="h-3.5 w-3.5" />
-                Métodos
-              </TabsTrigger>
-              <TabsTrigger value="dutching" className="text-xs md:text-sm whitespace-nowrap gap-1">
-                <Calculator className="h-3.5 w-3.5" />
-                Dutching
-              </TabsTrigger>
-              {isAdmin && <TabsTrigger value="individual" className="text-xs md:text-sm whitespace-nowrap">Individuais</TabsTrigger>}
-              {isAdmin && <TabsTrigger value="global" className="text-xs md:text-sm whitespace-nowrap">Global</TabsTrigger>}
-            </TabsList>
+            {/* Enhanced mobile tabs with better scroll indication */}
+            <div className="relative">
+              {/* Fade gradient indicators for scroll */}
+              <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none md:hidden" />
+              <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none md:hidden" />
+              
+              <TabsList className="w-full md:w-auto overflow-x-auto flex-nowrap justify-start px-2 md:px-0 scrollbar-hide">
+                <TabsTrigger value="my-operations" className="text-xs md:text-sm whitespace-nowrap gap-1 px-2.5 sm:px-3">
+                  <span className="hidden xs:inline">Operações</span>
+                  <span className="xs:hidden">Ops</span>
+                </TabsTrigger>
+                <TabsTrigger value="my-expenses" className="text-xs md:text-sm whitespace-nowrap gap-1 px-2.5 sm:px-3">
+                  <span className="hidden xs:inline">Gastos</span>
+                  <span className="xs:hidden">$$</span>
+                </TabsTrigger>
+                <TabsTrigger value="comparison" className="text-xs md:text-sm whitespace-nowrap gap-1 px-2.5 sm:px-3">
+                  <span className="hidden sm:inline">Comparativo</span>
+                  <span className="sm:hidden">Comp</span>
+                </TabsTrigger>
+                <TabsTrigger value="tutorials" className="text-xs md:text-sm whitespace-nowrap gap-1 px-2.5 sm:px-3">
+                  {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
+                  <Video className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Tutoriais</span>
+                </TabsTrigger>
+                <TabsTrigger value="methods" className="text-xs md:text-sm whitespace-nowrap gap-1 px-2.5 sm:px-3">
+                  {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Métodos</span>
+                </TabsTrigger>
+                <TabsTrigger value="dutching" className="text-xs md:text-sm whitespace-nowrap gap-1 px-2.5 sm:px-3">
+                  <Calculator className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Dutching</span>
+                </TabsTrigger>
+                {isAdmin && (
+                  <TabsTrigger value="individual" className="text-xs md:text-sm whitespace-nowrap px-2.5 sm:px-3">
+                    <span className="hidden sm:inline">Individuais</span>
+                    <span className="sm:hidden">Indiv</span>
+                  </TabsTrigger>
+                )}
+                {isAdmin && (
+                  <TabsTrigger value="global" className="text-xs md:text-sm whitespace-nowrap px-2.5 sm:px-3">
+                    Global
+                  </TabsTrigger>
+                )}
+              </TabsList>
+            </div>
 
             <TabsContent value="my-operations" className="space-y-4 md:space-y-6">
               {/* Stats Cards - Available to all */}
