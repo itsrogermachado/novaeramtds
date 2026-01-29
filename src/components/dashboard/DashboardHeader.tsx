@@ -5,7 +5,6 @@ import { ThemeToggle } from './ThemeToggle';
 import { MembershipBadge } from './MembershipBadge';
 import { LogOut, Plus, Sparkles, ExternalLink, Shield } from 'lucide-react';
 import logo from '@/assets/logo-nova-era-elegant.jpg';
-
 interface DashboardHeaderProps {
   onOpenNewOperation: () => void;
 }
@@ -77,7 +76,7 @@ export function DashboardHeader({
           <Button size="sm" variant="outline" asChild className="flex-1 md:flex-none gap-2">
             <a href="https://check.proxynovaera.shop/" target="_blank" rel="noopener noreferrer">
               <Shield className="h-4 w-4" />
-              <span>Verificar proxy</span>
+              <span>Consulte sua proxy</span>
             </a>
           </Button>
 
