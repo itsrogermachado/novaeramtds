@@ -256,7 +256,7 @@ export function TutorialDialog({
                   <>
                     <Video className="h-8 w-8 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">Clique para enviar um vídeo</span>
-                    <span className="text-xs text-muted-foreground/70">MP4, WebM ou MOV (máx 100MB)</span>
+                    <span className="text-xs text-muted-foreground/70">MP4, WebM ou MOV (máx 10GB)</span>
                   </>
                 )}
               </div>
