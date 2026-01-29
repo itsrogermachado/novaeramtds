@@ -172,6 +172,41 @@ export type Database = {
         }
         Relationships: []
       }
+      method_links: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          method_id: string
+          title: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          method_id: string
+          title: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          method_id?: string
+          title?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "method_links_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "method_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       method_posts: {
         Row: {
           category_id: string

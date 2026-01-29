@@ -35,15 +35,15 @@ export function MethodsTab() {
     createPost,
     updatePost,
     deletePost,
+    uploadFile,
   } = useMethodPosts(selectedCategory || undefined);
 
   const handleSubmitPost = async (data: {
     category_id: string;
     content: string;
-    image_url?: string;
-    video_url?: string;
-    link_url?: string;
-    link_text?: string;
+    image_url?: string | null;
+    video_url?: string | null;
+    links?: { title: string; url: string; display_order: number }[];
   }) => {
     setIsSubmitting(true);
     try {
@@ -51,10 +51,6 @@ export function MethodsTab() {
         await updatePost({
           id: editingPost.id,
           ...data,
-          image_url: data.image_url || null,
-          video_url: data.video_url || null,
-          link_url: data.link_url || null,
-          link_text: data.link_text || null,
         });
         toast({ title: 'Método atualizado!' });
       } else {
@@ -172,6 +168,8 @@ export function MethodsTab() {
         post={editingPost}
         categories={categories}
         onSubmit={handleSubmitPost}
+        onCreateCategory={createCategory}
+        uploadFile={uploadFile}
         isSubmitting={isSubmitting}
       />
 
