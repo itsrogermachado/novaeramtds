@@ -89,6 +89,7 @@ export function AdminIndividualTab({
           <TableHeader>
             <TableRow>
               <TableHead>Usuário</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead className="text-center">Plano</TableHead>
               <TableHead className="text-center">Operações</TableHead>
               <TableHead className="text-right">Lucro</TableHead>
@@ -97,7 +98,7 @@ export function AdminIndividualTab({
           <TableBody>
             {usersProfits.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                   Nenhum usuário encontrado
                 </TableCell>
               </TableRow>
@@ -113,6 +114,9 @@ export function AdminIndividualTab({
                         </Badge>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {user.email || '-'}
                   </TableCell>
                   <TableCell>
                     <Select
@@ -163,7 +167,7 @@ export function AdminIndividualTab({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={3} className="font-semibold">
+              <TableCell colSpan={4} className="font-semibold">
                 Total
               </TableCell>
               <TableCell className="text-right">
