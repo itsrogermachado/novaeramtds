@@ -48,44 +48,67 @@ export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: str
     }
   };
 
+  // Backend queries default to a max of 1000 rows. We page results to avoid
+  // incorrect totals in Global/Admin views.
+  const PAGE_SIZE = 1000;
+
   const fetchExpenses = async () => {
     // If showAll is requested but auth is still loading, wait
     if (showAll && authLoading) {
       return;
     }
     
+    const buildQuery = () => {
+      let query = supabase
+        .from('expenses')
+        .select(`
+          *,
+          category:expense_categories(id, name, color)
+        `)
+        .order('expense_date', { ascending: false });
+
+      // If showAll is true and user is admin, don't filter (global view)
+      if (showAll && isAdmin) {
+        // No user_id filter - admin sees all expenses
+      } else if (userId && isAdmin) {
+        // Admin viewing specific user
+        query = query.eq('user_id', userId);
+      } else if (user) {
+        // Any user (including admin) viewing their own data
+        query = query.eq('user_id', user.id);
+      }
+
+      if (dateRange) {
+        query = query
+          .gte('expense_date', format(dateRange.start, 'yyyy-MM-dd'))
+          .lte('expense_date', format(dateRange.end, 'yyyy-MM-dd'));
+      }
+
+      return query;
+    };
+
     setIsLoading(true);
-    
-    let query = supabase
-      .from('expenses')
-      .select(`
-        *,
-        category:expense_categories(id, name, color)
-      `)
-      .order('expense_date', { ascending: false });
 
-    // If showAll is true and user is admin, don't filter (global view)
-    if (showAll && isAdmin) {
-      // No user_id filter - admin sees all expenses
-    } else if (userId && isAdmin) {
-      // Admin viewing specific user
-      query = query.eq('user_id', userId);
-    } else if (user) {
-      // Any user (including admin) viewing their own data
-      query = query.eq('user_id', user.id);
+    const all: Expense[] = [];
+    let from = 0;
+    let hadError = false;
+
+    while (true) {
+      const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
+      if (error) {
+        hadError = true;
+        break;
+      }
+
+      const page = (data ?? []) as Expense[];
+      all.push(...page);
+
+      if (page.length < PAGE_SIZE) break;
+      from += PAGE_SIZE;
     }
 
-    if (dateRange) {
-      query = query
-        .gte('expense_date', format(dateRange.start, 'yyyy-MM-dd'))
-        .lte('expense_date', format(dateRange.end, 'yyyy-MM-dd'));
-    }
-
-    const { data, error } = await query;
-
-    if (!error && data) {
-      setExpenses(data);
-    }
+    // If there was an error, keep the previous state to avoid blank UI.
+    if (!hadError) setExpenses(all);
     
     setIsLoading(false);
   };
