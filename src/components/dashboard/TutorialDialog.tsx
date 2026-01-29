@@ -177,7 +177,7 @@ export function TutorialDialog({
               placeholder="Descreva o conteúdo do tutorial..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+              rows={5}
             />
           </div>
 
