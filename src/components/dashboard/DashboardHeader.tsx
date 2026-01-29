@@ -8,10 +8,12 @@ import logo from '@/assets/logo-nova-era-elegant.jpg';
 
 interface DashboardHeaderProps {
   onOpenNewOperation: () => void;
+  mobileNav?: React.ReactNode;
 }
 
 export function DashboardHeader({
-  onOpenNewOperation
+  onOpenNewOperation,
+  mobileNav,
 }: DashboardHeaderProps) {
   const {
     signOut,
@@ -33,12 +35,15 @@ export function DashboardHeader({
         {/* Logo and title row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4">
+            {/* Mobile nav trigger */}
+            {mobileNav}
+            
             {/* Logo with glow effect */}
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-gold/20 to-gold/10 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <img src={logo} alt="Nova Era" className="relative h-8 sm:h-9 md:h-12 w-auto object-contain rounded-lg shadow-elegant" />
             </div>
-            <div>
+            <div className="hidden sm:block">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <h1 className="text-base sm:text-lg md:text-xl font-display font-semibold text-foreground">
                   Nova Era
@@ -57,10 +62,6 @@ export function DashboardHeader({
           {/* Mobile-only controls */}
           <div className="flex items-center gap-1.5 sm:gap-2 md:hidden">
             <MembershipBadge tier={membershipTier} size="sm" />
-            <ThemeToggle />
-            <Button variant="ghost" size="icon" onClick={handleSignOut} className="h-8 w-8 text-muted-foreground hover:text-foreground">
-              <LogOut className="h-4 w-4" />
-            </Button>
           </div>
         </div>
 

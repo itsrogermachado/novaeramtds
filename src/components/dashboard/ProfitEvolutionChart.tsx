@@ -54,21 +54,23 @@ export function ProfitEvolutionChart({ operations }: ProfitEvolutionChartProps) 
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-5 shadow-elegant">
-      <h3 className="text-sm font-medium text-muted-foreground mb-4">Evolução do Lucro</h3>
-      <div className="h-[200px]">
+    <div className="bg-card border border-border rounded-xl p-3 sm:p-4 md:p-5 shadow-elegant">
+      <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-3 sm:mb-4">Evolução do Lucro</h3>
+      <div className="h-[180px] sm:h-[200px] md:h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
+          <LineChart data={chartData} margin={{ left: -10, right: 5, top: 5, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis 
               dataKey="displayDate" 
               stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
+              fontSize={10}
+              tickMargin={8}
             />
             <YAxis 
               stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-              tickFormatter={(value) => `R$${(value / 1000).toFixed(0)}k`}
+              fontSize={10}
+              tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+              width={35}
             />
             <Tooltip
               formatter={(value: number) => [formatCurrency(value), 'Lucro Acumulado']}
@@ -77,6 +79,7 @@ export function ProfitEvolutionChart({ operations }: ProfitEvolutionChartProps) 
                 backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px',
+                fontSize: '12px',
               }}
             />
             <Line

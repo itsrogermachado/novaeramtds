@@ -19,7 +19,9 @@ import {
 } from '@/components/ui/tooltip';
 import { Pencil, Trash2, Plus, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
+import { OperationMobileCard } from './OperationMobileCard';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface OperationsTableProps {
   operations: Operation[];
@@ -35,10 +37,14 @@ export function OperationsTable({ operations, onEdit, onDelete, onAdd, isLoading
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [operationToDelete, setOperationToDelete] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const isMobile = useIsMobile();
 
-  const totalPages = Math.ceil(operations.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const ITEMS_PER_PAGE_MOBILE = 5;
+  const itemsPerPage = isMobile ? ITEMS_PER_PAGE_MOBILE : ITEMS_PER_PAGE;
+  
+  const totalPages = Math.ceil(operations.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
   const paginatedOperations = operations.slice(startIndex, endIndex);
 
   const formatCurrency = (value: number) => {
@@ -69,46 +75,70 @@ export function OperationsTable({ operations, onEdit, onDelete, onAdd, isLoading
     <>
       <div className="bg-card border border-border rounded-xl premium-shadow overflow-hidden animate-slide-up-fade">
         {/* Header with gradient */}
-        <div className="relative p-4 md:p-5 border-b border-border flex items-center justify-between overflow-hidden">
+        <div className="relative p-3 sm:p-4 md:p-5 border-b border-border flex items-center justify-between overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-muted/30 via-transparent to-muted/30 pointer-events-none" />
-          <h3 className="relative text-base md:text-lg font-semibold text-foreground">Histórico de Operações</h3>
-          <Button size="sm" onClick={onAdd} className="relative gap-2 btn-premium text-primary-foreground">
+          <h3 className="relative text-sm sm:text-base md:text-lg font-semibold text-foreground">Histórico</h3>
+          <Button size="sm" onClick={onAdd} className="relative gap-2 btn-premium text-primary-foreground h-9">
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Nova Operação</span>
-            <span className="sm:hidden">Nova</span>
+            <span className="hidden xs:inline">Nova Operação</span>
+            <span className="xs:hidden">Nova</span>
           </Button>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-b border-border/50 bg-muted/30">
-                <TableHead className="font-semibold">Data</TableHead>
-                <TableHead className="font-semibold">Método</TableHead>
-                <TableHead className="text-right hidden sm:table-cell font-semibold">Investido</TableHead>
-                <TableHead className="text-right hidden sm:table-cell font-semibold">Retorno</TableHead>
-                <TableHead className="text-right font-semibold">Lucro</TableHead>
-                <TableHead className="hidden md:table-cell font-semibold">Notas</TableHead>
-                <TableHead className="text-right font-semibold">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                      Carregando...
-                    </div>
-                  </TableCell>
+        {/* Mobile card view */}
+        {isMobile ? (
+          <div className="p-3 space-y-3">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : operations.length === 0 ? (
+              <p className="text-center py-8 text-muted-foreground text-sm">
+                Nenhuma operação encontrada
+              </p>
+            ) : (
+              paginatedOperations.map((operation) => (
+                <OperationMobileCard
+                  key={operation.id}
+                  operation={operation}
+                  onEdit={onEdit}
+                  onDelete={handleDeleteClick}
+                />
+              ))
+            )}
+          </div>
+        ) : (
+          /* Desktop table view */
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-border/50 bg-muted/30">
+                  <TableHead className="font-semibold">Data</TableHead>
+                  <TableHead className="font-semibold">Método</TableHead>
+                  <TableHead className="text-right font-semibold">Investido</TableHead>
+                  <TableHead className="text-right font-semibold">Retorno</TableHead>
+                  <TableHead className="text-right font-semibold">Lucro</TableHead>
+                  <TableHead className="font-semibold">Notas</TableHead>
+                  <TableHead className="text-right font-semibold">Ações</TableHead>
                 </TableRow>
-              ) : operations.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    Nenhuma operação encontrada
-                  </TableCell>
-                </TableRow>
-              ) : (
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        Carregando...
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : operations.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      Nenhuma operação encontrada
+                    </TableCell>
+                  </TableRow>
+                ) : (
                 paginatedOperations.map((operation, index) => {
                   const profit = Number(operation.return_amount) - Number(operation.invested_amount);
                   return (
@@ -194,12 +224,13 @@ export function OperationsTable({ operations, onEdit, onDelete, onAdd, isLoading
                   );
                 })
               )}
-            </TableBody>
-          </Table>
-        </div>
+              </TableBody>
+            </Table>
+          </div>
+        )}
 
         {/* Pagination */}
-        {operations.length > ITEMS_PER_PAGE && (
+        {operations.length > itemsPerPage && (
           <div className="p-3 md:p-4 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-2 bg-muted/20">
             <span className="text-xs md:text-sm text-muted-foreground order-2 sm:order-1">
               Mostrando {startIndex + 1}-{Math.min(endIndex, operations.length)} de {operations.length}
