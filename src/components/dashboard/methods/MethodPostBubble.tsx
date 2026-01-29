@@ -63,14 +63,9 @@ export function MethodPostBubble({ post, isAdmin, onEdit, onDelete }: MethodPost
           </span>
         )}
 
-        {/* Content */}
-        <p className="text-sm md:text-base whitespace-pre-wrap leading-relaxed">
-          {post.content}
-        </p>
-
-        {/* Image */}
+        {/* Image - above content */}
         {post.image_url && (
-          <div className="mt-3 rounded-lg overflow-hidden">
+          <div className="mb-3 rounded-lg overflow-hidden -mx-1">
             <img
               src={post.image_url}
               alt="Imagem do método"
@@ -79,9 +74,9 @@ export function MethodPostBubble({ post, isAdmin, onEdit, onDelete }: MethodPost
           </div>
         )}
 
-        {/* Video - Direct upload */}
+        {/* Video - Direct upload - above content */}
         {isDirectVideo && post.video_url && (
-          <div className="mt-3 rounded-lg overflow-hidden">
+          <div className="mb-3 rounded-lg overflow-hidden -mx-1">
             <video
               src={post.video_url}
               controls
@@ -90,9 +85,9 @@ export function MethodPostBubble({ post, isAdmin, onEdit, onDelete }: MethodPost
           </div>
         )}
 
-        {/* Video - YouTube embed */}
+        {/* Video - YouTube embed - above content */}
         {youtubeEmbedUrl && (
-          <div className="mt-3 rounded-lg overflow-hidden aspect-video">
+          <div className="mb-3 rounded-lg overflow-hidden aspect-video -mx-1">
             <iframe
               src={youtubeEmbedUrl}
               className="w-full h-full"
@@ -102,6 +97,11 @@ export function MethodPostBubble({ post, isAdmin, onEdit, onDelete }: MethodPost
             />
           </div>
         )}
+
+        {/* Content */}
+        <p className="text-sm md:text-base whitespace-pre-wrap leading-relaxed">
+          {post.content}
+        </p>
 
         {/* Links */}
         {post.links && post.links.length > 0 && (
