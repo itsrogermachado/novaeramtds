@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { UserProfile } from '@/hooks/useAllUsers';
 import { useUserMemberships } from '@/hooks/useUserMemberships';
 import { MembershipTier } from '@/contexts/AuthContext';
 import { Operation } from '@/hooks/useOperations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { MembershipBadge } from './MembershipBadge';
 import {
   Table,
@@ -22,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, TrendingUp, TrendingDown, Crown, User } from 'lucide-react';
+import { Users, TrendingUp, TrendingDown, Crown, User, Search } from 'lucide-react';
 
 interface AdminIndividualTabProps {
   users: UserProfile[];
@@ -35,6 +36,7 @@ export function AdminIndividualTab({
   allOperations,
   isLoading,
 }: AdminIndividualTabProps) {
+  const [searchQuery, setSearchQuery] = useState('');
   const { memberships, updateMembership, isLoading: membershipsLoading } = useUserMemberships();
 
   const usersProfits = useMemo(() => {
@@ -55,9 +57,20 @@ export function AdminIndividualTab({
       .sort((a, b) => b.profit - a.profit);
   }, [users, allOperations, memberships]);
 
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery.trim()) return usersProfits;
+    
+    const query = searchQuery.toLowerCase().trim();
+    return usersProfits.filter(user => {
+      const nameMatch = user.full_name?.toLowerCase().includes(query);
+      const emailMatch = user.email?.toLowerCase().includes(query);
+      return nameMatch || emailMatch;
+    });
+  }, [usersProfits, searchQuery]);
+
   const totalProfit = useMemo(() => {
-    return usersProfits.reduce((sum, user) => sum + user.profit, 0);
-  }, [usersProfits]);
+    return filteredUsers.reduce((sum, user) => sum + user.profit, 0);
+  }, [filteredUsers]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -79,10 +92,21 @@ export function AdminIndividualTab({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Lucro por Usuário
-        </CardTitle>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Lucro por Usuário
+          </CardTitle>
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome ou email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <Table>
@@ -96,14 +120,14 @@ export function AdminIndividualTab({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {usersProfits.length === 0 ? (
+            {filteredUsers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                  Nenhum usuário encontrado
+                  {searchQuery ? 'Nenhum usuário encontrado com essa busca' : 'Nenhum usuário encontrado'}
                 </TableCell>
               </TableRow>
             ) : (
-              usersProfits.map((user) => (
+              filteredUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
