@@ -35,7 +35,7 @@ export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: str
   const [upcomingExpenses, setUpcomingExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isLoading: authLoading } = useAuth();
 
   const fetchCategories = async () => {
     const { data, error } = await supabase
@@ -49,6 +49,11 @@ export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: str
   };
 
   const fetchExpenses = async () => {
+    // If showAll is requested but auth is still loading, wait
+    if (showAll && authLoading) {
+      return;
+    }
+    
     setIsLoading(true);
     
     let query = supabase
@@ -155,11 +160,11 @@ export function useExpenses(dateRange?: { start: Date; end: Date }, userId?: str
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user && (!showAll || !authLoading)) {
       fetchExpenses();
       fetchUpcomingExpenses();
     }
-  }, [user, dateRange, userId, isAdmin, showAll]);
+  }, [user, dateRange, userId, isAdmin, showAll, authLoading]);
 
   // Filter only effective expenses (date <= today) for calculations
   const effectiveExpenses = useMemo(() => 

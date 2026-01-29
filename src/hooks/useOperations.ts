@@ -30,7 +30,7 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
   const [operations, setOperations] = useState<Operation[]>([]);
   const [methods, setMethods] = useState<OperationMethod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isLoading: authLoading } = useAuth();
 
   const fetchMethods = async () => {
     if (!user) return;
@@ -50,6 +50,12 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
   const fetchOperations = async () => {
     if (!user) return;
     
+    // If showAll is requested but auth is still loading, wait
+    // This prevents fetching with incorrect isAdmin state
+    if (showAll && authLoading) {
+      return;
+    }
+    
     setIsLoading(true);
     
     let query = supabase
@@ -61,18 +67,14 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
       .order('operation_date', { ascending: false });
 
     // If showAll is true and user is admin, don't filter (global view)
-    // We check isAdmin at the time of the query
     if (showAll && isAdmin) {
       // No user_id filter - admin sees all operations via RLS policy
-      console.log('[useOperations] Admin global view - fetching all operations');
     } else if (userId && isAdmin) {
       // Admin viewing specific user
       query = query.eq('user_id', userId);
-      console.log('[useOperations] Admin viewing specific user:', userId);
     } else {
       // Any user (including admin) viewing their own data
       query = query.eq('user_id', user.id);
-      console.log('[useOperations] User viewing own data:', user.id);
     }
 
     if (dateRange) {
@@ -83,10 +85,7 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
 
     const { data, error } = await query;
 
-    if (error) {
-      console.error('[useOperations] Error fetching operations:', error);
-    } else if (data) {
-      console.log('[useOperations] Fetched operations count:', data.length);
+    if (!error && data) {
       setOperations(data);
     }
     
@@ -182,10 +181,10 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
   }, [user]);
 
   useEffect(() => {
-    if (user) {
+    if (user && (!showAll || !authLoading)) {
       fetchOperations();
     }
-  }, [user, dateRange, userId, isAdmin, showAll]);
+  }, [user, dateRange, userId, isAdmin, showAll, authLoading]);
 
   return {
     operations,
