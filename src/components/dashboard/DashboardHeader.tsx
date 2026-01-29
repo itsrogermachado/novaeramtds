@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
 import { MembershipBadge } from './MembershipBadge';
-import { LogOut, Plus, Sparkles, ExternalLink, Shield } from 'lucide-react';
+import { LogOut, Plus, Sparkles, ExternalLink, Shield, Download, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import logo from '@/assets/logo-nova-era-elegant.jpg';
 
 interface DashboardHeaderProps {
@@ -17,13 +20,62 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const {
     signOut,
-    membershipTier
+    membershipTier,
+    isAdmin,
+    session
   } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isExporting, setIsExporting] = useState(false);
   
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
+  };
+
+  const handleBackupExport = async () => {
+    if (!session?.access_token) {
+      toast({ title: 'Erro', description: 'Você precisa estar logado', variant: 'destructive' });
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const response = await supabase.functions.invoke('backup-export', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Erro ao exportar');
+      }
+
+      // Create download
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup-novaera-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({ 
+        title: 'Backup exportado!', 
+        description: `${response.data.counts?.profiles || 0} usuários, ${response.data.counts?.operations || 0} operações exportadas.` 
+      });
+    } catch (error) {
+      console.error('Backup error:', error);
+      toast({ 
+        title: 'Erro ao exportar', 
+        description: error instanceof Error ? error.message : 'Tente novamente', 
+        variant: 'destructive' 
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
   
   return (
@@ -92,6 +144,24 @@ export function DashboardHeader({
                 <span className="truncate">Proxy</span>
               </a>
             </Button>
+
+            {/* Admin backup button */}
+            {isAdmin && (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={handleBackupExport}
+                disabled={isExporting}
+                className="gap-1.5 h-8 text-xs sm:text-sm px-2.5 sm:px-3"
+              >
+                {isExporting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Download className="h-3.5 w-3.5" />
+                )}
+                <span className="truncate">Backup</span>
+              </Button>
+            )}
 
             {/* Desktop-only controls */}
             <div className="hidden md:flex items-center gap-3">
