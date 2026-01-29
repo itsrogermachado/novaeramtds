@@ -23,8 +23,9 @@ import { AdminIndividualTab } from '@/components/dashboard/AdminIndividualTab';
 import { AdminGlobalTab } from '@/components/dashboard/AdminGlobalTab';
 import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
 import { TutorialsTab } from '@/components/dashboard/TutorialsTab';
+import { DutchingCalculator } from '@/components/dashboard/DutchingCalculator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator } from 'lucide-react';
 import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 
@@ -148,6 +149,10 @@ export default function Dashboard() {
                 <Video className="h-3.5 w-3.5" />
                 Tutoriais
               </TabsTrigger>
+              <TabsTrigger value="dutching" className="text-xs md:text-sm whitespace-nowrap gap-1">
+                <Calculator className="h-3.5 w-3.5" />
+                Dutching
+              </TabsTrigger>
               {isAdmin && <TabsTrigger value="individual" className="text-xs md:text-sm whitespace-nowrap">Individuais</TabsTrigger>}
               {isAdmin && <TabsTrigger value="global" className="text-xs md:text-sm whitespace-nowrap">Global</TabsTrigger>}
             </TabsList>
@@ -236,6 +241,10 @@ export default function Dashboard() {
 
             <TabsContent value="tutorials">
               <TutorialsTab />
+            </TabsContent>
+
+            <TabsContent value="dutching">
+              <DutchingCalculator />
             </TabsContent>
 
             {isAdmin && (
