@@ -311,6 +311,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_memberships: {
+        Row: {
+          created_at: string
+          id: string
+          tier: Database["public"]["Enums"]["membership_tier"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tier?: Database["public"]["Enums"]["membership_tier"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tier?: Database["public"]["Enums"]["membership_tier"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -337,6 +361,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_membership_tier: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["membership_tier"]
+      }
+      has_membership: {
+        Args: {
+          _tier: Database["public"]["Enums"]["membership_tier"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -348,6 +383,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       goal_type: "monthly" | "daily" | "weekly"
+      membership_tier: "free" | "vip"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -477,6 +513,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       goal_type: ["monthly", "daily", "weekly"],
+      membership_tier: ["free", "vip"],
     },
   },
 } as const
