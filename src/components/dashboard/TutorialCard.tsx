@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Play, Clock, Trash2, Pencil, Video } from 'lucide-react';
+import { Play, Clock, Trash2, Pencil, Video, ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { Tutorial } from '@/hooks/useTutorials';
 import { useAuth } from '@/contexts/AuthContext';
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
@@ -122,11 +122,11 @@ export function TutorialCard({ tutorial, onEdit, onDelete }: TutorialCardProps) 
 
       {/* Video Player Dialog */}
       <Dialog open={videoDialogOpen} onOpenChange={setVideoDialogOpen}>
-        <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
           <DialogHeader className="p-4 pb-0">
             <DialogTitle className="font-display pr-8">{tutorial.title}</DialogTitle>
           </DialogHeader>
-          <div className="p-4 pt-2">
+          <div className="p-4 pt-2 space-y-4">
             <div className="aspect-video bg-black rounded-lg overflow-hidden">
               <video
                 src={tutorial.video_url}
@@ -137,10 +137,38 @@ export function TutorialCard({ tutorial, onEdit, onDelete }: TutorialCardProps) 
                 Seu navegador não suporta o elemento de vídeo.
               </video>
             </div>
+            
             {tutorial.description && (
-              <p className="mt-4 text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {tutorial.description}
               </p>
+            )}
+
+            {/* Links Section */}
+            {tutorial.links && tutorial.links.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <LinkIcon className="h-4 w-4" />
+                  Links Relacionados
+                </div>
+                <div className="grid gap-2">
+                  {tutorial.links.map((link) => (
+                    <a
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors group"
+                    >
+                      <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <span className="flex-1 text-sm truncate">{link.title}</span>
+                      <span className="text-xs text-muted-foreground truncate max-w-[200px] hidden sm:inline">
+                        {link.url.replace(/^https?:\/\//, '').split('/')[0]}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         </DialogContent>
