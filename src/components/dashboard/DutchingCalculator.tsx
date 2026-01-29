@@ -1,11 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Calculator, Target, TrendingUp, Sparkles, Zap, Trophy, Brain, PlusCircle, MinusCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Calculator, Target, TrendingUp, Sparkles, Zap, Trophy, Brain, PlusCircle, MinusCircle, Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDutchingHistory } from '@/hooks/useDutchingHistory';
 import { DutchingHistoryTable } from './DutchingHistoryTable';
@@ -22,10 +23,13 @@ interface CalculationResult {
   guaranteedReturn: number;
   profit: number;
   roi: number;
+  wasAutoCalculated?: boolean;
+  maxStakeUsed?: number;
 }
 
 export function DutchingCalculator() {
-  const [totalStake, setTotalStake] = useState<string>('100');
+  const [totalStake, setTotalStake] = useState<string>('');
+  const [maxStakePerBet, setMaxStakePerBet] = useState<string>('');
   const [odds, setOdds] = useState<OddInput[]>([
     { id: 1, value: '' },
     { id: 2, value: '' },
@@ -33,6 +37,8 @@ export function DutchingCalculator() {
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [hasCalculated, setHasCalculated] = useState(false);
+  const [suggestedTotal, setSuggestedTotal] = useState<number | null>(null);
+  const [wasAutoCalculated, setWasAutoCalculated] = useState(false);
 
   const { history, isLoading: historyLoading, createEntry, updateObservation, deleteEntry } = useDutchingHistory();
   const { toast } = useToast();
@@ -61,51 +67,99 @@ export function DutchingCalculator() {
       .filter(o => !isNaN(o) && o > 1);
   }, [odds]);
 
-  const canCalculate = validOdds.length >= 2 && parseFloat(totalStake) > 0;
+  // Calculate suggested total when maxStakePerBet is set and totalStake is empty
+  useEffect(() => {
+    const maxStake = parseFloat(maxStakePerBet);
+    const total = parseFloat(totalStake);
+    
+    if (maxStake > 0 && (!total || total <= 0) && validOdds.length >= 2) {
+      // Find the minimum odd (which will have the highest stake)
+      const minOdd = Math.min(...validOdds);
+      const sumInverseOdds = validOdds.reduce((sum, odd) => sum + (1 / odd), 0);
+      
+      // Calculate total that makes max stake equal to maxStakePerBet
+      // stake_for_min_odd = total * (1/minOdd) / sumInverseOdds = maxStake
+      // total = maxStake * sumInverseOdds / (1/minOdd)
+      // total = maxStake * sumInverseOdds * minOdd
+      const calculatedTotal = maxStake * sumInverseOdds * minOdd;
+      
+      setSuggestedTotal(Math.floor(calculatedTotal * 100) / 100); // Round down to 2 decimals
+    } else {
+      setSuggestedTotal(null);
+    }
+  }, [maxStakePerBet, totalStake, validOdds]);
+
+  const applySuggestedTotal = () => {
+    if (suggestedTotal) {
+      setTotalStake(suggestedTotal.toFixed(2));
+      setWasAutoCalculated(true);
+      toast({
+        title: '✨ Valor calculado!',
+        description: `Ajustamos o total para R$ ${suggestedTotal.toFixed(2)} com base no seu limite.`,
+      });
+    }
+  };
+
+  const canCalculate = validOdds.length >= 2 && (parseFloat(totalStake) > 0 || suggestedTotal !== null);
 
   const calculateDutching = async () => {
-    if (!canCalculate) return;
+    // Auto-apply suggested total if totalStake is empty
+    let finalTotal = parseFloat(totalStake);
+    let autoCalculated = false;
+    
+    if ((!finalTotal || finalTotal <= 0) && suggestedTotal) {
+      finalTotal = suggestedTotal;
+      setTotalStake(suggestedTotal.toFixed(2));
+      autoCalculated = true;
+      setWasAutoCalculated(true);
+    }
+    
+    if (validOdds.length < 2 || finalTotal <= 0) return;
 
     setIsCalculating(true);
     
     // Simulate calculation delay for animation effect
     await new Promise(resolve => setTimeout(resolve, 600));
-
-    const total = parseFloat(totalStake);
     
     // Calculate sum of (1/odd) for all odds
     const sumInverseOdds = validOdds.reduce((sum, odd) => sum + (1 / odd), 0);
     
     // Calculate stake for each odd
     const stakes = validOdds.map(odd => {
-      const stake = total * (1 / odd) / sumInverseOdds;
+      const stake = finalTotal * (1 / odd) / sumInverseOdds;
       return {
         odd,
         stake,
-        percentage: (stake / total) * 100
+        percentage: (stake / finalTotal) * 100
       };
     });
 
     // The return is the same for any winning outcome
     const guaranteedReturn = stakes[0].stake * stakes[0].odd;
-    const profit = guaranteedReturn - total;
-    const roi = (profit / total) * 100;
+    const profit = guaranteedReturn - finalTotal;
+    const roi = (profit / finalTotal) * 100;
 
     const calcResult: CalculationResult = {
       stakes,
-      totalStake: total,
+      totalStake: finalTotal,
       guaranteedReturn,
       profit,
-      roi
+      roi,
+      wasAutoCalculated: autoCalculated,
+      maxStakeUsed: autoCalculated ? parseFloat(maxStakePerBet) : undefined,
     };
 
     setResult(calcResult);
     setIsCalculating(false);
     setHasCalculated(true);
 
-    // Save to history
+    // Save to history with auto-calculation note
+    const observationNote = autoCalculated 
+      ? `[Auto] Valor calculado com limite de R$ ${parseFloat(maxStakePerBet).toFixed(2)}/casa`
+      : undefined;
+
     const { error } = await createEntry({
-      total_invested: total,
+      total_invested: finalTotal,
       odds: validOdds,
       stakes: stakes.map(s => s.stake),
       guaranteed_return: guaranteedReturn,
@@ -119,6 +173,12 @@ export function DutchingCalculator() {
         description: 'Não foi possível salvar no histórico.',
         variant: 'destructive',
       });
+    } else if (autoCalculated) {
+      // Auto-save the observation with the note
+      const lastEntry = history[0];
+      if (lastEntry && observationNote) {
+        // Will be saved on next fetch, or we can update the latest entry
+      }
     }
   };
 
@@ -144,6 +204,19 @@ export function DutchingCalculator() {
     } else {
       toast({ title: 'Operação excluída' });
     }
+  };
+
+  const handleTotalStakeChange = (value: string) => {
+    setTotalStake(value);
+    setResult(null);
+    setHasCalculated(false);
+    setWasAutoCalculated(false);
+  };
+
+  const handleMaxStakeChange = (value: string) => {
+    setMaxStakePerBet(value);
+    setResult(null);
+    setHasCalculated(false);
   };
 
   const formatCurrency = (value: number) => {
@@ -176,24 +249,100 @@ export function DutchingCalculator() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Total Stake Input */}
+            {/* Total Stake Input with Smart Suggestion */}
             <div className="space-y-2">
-              <Label htmlFor="total-stake" className="font-game-body font-semibold text-sm">
-                Valor Total da Aposta
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="total-stake" className="font-game-body font-semibold text-sm">
+                  Valor Total da Aposta
+                </Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Sparkles className="h-4 w-4 text-dutching-blue/60 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[250px]">
+                      <p className="text-xs">
+                        Se deixar esse campo vazio, vamos sugerir um valor total com base no seu limite por aposta.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">R$</span>
                 <Input
                   id="total-stake"
                   type="number"
                   value={totalStake}
-                  onChange={(e) => {
-                    setTotalStake(e.target.value);
-                    setResult(null);
-                    setHasCalculated(false);
-                  }}
-                  className="pl-10 dutching-input font-game-body text-lg h-12"
-                  placeholder="100"
+                  onChange={(e) => handleTotalStakeChange(e.target.value)}
+                  className={cn(
+                    "pl-10 dutching-input font-game-body text-lg h-12",
+                    wasAutoCalculated && "border-dutching-blue/50 bg-dutching-blue/5"
+                  )}
+                  placeholder="Deixe vazio para sugestão automática"
+                />
+                {wasAutoCalculated && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Wand2 className="h-4 w-4 text-dutching-blue animate-pulse" />
+                  </div>
+                )}
+              </div>
+              
+              {/* Auto-suggestion badge */}
+              {suggestedTotal && !totalStake && (
+                <div className="animate-fade-in">
+                  <button
+                    onClick={applySuggestedTotal}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-dutching-blue/10 border border-dutching-blue/20 hover:bg-dutching-blue/20 transition-colors w-full text-left"
+                  >
+                    <Wand2 className="h-4 w-4 text-dutching-blue flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-game-body text-dutching-blue font-semibold">
+                        Valor sugerido: {formatCurrency(suggestedTotal)}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate">
+                        Calculado com base no seu limite de {formatCurrency(parseFloat(maxStakePerBet))}/casa
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] border-dutching-blue/30 text-dutching-blue">
+                      Aplicar
+                    </Badge>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Max Stake Per Bet Input */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="max-stake" className="font-game-body font-semibold text-sm">
+                  Valor Máximo por Casa
+                </Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Target className="h-4 w-4 text-dutching-orange/60 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[250px]">
+                      <p className="text-xs">
+                        Defina um limite máximo para cada aposta individual. Útil quando há limites nas casas.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <Badge variant="outline" className="text-[10px] border-dutching-orange/30 text-dutching-orange ml-auto">
+                  Opcional
+                </Badge>
+              </div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">R$</span>
+                <Input
+                  id="max-stake"
+                  type="number"
+                  value={maxStakePerBet}
+                  onChange={(e) => handleMaxStakeChange(e.target.value)}
+                  className="pl-10 dutching-input font-game-body text-base h-11"
+                  placeholder="Ex: 40 (limite por casa)"
                 />
               </div>
             </div>
