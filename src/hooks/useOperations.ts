@@ -32,6 +32,10 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
   const [isLoading, setIsLoading] = useState(true);
   const { user, isAdmin, isLoading: authLoading } = useAuth();
 
+  // Backend queries default to a max of 1000 rows. We page results to avoid
+  // incorrect totals in Global/Admin views.
+  const PAGE_SIZE = 1000;
+
   const fetchMethods = async () => {
     if (!user) return;
     
@@ -49,46 +53,62 @@ export function useOperations(dateRange?: { start: Date; end: Date }, userId?: s
 
   const fetchOperations = async () => {
     if (!user) return;
-    
-    // If showAll is requested but auth is still loading, wait
-    // This prevents fetching with incorrect isAdmin state
-    if (showAll && authLoading) {
-      return;
-    }
-    
+
+    // If showAll is requested but auth is still loading, wait.
+    // This prevents fetching with incorrect isAdmin state.
+    if (showAll && authLoading) return;
+
+    const buildQuery = () => {
+      let query = supabase
+        .from('operations')
+        .select(
+          `
+          *,
+          method:operation_methods(id, name, color)
+        `,
+        )
+        .order('operation_date', { ascending: false });
+
+      if (showAll && isAdmin) {
+        // No user_id filter - admin sees all operations via RLS policy
+      } else if (userId && isAdmin) {
+        query = query.eq('user_id', userId);
+      } else {
+        query = query.eq('user_id', user.id);
+      }
+
+      if (dateRange) {
+        query = query
+          .gte('operation_date', format(dateRange.start, 'yyyy-MM-dd'))
+          .lte('operation_date', format(dateRange.end, 'yyyy-MM-dd'));
+      }
+
+      return query;
+    };
+
     setIsLoading(true);
-    
-    let query = supabase
-      .from('operations')
-      .select(`
-        *,
-        method:operation_methods(id, name, color)
-      `)
-      .order('operation_date', { ascending: false });
 
-    // If showAll is true and user is admin, don't filter (global view)
-    if (showAll && isAdmin) {
-      // No user_id filter - admin sees all operations via RLS policy
-    } else if (userId && isAdmin) {
-      // Admin viewing specific user
-      query = query.eq('user_id', userId);
-    } else {
-      // Any user (including admin) viewing their own data
-      query = query.eq('user_id', user.id);
+    const all: Operation[] = [];
+    let from = 0;
+    let hadError = false;
+
+    while (true) {
+      const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
+      if (error) {
+        hadError = true;
+        break;
+      }
+
+      const page = (data ?? []) as Operation[];
+      all.push(...page);
+
+      if (page.length < PAGE_SIZE) break;
+      from += PAGE_SIZE;
     }
 
-    if (dateRange) {
-      query = query
-        .gte('operation_date', format(dateRange.start, 'yyyy-MM-dd'))
-        .lte('operation_date', format(dateRange.end, 'yyyy-MM-dd'));
-    }
+    // If there was an error, keep the previous state to avoid blank UI.
+    if (!hadError) setOperations(all);
 
-    const { data, error } = await query;
-
-    if (!error && data) {
-      setOperations(data);
-    }
-    
     setIsLoading(false);
   };
 
