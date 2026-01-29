@@ -151,7 +151,7 @@ export default function Dashboard() {
               <TabsTrigger value="tutorials" className="text-xs md:text-sm whitespace-nowrap gap-1">
                 {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
                 <Video className="h-3.5 w-3.5" />
-                Tutoriais
+                Tutoriais de métodos
               </TabsTrigger>
               <TabsTrigger value="dutching" className="text-xs md:text-sm whitespace-nowrap gap-1">
                 <Calculator className="h-3.5 w-3.5" />
