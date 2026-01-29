@@ -110,7 +110,7 @@ export function MethodsTab() {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 px-3 sm:px-6">
         {/* Category filters */}
         <CategoryFilter
           categories={categories}
@@ -121,16 +121,16 @@ export function MethodsTab() {
         />
 
         {/* Posts feed */}
-        <ScrollArea className="h-[60vh] pr-4">
-          <div className="space-y-4 py-2">
+        <ScrollArea className="h-[55vh] sm:h-[60vh] pr-2 sm:pr-4">
+          <div className="space-y-3 sm:space-y-4 py-2">
             {isLoading ? (
               <div className="flex justify-center py-12">
                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
             ) : posts.length === 0 ? (
-              <div className="text-center py-12">
-                <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground">
+              <div className="text-center py-8 sm:py-12 px-4">
+                <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground/50 mb-4" />
+                <p className="text-sm sm:text-base text-muted-foreground">
                   {selectedCategory
                     ? 'Nenhum método nesta categoria ainda.'
                     : 'Nenhum método publicado ainda.'}
