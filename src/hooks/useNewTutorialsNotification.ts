@@ -5,40 +5,37 @@ import { useAuth } from '@/contexts/AuthContext';
 const LAST_VIEWED_KEY = 'tutorials_last_viewed';
 
 export function useNewTutorialsNotification() {
-  const [hasNewTutorials, setHasNewTutorials] = useState(false);
+  const [newTutorialsCount, setNewTutorialsCount] = useState(0);
   const { user } = useAuth();
 
   const checkForNewTutorials = useCallback(async () => {
     if (!user) {
-      setHasNewTutorials(false);
+      setNewTutorialsCount(0);
       return;
     }
 
     const lastViewed = localStorage.getItem(`${LAST_VIEWED_KEY}_${user.id}`);
+    const lastViewedTime = lastViewed ? parseInt(lastViewed, 10) : 0;
+    const lastViewedDate = new Date(lastViewedTime).toISOString();
     
-    // Fetch the most recent tutorial
-    const { data, error } = await supabase
+    // Count new tutorials since last viewed
+    const { count, error } = await supabase
       .from('tutorials')
-      .select('created_at')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .select('*', { count: 'exact', head: true })
+      .gt('created_at', lastViewedDate);
 
-    if (error || !data) {
-      setHasNewTutorials(false);
+    if (error) {
+      setNewTutorialsCount(0);
       return;
     }
 
-    const latestTutorialTime = new Date(data.created_at).getTime();
-    const lastViewedTime = lastViewed ? parseInt(lastViewed, 10) : 0;
-
-    setHasNewTutorials(latestTutorialTime > lastViewedTime);
+    setNewTutorialsCount(count || 0);
   }, [user]);
 
   const markAsViewed = useCallback(() => {
     if (user) {
       localStorage.setItem(`${LAST_VIEWED_KEY}_${user.id}`, Date.now().toString());
-      setHasNewTutorials(false);
+      setNewTutorialsCount(0);
     }
   }, [user]);
 
@@ -60,7 +57,7 @@ export function useNewTutorialsNotification() {
           table: 'tutorials',
         },
         () => {
-          setHasNewTutorials(true);
+          setNewTutorialsCount(prev => prev + 1);
         }
       )
       .subscribe();
@@ -71,7 +68,8 @@ export function useNewTutorialsNotification() {
   }, [user]);
 
   return {
-    hasNewTutorials,
+    newTutorialsCount,
+    hasNewTutorials: newTutorialsCount > 0,
     markAsViewed,
     checkForNewTutorials,
   };
