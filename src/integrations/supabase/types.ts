@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      dutching_history: {
+        Row: {
+          created_at: string
+          guaranteed_return: number
+          id: string
+          observation: string | null
+          odds: number[]
+          profit: number
+          roi: number
+          stakes: number[]
+          total_invested: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          guaranteed_return: number
+          id?: string
+          observation?: string | null
+          odds: number[]
+          profit: number
+          roi: number
+          stakes: number[]
+          total_invested: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          guaranteed_return?: number
+          id?: string
+          observation?: string | null
+          odds?: number[]
+          profit?: number
+          roi?: number
+          stakes?: number[]
+          total_invested?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       expense_categories: {
         Row: {
           color: string
