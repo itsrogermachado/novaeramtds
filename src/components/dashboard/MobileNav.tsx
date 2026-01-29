@@ -37,9 +37,10 @@ interface MobileNavProps {
   currentTab: string;
   onTabChange: (tab: string) => void;
   onSignOut: () => void;
+  hasNewMethods?: boolean;
 }
 
-export function MobileNav({ currentTab, onTabChange, onSignOut }: MobileNavProps) {
+export function MobileNav({ currentTab, onTabChange, onSignOut, hasNewMethods }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const { isAdmin, isVip, membershipTier } = useAuth();
 
@@ -99,10 +100,13 @@ export function MobileNav({ currentTab, onTabChange, onSignOut }: MobileNavProps
                   )}
                 >
                   <span className={cn(
-                    "shrink-0",
+                    "shrink-0 relative",
                     currentTab === item.id ? "text-primary-foreground" : "text-muted-foreground"
                   )}>
                     {item.icon}
+                    {item.id === 'methods' && hasNewMethods && (
+                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-destructive rounded-full animate-pulse" />
+                    )}
                   </span>
                   <span className="flex-1 font-medium">{item.label}</span>
                   {item.locked && (
