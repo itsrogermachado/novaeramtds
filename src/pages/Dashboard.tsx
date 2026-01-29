@@ -22,8 +22,9 @@ import { GoalsCard } from '@/components/dashboard/GoalsCard';
 import { AdminIndividualTab } from '@/components/dashboard/AdminIndividualTab';
 import { AdminGlobalTab } from '@/components/dashboard/AdminGlobalTab';
 import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
+import { TutorialsTab } from '@/components/dashboard/TutorialsTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, Wallet, Receipt, Scale } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video } from 'lucide-react';
 import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 
@@ -143,6 +144,10 @@ export default function Dashboard() {
               <TabsTrigger value="my-operations" className="text-xs md:text-sm whitespace-nowrap">Operações</TabsTrigger>
               <TabsTrigger value="my-expenses" className="text-xs md:text-sm whitespace-nowrap">Gastos</TabsTrigger>
               <TabsTrigger value="comparison" className="text-xs md:text-sm whitespace-nowrap">Comparativo</TabsTrigger>
+              <TabsTrigger value="tutorials" className="text-xs md:text-sm whitespace-nowrap gap-1">
+                <Video className="h-3.5 w-3.5" />
+                Tutoriais
+              </TabsTrigger>
               {isAdmin && <TabsTrigger value="individual" className="text-xs md:text-sm whitespace-nowrap">Individuais</TabsTrigger>}
               {isAdmin && <TabsTrigger value="global" className="text-xs md:text-sm whitespace-nowrap">Global</TabsTrigger>}
             </TabsList>
@@ -227,6 +232,10 @@ export default function Dashboard() {
 
             <TabsContent value="comparison">
               <ComparisonTab operations={operations} expenses={effectiveExpenses} />
+            </TabsContent>
+
+            <TabsContent value="tutorials">
+              <TutorialsTab />
             </TabsContent>
 
             {isAdmin && (
