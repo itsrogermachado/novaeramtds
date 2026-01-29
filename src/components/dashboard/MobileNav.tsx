@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from './ThemeToggle';
 import { MembershipBadge } from './MembershipBadge';
 import { NotificationBadge } from './NotificationBadge';
 import {
   Menu,
-  X,
   TrendingUp,
   Receipt,
   Scale,
@@ -22,6 +24,7 @@ import {
   ExternalLink,
   Shield,
   LogOut,
+  UserCircle,
 } from 'lucide-react';
 import logo from '@/assets/logo-nova-era-elegant.jpg';
 import { cn } from '@/lib/utils';
@@ -44,7 +47,29 @@ interface MobileNavProps {
 
 export function MobileNav({ currentTab, onTabChange, onSignOut, newMethodsCount = 0, newTutorialsCount = 0 }: MobileNavProps) {
   const [open, setOpen] = useState(false);
-  const { isAdmin, isVip, membershipTier } = useAuth();
+  const { isAdmin, isVip, membershipTier, user } = useAuth();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) setProfile(data);
+        });
+    }
+  }, [user]);
+
+  const getInitials = () => {
+    if (profile?.full_name) {
+      return profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    return user?.email?.[0]?.toUpperCase() || 'U';
+  };
 
   const navItems: NavItem[] = [
     { id: 'my-operations', label: 'Minhas Operações', icon: <TrendingUp className="h-5 w-5" /> },
@@ -151,6 +176,27 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newMethodsCount 
 
           {/* Footer */}
           <div className="p-4 border-t border-border space-y-3">
+            {/* Profile link */}
+            <button
+              onClick={() => {
+                setOpen(false);
+                navigate('/profile');
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors"
+            >
+              <Avatar className="h-10 w-10 border-2 border-border">
+                <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'Avatar'} />
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 text-left">
+                <p className="font-medium text-sm">{profile?.full_name || 'Meu Perfil'}</p>
+                <p className="text-xs text-muted-foreground">Editar perfil</p>
+              </div>
+              <UserCircle className="h-5 w-5 text-muted-foreground" />
+            </button>
+
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Tema</span>
               <ThemeToggle />

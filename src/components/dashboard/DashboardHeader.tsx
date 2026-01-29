@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
 import { MembershipBadge } from './MembershipBadge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogOut, Plus, Sparkles, ExternalLink, Shield, Download, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import logo from '@/assets/logo-nova-era-elegant.jpg';
@@ -22,11 +23,33 @@ export function DashboardHeader({
     signOut,
     membershipTier,
     isAdmin,
-    session
+    session,
+    user
   } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
+  const [profile, setProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) setProfile(data);
+        });
+    }
+  }, [user]);
+
+  const getInitials = () => {
+    if (profile?.full_name) {
+      return profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    return user?.email?.[0]?.toUpperCase() || 'U';
+  };
   
   const handleSignOut = async () => {
     await signOut();
@@ -166,6 +189,21 @@ export function DashboardHeader({
             {/* Desktop-only controls */}
             <div className="hidden md:flex items-center gap-3">
               <ThemeToggle />
+              
+              {/* Profile Avatar */}
+              <button
+                onClick={() => navigate('/profile')}
+                className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full transition-transform hover:scale-105"
+                title="Meu Perfil"
+              >
+                <Avatar className="h-8 w-8 border-2 border-border hover:border-primary transition-colors">
+                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'Avatar'} />
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200">
                 <LogOut className="h-4 w-4" />
                 Sair
