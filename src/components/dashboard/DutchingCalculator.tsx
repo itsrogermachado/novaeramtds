@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Calculator, Target, TrendingUp, Sparkles, Zap, Trophy, Brain, PlusCircle, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDutchingHistory } from '@/hooks/useDutchingHistory';
+import { DutchingHistoryTable } from './DutchingHistoryTable';
+import { useToast } from '@/hooks/use-toast';
 
 interface OddInput {
   id: number;
@@ -30,6 +33,9 @@ export function DutchingCalculator() {
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [hasCalculated, setHasCalculated] = useState(false);
+
+  const { history, isLoading: historyLoading, createEntry, updateObservation, deleteEntry } = useDutchingHistory();
+  const { toast } = useToast();
 
   const addOdd = () => {
     if (odds.length < 6) {
@@ -57,43 +63,87 @@ export function DutchingCalculator() {
 
   const canCalculate = validOdds.length >= 2 && parseFloat(totalStake) > 0;
 
-  const calculateDutching = () => {
+  const calculateDutching = async () => {
     if (!canCalculate) return;
 
     setIsCalculating(true);
     
     // Simulate calculation delay for animation effect
-    setTimeout(() => {
-      const total = parseFloat(totalStake);
-      
-      // Calculate sum of (1/odd) for all odds
-      const sumInverseOdds = validOdds.reduce((sum, odd) => sum + (1 / odd), 0);
-      
-      // Calculate stake for each odd
-      const stakes = validOdds.map(odd => {
-        const stake = total * (1 / odd) / sumInverseOdds;
-        return {
-          odd,
-          stake,
-          percentage: (stake / total) * 100
-        };
-      });
+    await new Promise(resolve => setTimeout(resolve, 600));
 
-      // The return is the same for any winning outcome
-      const guaranteedReturn = stakes[0].stake * stakes[0].odd;
-      const profit = guaranteedReturn - total;
-      const roi = (profit / total) * 100;
+    const total = parseFloat(totalStake);
+    
+    // Calculate sum of (1/odd) for all odds
+    const sumInverseOdds = validOdds.reduce((sum, odd) => sum + (1 / odd), 0);
+    
+    // Calculate stake for each odd
+    const stakes = validOdds.map(odd => {
+      const stake = total * (1 / odd) / sumInverseOdds;
+      return {
+        odd,
+        stake,
+        percentage: (stake / total) * 100
+      };
+    });
 
-      setResult({
-        stakes,
-        totalStake: total,
-        guaranteedReturn,
-        profit,
-        roi
+    // The return is the same for any winning outcome
+    const guaranteedReturn = stakes[0].stake * stakes[0].odd;
+    const profit = guaranteedReturn - total;
+    const roi = (profit / total) * 100;
+
+    const calcResult: CalculationResult = {
+      stakes,
+      totalStake: total,
+      guaranteedReturn,
+      profit,
+      roi
+    };
+
+    setResult(calcResult);
+    setIsCalculating(false);
+    setHasCalculated(true);
+
+    // Save to history
+    const { error } = await createEntry({
+      total_invested: total,
+      odds: validOdds,
+      stakes: stakes.map(s => s.stake),
+      guaranteed_return: guaranteedReturn,
+      profit,
+      roi,
+    });
+
+    if (error) {
+      toast({
+        title: 'Erro ao salvar',
+        description: 'Não foi possível salvar no histórico.',
+        variant: 'destructive',
       });
-      setIsCalculating(false);
-      setHasCalculated(true);
-    }, 600);
+    }
+  };
+
+  const handleUpdateObservation = async (id: string, observation: string) => {
+    const { error } = await updateObservation(id, observation);
+    if (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível salvar a observação.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await deleteEntry(id);
+    if (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível excluir a operação.',
+        variant: 'destructive',
+      });
+    } else {
+      toast({ title: 'Operação excluída' });
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -354,6 +404,14 @@ export function DutchingCalculator() {
           </CardContent>
         </Card>
       </div>
+
+      {/* History Section */}
+      <DutchingHistoryTable
+        history={history}
+        isLoading={historyLoading}
+        onUpdateObservation={handleUpdateObservation}
+        onDelete={handleDelete}
+      />
 
       {/* Info Section */}
       <Card className="dutching-card border-dashed">
