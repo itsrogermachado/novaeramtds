@@ -1,8 +1,11 @@
 import { useMemo } from 'react';
 import { UserProfile } from '@/hooks/useAllUsers';
+import { useUserMemberships } from '@/hooks/useUserMemberships';
+import { MembershipTier } from '@/contexts/AuthContext';
 import { Operation } from '@/hooks/useOperations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { MembershipBadge } from './MembershipBadge';
 import {
   Table,
   TableBody,
@@ -12,7 +15,14 @@ import {
   TableRow,
   TableFooter,
 } from '@/components/ui/table';
-import { Users, TrendingUp, TrendingDown } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Users, TrendingUp, TrendingDown, Crown, User } from 'lucide-react';
 
 interface AdminIndividualTabProps {
   users: UserProfile[];
@@ -25,6 +35,8 @@ export function AdminIndividualTab({
   allOperations,
   isLoading,
 }: AdminIndividualTabProps) {
+  const { memberships, updateMembership, isLoading: membershipsLoading } = useUserMemberships();
+
   const usersProfits = useMemo(() => {
     return users
       .map(user => {
@@ -37,10 +49,11 @@ export function AdminIndividualTab({
           ...user,
           profit,
           operationsCount: userOps.length,
+          membershipTier: memberships.get(user.id) || 'free' as MembershipTier,
         };
       })
       .sort((a, b) => b.profit - a.profit);
-  }, [users, allOperations]);
+  }, [users, allOperations, memberships]);
 
   const totalProfit = useMemo(() => {
     return usersProfits.reduce((sum, user) => sum + user.profit, 0);
@@ -49,7 +62,11 @@ export function AdminIndividualTab({
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-  if (isLoading) {
+  const handleMembershipChange = async (userId: string, tier: MembershipTier) => {
+    await updateMembership(userId, tier);
+  };
+
+  if (isLoading || membershipsLoading) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -72,6 +89,7 @@ export function AdminIndividualTab({
           <TableHeader>
             <TableRow>
               <TableHead>Usuário</TableHead>
+              <TableHead className="text-center">Plano</TableHead>
               <TableHead className="text-center">Operações</TableHead>
               <TableHead className="text-right">Lucro</TableHead>
             </TableRow>
@@ -79,7 +97,7 @@ export function AdminIndividualTab({
           <TableBody>
             {usersProfits.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                   Nenhum usuário encontrado
                 </TableCell>
               </TableRow>
@@ -95,6 +113,30 @@ export function AdminIndividualTab({
                         </Badge>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={user.membershipTier}
+                      onValueChange={(value) => handleMembershipChange(user.id, value as MembershipTier)}
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="free">
+                          <div className="flex items-center gap-2">
+                            <User className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span>Membro Free</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="vip">
+                          <div className="flex items-center gap-2">
+                            <Crown className="h-3.5 w-3.5 text-gold" />
+                            <span>Membro VIP</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell className="text-center text-muted-foreground">
                     {user.operationsCount}
@@ -121,7 +163,7 @@ export function AdminIndividualTab({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={2} className="font-semibold">
+              <TableCell colSpan={3} className="font-semibold">
                 Total
               </TableCell>
               <TableCell className="text-right">

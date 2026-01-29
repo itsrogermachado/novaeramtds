@@ -24,13 +24,14 @@ import { AdminGlobalTab } from '@/components/dashboard/AdminGlobalTab';
 import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
 import { TutorialsTab } from '@/components/dashboard/TutorialsTab';
 import { DutchingCalculator } from '@/components/dashboard/DutchingCalculator';
+import { UpgradePrompt } from '@/components/dashboard/UpgradePrompt';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator, Crown, Lock } from 'lucide-react';
 import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 
 export default function Dashboard() {
-  const { user, isLoading: authLoading, isAdmin } = useAuth();
+  const { user, isLoading: authLoading, isAdmin, isVip } = useAuth();
   const { toast } = useToast();
   
   const [dateRange, setDateRange] = useState({
@@ -144,7 +145,10 @@ export default function Dashboard() {
             <TabsList className="w-full md:w-auto overflow-x-auto flex-nowrap justify-start">
               <TabsTrigger value="my-operations" className="text-xs md:text-sm whitespace-nowrap">Operações</TabsTrigger>
               <TabsTrigger value="my-expenses" className="text-xs md:text-sm whitespace-nowrap">Gastos</TabsTrigger>
-              <TabsTrigger value="comparison" className="text-xs md:text-sm whitespace-nowrap">Comparativo</TabsTrigger>
+              <TabsTrigger value="comparison" className="text-xs md:text-sm whitespace-nowrap gap-1">
+                {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
+                Comparativo
+              </TabsTrigger>
               <TabsTrigger value="tutorials" className="text-xs md:text-sm whitespace-nowrap gap-1">
                 <Video className="h-3.5 w-3.5" />
                 Tutoriais
@@ -158,6 +162,7 @@ export default function Dashboard() {
             </TabsList>
 
             <TabsContent value="my-operations" className="space-y-4 md:space-y-6">
+              {/* Stats Cards - Available to all */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
                 <StatsCard 
                   title="Operações" 
@@ -195,10 +200,30 @@ export default function Dashboard() {
 
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
                 <div className="lg:col-span-3 space-y-4 md:space-y-6">
+                  {/* Charts - VIP only */}
                   {!isSingleDayView && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                      <ProfitEvolutionChart operations={operations} />
-                      <ExpensesByCategoryChart expenses={effectiveExpenses} />
+                      {(isVip || isAdmin) ? (
+                        <>
+                          <ProfitEvolutionChart operations={operations} />
+                          <ExpensesByCategoryChart expenses={effectiveExpenses} />
+                        </>
+                      ) : (
+                        <>
+                          <div className="relative">
+                            <div className="blur-sm pointer-events-none">
+                              <ProfitEvolutionChart operations={[]} />
+                            </div>
+                            <UpgradePrompt feature="Gráficos de evolução" variant="overlay" />
+                          </div>
+                          <div className="relative">
+                            <div className="blur-sm pointer-events-none">
+                              <ExpensesByCategoryChart expenses={[]} />
+                            </div>
+                            <UpgradePrompt feature="Gráficos de gastos" variant="overlay" />
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
                   <OperationsTable
@@ -210,15 +235,33 @@ export default function Dashboard() {
                   />
                 </div>
                 <div className="space-y-3 md:space-y-4">
-                  <GoalsCard
-                    goals={goals}
-                    todayProfit={todayStats.todayProfit}
-                    weeklyProfit={weeklyProfit}
-                    netBalance={netBalance}
-                    onCreate={createGoal}
-                    onUpdate={updateGoal}
-                    onDelete={deleteGoal}
-                  />
+                  {/* Goals Card - VIP only */}
+                  {(isVip || isAdmin) ? (
+                    <GoalsCard
+                      goals={goals}
+                      todayProfit={todayStats.todayProfit}
+                      weeklyProfit={weeklyProfit}
+                      netBalance={netBalance}
+                      onCreate={createGoal}
+                      onUpdate={updateGoal}
+                      onDelete={deleteGoal}
+                    />
+                  ) : (
+                    <div className="relative">
+                      <div className="blur-sm pointer-events-none opacity-50">
+                        <GoalsCard
+                          goals={[]}
+                          todayProfit={0}
+                          weeklyProfit={0}
+                          netBalance={0}
+                          onCreate={async () => ({ error: null })}
+                          onUpdate={async () => ({ error: null })}
+                          onDelete={async () => ({ error: null })}
+                        />
+                      </div>
+                      <UpgradePrompt feature="Metas financeiras" variant="overlay" />
+                    </div>
+                  )}
                   <ProfitByMethodCard operations={operations} methods={methods} />
                   <UpcomingExpensesCard expenses={upcomingExpenses} />
                 </div>
@@ -236,7 +279,11 @@ export default function Dashboard() {
             </TabsContent>
 
             <TabsContent value="comparison">
-              <ComparisonTab operations={operations} expenses={effectiveExpenses} />
+              {(isVip || isAdmin) ? (
+                <ComparisonTab operations={operations} expenses={effectiveExpenses} />
+              ) : (
+                <UpgradePrompt feature="O comparativo mensal detalhado" />
+              )}
             </TabsContent>
 
             <TabsContent value="tutorials">

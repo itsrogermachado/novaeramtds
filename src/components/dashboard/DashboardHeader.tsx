@@ -2,8 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
+import { MembershipBadge } from './MembershipBadge';
 import { LogOut, Plus, Sparkles, ExternalLink, Shield } from 'lucide-react';
 import logo from '@/assets/logo-nova-era-elegant.jpg';
+
 interface DashboardHeaderProps {
   onOpenNewOperation: () => void;
 }
@@ -11,7 +13,8 @@ export function DashboardHeader({
   onOpenNewOperation
 }: DashboardHeaderProps) {
   const {
-    signOut
+    signOut,
+    membershipTier
   } = useAuth();
   const navigate = useNavigate();
   const handleSignOut = async () => {
@@ -41,11 +44,15 @@ export function DashboardHeader({
               <p className="text-xs md:text-sm text-muted-foreground hidden md:block">
                 Painel Administrativo
               </p>
+              <div className="hidden md:block">
+                <MembershipBadge tier={membershipTier} size="sm" />
+              </div>
             </div>
           </div>
 
           {/* Mobile-only controls */}
           <div className="flex items-center gap-2 md:hidden">
+            <MembershipBadge tier={membershipTier} size="sm" />
             <ThemeToggle />
             <Button variant="ghost" size="icon" onClick={handleSignOut} className="h-8 w-8 text-muted-foreground hover:text-foreground">
               <LogOut className="h-4 w-4" />
