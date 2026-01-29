@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { startOfMonth, endOfMonth, startOfWeek, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +6,7 @@ import { useOperations } from '@/hooks/useOperations';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useGoals } from '@/hooks/useGoals';
 import { useAllUsers } from '@/hooks/useAllUsers';
+import { useNewMethodsNotification } from '@/hooks/useNewMethodsNotification';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { MobileNav } from '@/components/dashboard/MobileNav';
@@ -47,6 +48,14 @@ export default function Dashboard() {
   const { expenses, effectiveExpenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
   const { users, isLoading: usersLoading } = useAllUsers();
+  const { hasNewMethods, markAsViewed } = useNewMethodsNotification();
+
+  // Mark methods as viewed when tab changes to methods
+  useEffect(() => {
+    if (currentTab === 'methods') {
+      markAsViewed();
+    }
+  }, [currentTab, markAsViewed]);
 
   // All data for global view (showAll = true for admin)
   const { operations: allOperations } = useOperations(dateRange, undefined, true);
@@ -150,6 +159,7 @@ export default function Dashboard() {
               currentTab={currentTab}
               onTabChange={setCurrentTab}
               onSignOut={handleSignOut}
+              hasNewMethods={hasNewMethods}
             />
           }
         />
@@ -174,10 +184,13 @@ export default function Dashboard() {
                 <Video className="h-3.5 w-3.5" />
                 Tutoriais
               </TabsTrigger>
-              <TabsTrigger value="methods" className="text-sm whitespace-nowrap gap-1">
+              <TabsTrigger value="methods" className="text-sm whitespace-nowrap gap-1 relative">
                 {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
                 <MessageSquare className="h-3.5 w-3.5" />
                 Métodos
+                {hasNewMethods && (
+                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-destructive rounded-full animate-pulse" />
+                )}
               </TabsTrigger>
               <TabsTrigger value="dutching" className="text-sm whitespace-nowrap gap-1">
                 <Calculator className="h-3.5 w-3.5" />
