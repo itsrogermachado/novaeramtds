@@ -25,8 +25,9 @@ import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
 import { TutorialsTab } from '@/components/dashboard/TutorialsTab';
 import { DutchingCalculator } from '@/components/dashboard/DutchingCalculator';
 import { UpgradePrompt } from '@/components/dashboard/UpgradePrompt';
+import { MethodsTab } from '@/components/dashboard/MethodsTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator, Crown, Lock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator, Lock, MessageSquare } from 'lucide-react';
 import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 
@@ -151,7 +152,12 @@ export default function Dashboard() {
               <TabsTrigger value="tutorials" className="text-xs md:text-sm whitespace-nowrap gap-1">
                 {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
                 <Video className="h-3.5 w-3.5" />
-                Tutoriais de métodos
+                Tutoriais
+              </TabsTrigger>
+              <TabsTrigger value="methods" className="text-xs md:text-sm whitespace-nowrap gap-1">
+                {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
+                <MessageSquare className="h-3.5 w-3.5" />
+                Métodos
               </TabsTrigger>
               <TabsTrigger value="dutching" className="text-xs md:text-sm whitespace-nowrap gap-1">
                 <Calculator className="h-3.5 w-3.5" />
@@ -256,6 +262,14 @@ export default function Dashboard() {
 
             <TabsContent value="dutching">
               <DutchingCalculator />
+            </TabsContent>
+
+            <TabsContent value="methods">
+              {(isVip || isAdmin) ? (
+                <MethodsTab />
+              ) : (
+                <UpgradePrompt feature="Os métodos exclusivos" />
+              )}
             </TabsContent>
 
             {isAdmin && (

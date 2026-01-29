@@ -148,6 +148,77 @@ export type Database = {
         }
         Relationships: []
       }
+      method_categories: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      method_posts: {
+        Row: {
+          category_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          image_url: string | null
+          link_text: string | null
+          link_url: string | null
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          category_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          link_text?: string | null
+          link_url?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          category_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          link_text?: string | null
+          link_url?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "method_posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "method_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operation_methods: {
         Row: {
           color: string
