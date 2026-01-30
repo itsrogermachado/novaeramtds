@@ -42,8 +42,6 @@ export interface UserContext {
   }>;
 }
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
-
 export function useAIChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,11 +71,19 @@ export function useAIChat() {
     };
 
     try {
-      const response = await fetch(CHAT_URL, {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Configuração do servidor não encontrada');
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/ai-chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'apikey': supabaseKey,
         },
         body: JSON.stringify({ 
           messages: [...messages, userMessage],
