@@ -759,25 +759,27 @@
   padding-right: 16px;
   border-radius: 12px;
   background: hsl(0 0% 100%);
-  border: 1px solid hsl(220 15% 85%);
-  color: hsl(220 20% 20%);
+  border: 1px solid hsl(220 15% 80%);
+  color: hsl(220 25% 15%);
   font-size: 14px;
+  font-weight: 500;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .auth-input-minimal::placeholder {
-  color: hsl(220 10% 55%);
+  color: hsl(220 10% 50%);
+  font-weight: 400;
 }
 
 .auth-input-minimal:hover {
-  border-color: hsl(220 15% 75%);
+  border-color: hsl(220 15% 70%);
   background: hsl(0 0% 100%);
 }
 
 .auth-input-minimal:focus {
   outline: none;
-  border-color: hsl(220 20% 50%);
-  box-shadow: 0 0 0 3px hsl(220 20% 50% / 0.1);
+  border-color: hsl(220 25% 45%);
+  box-shadow: 0 0 0 3px hsl(220 25% 45% / 0.15);
   background: hsl(0 0% 100%);
 }
 
