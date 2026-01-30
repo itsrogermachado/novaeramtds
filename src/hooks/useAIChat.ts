@@ -5,6 +5,43 @@ export interface ChatMessage {
   content: string;
 }
 
+export interface UserContext {
+  userName?: string;
+  todayStats?: {
+    totalInvested: number;
+    totalReturn: number;
+    profit: number;
+    operationsCount: number;
+  };
+  periodStats?: {
+    totalInvested: number;
+    totalReturn: number;
+    profit: number;
+    operationsCount: number;
+    totalExpenses: number;
+    netBalance: number;
+    periodLabel: string;
+  };
+  goals?: Array<{
+    title: string;
+    targetAmount: number;
+    currentAmount: number;
+    goalType: string;
+  }>;
+  recentOperations?: Array<{
+    date: string;
+    method: string;
+    invested: number;
+    returned: number;
+    profit: number;
+  }>;
+  methodsPerformance?: Array<{
+    method: string;
+    totalProfit: number;
+    operationsCount: number;
+  }>;
+}
+
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
 
 export function useAIChat() {
@@ -12,7 +49,7 @@ export function useAIChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const sendMessage = useCallback(async (input: string) => {
+  const sendMessage = useCallback(async (input: string, userContext?: UserContext) => {
     if (!input.trim() || isLoading) return;
 
     const userMessage: ChatMessage = { role: 'user', content: input.trim() };
@@ -42,7 +79,10 @@ export function useAIChat() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
+        body: JSON.stringify({ 
+          messages: [...messages, userMessage],
+          userContext 
+        }),
       });
 
       if (!response.ok) {

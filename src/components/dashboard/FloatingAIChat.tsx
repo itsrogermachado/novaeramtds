@@ -1,8 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useAIChat, ChatMessage } from '@/hooks/useAIChat';
+import { useAIChat, ChatMessage, UserContext } from '@/hooks/useAIChat';
+import { useOperations } from '@/hooks/useOperations';
+import { useExpenses, isExpenseEffective } from '@/hooks/useExpenses';
+import { useGoals } from '@/hooks/useGoals';
+import { useProfile } from '@/hooks/useProfile';
 import { Send, Bot, User, Loader2, Trash2, Sparkles, X, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
@@ -56,6 +61,95 @@ export function FloatingAIChat() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { messages, isLoading, error, sendMessage, clearMessages } = useAIChat();
 
+  // Get user data for context
+  const { profile } = useProfile();
+  const { goals } = useGoals();
+  
+  // Get today's date range
+  const today = new Date();
+  const todayStr = format(today, 'yyyy-MM-dd');
+  const todayRange = { start: today, end: today };
+  
+  // Get current month range
+  const monthStart = startOfMonth(today);
+  const monthEnd = endOfMonth(today);
+  const monthRange = { start: monthStart, end: monthEnd };
+  
+  // Fetch operations and expenses
+  const { operations: todayOperations } = useOperations(todayRange);
+  const { operations: monthOperations } = useOperations(monthRange);
+  const { expenses: monthExpenses } = useExpenses(monthRange);
+
+  // Build user context for AI
+  const userContext = useMemo<UserContext>(() => {
+    // Today stats
+    const todayStats = {
+      totalInvested: todayOperations.reduce((sum, op) => sum + op.invested_amount, 0),
+      totalReturn: todayOperations.reduce((sum, op) => sum + op.return_amount, 0),
+      profit: todayOperations.reduce((sum, op) => sum + (op.return_amount - op.invested_amount), 0),
+      operationsCount: todayOperations.length,
+    };
+
+    // Period (month) stats
+    const effectiveExpenses = monthExpenses.filter(isExpenseEffective);
+    const monthProfit = monthOperations.reduce((sum, op) => sum + (op.return_amount - op.invested_amount), 0);
+    const totalExpenses = effectiveExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    
+    const periodStats = {
+      totalInvested: monthOperations.reduce((sum, op) => sum + op.invested_amount, 0),
+      totalReturn: monthOperations.reduce((sum, op) => sum + op.return_amount, 0),
+      profit: monthProfit,
+      operationsCount: monthOperations.length,
+      totalExpenses,
+      netBalance: monthProfit - totalExpenses,
+      periodLabel: format(today, 'MMMM yyyy'),
+    };
+
+    // Goals
+    const goalsData = goals.map(g => ({
+      title: g.title,
+      targetAmount: g.target_amount,
+      currentAmount: g.current_amount,
+      goalType: g.goal_type,
+    }));
+
+    // Recent operations (last 10)
+    const recentOps = monthOperations.slice(0, 10).map(op => ({
+      date: format(new Date(op.operation_date), 'dd/MM/yyyy'),
+      method: op.method?.name || 'Sem método',
+      invested: op.invested_amount,
+      returned: op.return_amount,
+      profit: op.return_amount - op.invested_amount,
+    }));
+
+    // Methods performance
+    const methodsMap = new Map<string, { totalProfit: number; count: number }>();
+    monthOperations.forEach(op => {
+      const methodName = op.method?.name || 'Sem método';
+      const current = methodsMap.get(methodName) || { totalProfit: 0, count: 0 };
+      current.totalProfit += op.return_amount - op.invested_amount;
+      current.count += 1;
+      methodsMap.set(methodName, current);
+    });
+    
+    const methodsPerformance = Array.from(methodsMap.entries())
+      .map(([method, data]) => ({
+        method,
+        totalProfit: data.totalProfit,
+        operationsCount: data.count,
+      }))
+      .sort((a, b) => b.totalProfit - a.totalProfit);
+
+    return {
+      userName: profile?.full_name || undefined,
+      todayStats,
+      periodStats,
+      goals: goalsData,
+      recentOperations: recentOps,
+      methodsPerformance,
+    };
+  }, [profile, goals, todayOperations, monthOperations, monthExpenses]);
+
   // Scroll to bottom on new messages
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -76,9 +170,13 @@ export function FloatingAIChat() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading) {
-      sendMessage(input);
+      sendMessage(input, userContext);
       setInput('');
     }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    sendMessage(suggestion, userContext);
   };
 
   return (
@@ -146,13 +244,14 @@ export function FloatingAIChat() {
                   <div className="space-y-2 text-xs text-muted-foreground">
                     <div className="grid gap-2">
                       {[
-                        'Como funciona o dashboard?',
-                        'O que é dutching?',
-                        'Dicas de gestão de banca',
+                        '📊 Me passe o relatório de hoje',
+                        '📈 Como está minha performance este mês?',
+                        '🎯 Analise minhas metas',
+                        '💡 Dicas de gestão de banca',
                       ].map((suggestion) => (
                         <button
                           key={suggestion}
-                          onClick={() => sendMessage(suggestion)}
+                          onClick={() => handleSuggestionClick(suggestion)}
                           className="text-left px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-foreground/80 hover:text-foreground"
                         >
                           {suggestion}
