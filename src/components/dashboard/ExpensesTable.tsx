@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Expense, isExpenseEffective } from '@/hooks/useExpenses';
@@ -26,7 +26,7 @@ interface ExpensesTableProps {
   isLoading?: boolean;
 }
 
-export function ExpensesTable({ expenses, onEdit, onDelete, onAdd, isLoading }: ExpensesTableProps) {
+function ExpensesTableComponent({ expenses, onEdit, onDelete, onAdd, isLoading }: ExpensesTableProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,18 +44,18 @@ export function ExpensesTable({ expenses, onEdit, onDelete, onAdd, isLoading }: 
     }).format(value);
   };
 
-  const handleDeleteClick = (id: string) => {
+  const handleDeleteClick = useCallback((id: string) => {
     setExpenseToDelete(id);
     setDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = useCallback(() => {
     if (expenseToDelete) {
       onDelete(expenseToDelete);
       setDeleteDialogOpen(false);
       setExpenseToDelete(null);
     }
-  };
+  }, [expenseToDelete, onDelete]);
 
   return (
     <>
@@ -216,3 +216,6 @@ export function ExpensesTable({ expenses, onEdit, onDelete, onAdd, isLoading }: 
     </>
   );
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export const ExpensesTable = memo(ExpensesTableComponent);

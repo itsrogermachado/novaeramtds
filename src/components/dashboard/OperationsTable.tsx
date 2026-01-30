@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Operation } from '@/hooks/useOperations';
@@ -33,7 +33,7 @@ interface OperationsTableProps {
 
 const ITEMS_PER_PAGE = 10;
 
-export function OperationsTable({ operations, onEdit, onDelete, onAdd, isLoading }: OperationsTableProps) {
+function OperationsTableComponent({ operations, onEdit, onDelete, onAdd, isLoading }: OperationsTableProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [operationToDelete, setOperationToDelete] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,22 +54,22 @@ export function OperationsTable({ operations, onEdit, onDelete, onAdd, isLoading
     }).format(value);
   };
 
-  const handleDeleteClick = (id: string) => {
+  const handleDeleteClick = useCallback((id: string) => {
     setOperationToDelete(id);
     setDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = useCallback(() => {
     if (operationToDelete) {
       onDelete(operationToDelete);
       setDeleteDialogOpen(false);
       setOperationToDelete(null);
     }
-  };
+  }, [operationToDelete, onDelete]);
 
-  const goToPage = (page: number) => {
+  const goToPage = useCallback((page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-  };
+  }, [totalPages]);
 
   return (
     <>
@@ -305,3 +305,6 @@ export function OperationsTable({ operations, onEdit, onDelete, onAdd, isLoading
     </>
   );
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export const OperationsTable = memo(OperationsTableComponent);
