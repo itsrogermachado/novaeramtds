@@ -6,7 +6,7 @@ import { useOperations } from '@/hooks/useOperations';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useGoals } from '@/hooks/useGoals';
 import { useAllUsers } from '@/hooks/useAllUsers';
-import { useNewMethodsNotification } from '@/hooks/useNewMethodsNotification';
+
 import { useNewTutorialsNotification } from '@/hooks/useNewTutorialsNotification';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
@@ -27,18 +27,18 @@ import { AdminGlobalTab } from '@/components/dashboard/AdminGlobalTab';
 import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
 import { TutorialsTab } from '@/components/dashboard/TutorialsTab';
 import { DutchingCalculator } from '@/components/dashboard/DutchingCalculator';
-import { UpgradePrompt } from '@/components/dashboard/UpgradePrompt';
+
 
 import { NotificationBadge } from '@/components/dashboard/NotificationBadge';
 import { AiAssistant } from '@/components/dashboard/AiAssistant';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator, Lock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator } from 'lucide-react';
 import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 
 export default function Dashboard() {
-  const { user, isLoading: authLoading, isAdmin, isVip, signOut } = useAuth();
+  const { user, isLoading: authLoading, isAdmin, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -65,7 +65,7 @@ export default function Dashboard() {
 
   // All data for global view (showAll = true for admin)
   const { operations: allOperations } = useOperations(dateRange, undefined, true);
-  const { expenses: allExpenses, effectiveExpenses: allEffectiveExpenses } = useExpenses(dateRange, undefined, true);
+  const { effectiveExpenses: allEffectiveExpenses } = useExpenses(dateRange, undefined, true);
 
   const [operationDialogOpen, setOperationDialogOpen] = useState(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
@@ -217,7 +217,6 @@ export default function Dashboard() {
                 Comparativo
               </TabsTrigger>
               <TabsTrigger value="tutorials" className="text-sm whitespace-nowrap gap-1 relative">
-                {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
                 <Video className="h-3.5 w-3.5" />
                 Tutoriais
                 <NotificationBadge count={newTutorialsCount} />
@@ -338,11 +337,7 @@ export default function Dashboard() {
             </TabsContent>
 
             <TabsContent value="tutorials">
-              {(isVip || isAdmin) ? (
-                <TutorialsTab />
-              ) : (
-                <UpgradePrompt feature="Os tutoriais exclusivos" />
-              )}
+              <TutorialsTab />
             </TabsContent>
 
             <TabsContent value="dutching">

@@ -7,7 +7,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from './ThemeToggle';
-import { MembershipBadge } from './MembershipBadge';
 import { NotificationBadge } from './NotificationBadge';
 import {
   Menu,
@@ -18,7 +17,6 @@ import {
   Calculator,
   Users,
   Globe,
-  Lock,
   ChevronRight,
   ExternalLink,
   Shield,
@@ -32,7 +30,6 @@ interface NavItem {
   id: string;
   label: string;
   icon: React.ReactNode;
-  locked?: boolean;
   adminOnly?: boolean;
 }
 
@@ -45,7 +42,7 @@ interface MobileNavProps {
 
 export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCount = 0 }: MobileNavProps) {
   const [open, setOpen] = useState(false);
-  const { isAdmin, isVip, membershipTier, user } = useAuth();
+  const { isAdmin, user } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
 
@@ -73,7 +70,7 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
     { id: 'my-operations', label: 'Minhas Operações', icon: <TrendingUp className="h-5 w-5" /> },
     { id: 'my-expenses', label: 'Meus Gastos', icon: <Receipt className="h-5 w-5" /> },
     { id: 'comparison', label: 'Comparativo', icon: <Scale className="h-5 w-5" /> },
-    { id: 'tutorials', label: 'Tutoriais', icon: <Video className="h-5 w-5" />, locked: !isVip && !isAdmin },
+    { id: 'tutorials', label: 'Tutoriais', icon: <Video className="h-5 w-5" /> },
     { id: 'dutching', label: 'Calculadora Dutching', icon: <Calculator className="h-5 w-5" /> },
     { id: 'individual', label: 'Usuários Individuais', icon: <Users className="h-5 w-5" />, adminOnly: true },
     { id: 'global', label: 'Visão Global', icon: <Globe className="h-5 w-5" />, adminOnly: true },
@@ -97,14 +94,9 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
         <div className="flex flex-col h-full bg-card">
           {/* Header */}
           <SheetHeader className="p-4 pb-2 border-b border-border">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <img src={logo} alt="Nova Era" className="h-10 w-auto rounded-lg" />
-                <div>
-                  <SheetTitle className="text-left text-lg">Nova Era</SheetTitle>
-                  <MembershipBadge tier={membershipTier} size="sm" />
-                </div>
-              </div>
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="Nova Era" className="h-10 w-auto rounded-lg" />
+              <SheetTitle className="text-left text-lg">Nova Era</SheetTitle>
             </div>
           </SheetHeader>
 
@@ -131,9 +123,6 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
                     {item.id === 'tutorials' && <NotificationBadge count={newTutorialsCount} />}
                   </span>
                   <span className="flex-1 font-medium">{item.label}</span>
-                  {item.locked && (
-                    <Lock className="h-4 w-4 text-muted-foreground" />
-                  )}
                   <ChevronRight className={cn(
                     "h-4 w-4 transition-transform",
                     currentTab === item.id ? "text-primary-foreground" : "text-muted-foreground"

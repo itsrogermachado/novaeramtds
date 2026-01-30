@@ -8,12 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
-import { MembershipBadge } from '@/components/dashboard/MembershipBadge';
 
 export default function Profile() {
   const navigate = useNavigate();
   const { profile, isLoading, isUpdating, updateProfile, uploadAvatar, removeAvatar } = useProfile();
-  const { user, membershipTier } = useAuth();
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState('');
@@ -93,10 +92,7 @@ export default function Profile() {
         {/* Profile Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Informações do Perfil</span>
-              <MembershipBadge tier={membershipTier} />
-            </CardTitle>
+            <CardTitle>Informações do Perfil</CardTitle>
             <CardDescription>
               Atualize seu nome e foto de perfil
             </CardDescription>

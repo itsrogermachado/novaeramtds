@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
-import { MembershipBadge } from './MembershipBadge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogOut, Plus, Sparkles, ExternalLink, Shield, Download, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -19,13 +18,7 @@ export function DashboardHeader({
   onOpenNewOperation,
   mobileNav,
 }: DashboardHeaderProps) {
-  const {
-    signOut,
-    membershipTier,
-    isAdmin,
-    session,
-    user
-  } = useAuth();
+  const { signOut, isAdmin, session, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
@@ -128,16 +121,9 @@ export function DashboardHeader({
               <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
                 Painel Administrativo
               </p>
-              <div className="hidden md:block">
-                <MembershipBadge tier={membershipTier} size="sm" />
-              </div>
             </div>
           </div>
 
-          {/* Mobile-only controls */}
-          <div className="flex items-center gap-1.5 sm:gap-2 md:hidden">
-            <MembershipBadge tier={membershipTier} size="sm" />
-          </div>
         </div>
 
         {/* Actions row - reorganized for mobile */}
