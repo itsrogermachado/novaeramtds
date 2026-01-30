@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import logo from '@/assets/logo-nova-era-3d.png';
-import { BarChart3, FileText, Shield, ArrowRight } from 'lucide-react';
-import { useEffect } from 'react';
+import { BarChart3, FileText, Shield, ArrowRight, ChevronUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import InlineLoginPanel from '@/components/landing/InlineLoginPanel';
 
 export default function Landing() {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -19,7 +21,7 @@ export default function Landing() {
     if (user) {
       navigate('/dashboard');
     } else {
-      navigate('/auth');
+      setIsLoginOpen(!isLoginOpen);
     }
   };
 
@@ -93,34 +95,47 @@ export default function Landing() {
           {/* CTA Button */}
           <button
             onClick={handleAccessDashboard}
+            data-login-trigger
             className="w-full auth-btn-minimal flex items-center justify-center gap-2 animate-auth-field opacity-0"
             style={{ animationDelay: '0.4s' }}
           >
             <span>Acessar Dashboard</span>
-            <ArrowRight className="h-4 w-4" />
+            {isLoginOpen ? (
+              <ChevronUp className="h-4 w-4 transition-transform" />
+            ) : (
+              <ArrowRight className="h-4 w-4" />
+            )}
           </button>
 
-          {/* Auth Links */}
-          <div 
-            className="mt-6 flex items-center justify-center gap-4 text-sm animate-auth-field opacity-0"
-            style={{ animationDelay: '0.45s' }}
-          >
-            <button
-              onClick={() => navigate('/auth')}
-              className="transition-colors font-medium hover:underline"
-              style={{ color: 'hsl(220 25% 20%)' }}
+          {/* Inline Login Panel */}
+          <InlineLoginPanel 
+            isOpen={isLoginOpen} 
+            onClose={() => setIsLoginOpen(false)} 
+          />
+
+          {/* Auth Links - only show when login is closed */}
+          {!isLoginOpen && (
+            <div 
+              className="mt-6 flex items-center justify-center gap-4 text-sm animate-auth-field opacity-0"
+              style={{ animationDelay: '0.45s' }}
             >
-              Entrar
-            </button>
-            <span className="text-muted-foreground">•</span>
-            <button
-              onClick={() => navigate('/auth')}
-              className="transition-colors hover:underline"
-              style={{ color: 'hsl(220 15% 40%)' }}
-            >
-              Criar conta
-            </button>
-          </div>
+              <button
+                onClick={() => setIsLoginOpen(true)}
+                className="transition-colors font-medium hover:underline"
+                style={{ color: 'hsl(220 25% 20%)' }}
+              >
+                Entrar
+              </button>
+              <span className="text-muted-foreground">•</span>
+              <button
+                onClick={() => navigate('/cadastro')}
+                className="transition-colors hover:underline"
+                style={{ color: 'hsl(220 15% 40%)' }}
+              >
+                Criar conta
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Benefits Section */}
