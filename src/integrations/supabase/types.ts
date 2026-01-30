@@ -210,112 +210,6 @@ export type Database = {
         }
         Relationships: []
       }
-      method_categories: {
-        Row: {
-          color: string
-          created_at: string
-          created_by: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          color?: string
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          color?: string
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
-      method_links: {
-        Row: {
-          created_at: string
-          display_order: number
-          id: string
-          method_id: string
-          title: string
-          url: string
-        }
-        Insert: {
-          created_at?: string
-          display_order?: number
-          id?: string
-          method_id: string
-          title: string
-          url: string
-        }
-        Update: {
-          created_at?: string
-          display_order?: number
-          id?: string
-          method_id?: string
-          title?: string
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "method_links_method_id_fkey"
-            columns: ["method_id"]
-            isOneToOne: false
-            referencedRelation: "method_posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      method_posts: {
-        Row: {
-          category_id: string
-          content: string
-          created_at: string
-          created_by: string | null
-          id: string
-          image_url: string | null
-          link_text: string | null
-          link_url: string | null
-          updated_at: string
-          video_url: string | null
-        }
-        Insert: {
-          category_id: string
-          content: string
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          image_url?: string | null
-          link_text?: string | null
-          link_url?: string | null
-          updated_at?: string
-          video_url?: string | null
-        }
-        Update: {
-          category_id?: string
-          content?: string
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          image_url?: string | null
-          link_text?: string | null
-          link_url?: string | null
-          updated_at?: string
-          video_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "method_posts_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "method_categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       operation_methods: {
         Row: {
           color: string
@@ -617,30 +511,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_memberships: {
-        Row: {
-          created_at: string
-          id: string
-          tier: Database["public"]["Enums"]["membership_tier"]
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          tier?: Database["public"]["Enums"]["membership_tier"]
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          tier?: Database["public"]["Enums"]["membership_tier"]
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
           created_at: string
@@ -667,17 +537,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_membership_tier: {
-        Args: { _user_id: string }
-        Returns: Database["public"]["Enums"]["membership_tier"]
-      }
-      has_membership: {
-        Args: {
-          _tier: Database["public"]["Enums"]["membership_tier"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -689,7 +548,6 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       goal_type: "monthly" | "daily" | "weekly"
-      membership_tier: "free" | "vip"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -819,7 +677,6 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       goal_type: ["monthly", "daily", "weekly"],
-      membership_tier: ["free", "vip"],
     },
   },
 } as const
