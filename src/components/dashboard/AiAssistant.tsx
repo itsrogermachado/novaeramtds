@@ -161,13 +161,12 @@ export function AiAssistant({ context }: AiAssistantProps) {
       <Button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed bottom-4 right-4 z-50 rounded-full w-14 h-14 shadow-lg transition-all duration-300",
-          "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
-          isOpen && "rotate-180"
+          "fixed bottom-4 right-4 z-50 rounded-xl px-4 py-3 shadow-lg transition-all duration-300 gap-2",
+          "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
         )}
-        size="icon"
       >
-        {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+        {isOpen ? <X className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+        <span className="font-medium">{isOpen ? "Fechar" : "Seu agente de operações"}</span>
       </Button>
 
       {/* Chat window */}
