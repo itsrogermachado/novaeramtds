@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -46,6 +46,14 @@ export function useAIChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Ensure we close any open stream when the component using this hook unmounts.
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   const sendMessage = useCallback(async (input: string, userContext?: UserContext) => {
     if (!input.trim() || isLoading) return;
@@ -78,13 +86,22 @@ export function useAIChat() {
         throw new Error('Configuração do servidor não encontrada');
       }
 
-      const response = await fetch(`${supabaseUrl}/functions/v1/ai-chat`, {
+      // Close any previous open request (safety net for streaming connections).
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      const endpoint = new URL('/functions/v1/ai-chat', supabaseUrl).toString();
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${supabaseKey}`,
           'apikey': supabaseKey,
         },
+        cache: 'no-store',
+        signal: controller.signal,
         body: JSON.stringify({ 
           messages: [...messages, userMessage],
           userContext 
@@ -105,60 +122,84 @@ export function useAIChat() {
       let textBuffer = '';
       let streamDone = false;
 
-      while (!streamDone) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        textBuffer += decoder.decode(value, { stream: true });
+      try {
+        while (!streamDone) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
+          textBuffer += decoder.decode(value, { stream: true });
 
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (line.startsWith(':') || line.trim() === '') continue;
-          if (!line.startsWith('data: ')) continue;
+          let newlineIndex: number;
+          while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
+            let line = textBuffer.slice(0, newlineIndex);
+            textBuffer = textBuffer.slice(newlineIndex + 1);
 
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') {
-            streamDone = true;
-            break;
-          }
+            if (line.endsWith('\r')) line = line.slice(0, -1);
+            if (line.startsWith(':') || line.trim() === '') continue;
+            if (!line.startsWith('data: ')) continue;
 
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) updateAssistant(content);
-          } catch {
-            textBuffer = line + '\n' + textBuffer;
-            break;
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === '[DONE]') {
+              streamDone = true;
+              break;
+            }
+
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+              if (content) updateAssistant(content);
+            } catch {
+              // Incomplete JSON split across chunks: put it back and wait for more data
+              textBuffer = line + '\n' + textBuffer;
+              break;
+            }
           }
         }
-      }
 
-      // Final flush
-      if (textBuffer.trim()) {
-        for (let raw of textBuffer.split('\n')) {
-          if (!raw) continue;
-          if (raw.endsWith('\r')) raw = raw.slice(0, -1);
-          if (raw.startsWith(':') || raw.trim() === '') continue;
-          if (!raw.startsWith('data: ')) continue;
-          const jsonStr = raw.slice(6).trim();
-          if (jsonStr === '[DONE]') continue;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) updateAssistant(content);
-          } catch { /* ignore */ }
+        // Final flush
+        if (textBuffer.trim()) {
+          for (let raw of textBuffer.split('\n')) {
+            if (!raw) continue;
+            if (raw.endsWith('\r')) raw = raw.slice(0, -1);
+            if (raw.startsWith(':') || raw.trim() === '') continue;
+            if (!raw.startsWith('data: ')) continue;
+            const jsonStr = raw.slice(6).trim();
+            if (jsonStr === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+              if (content) updateAssistant(content);
+            } catch {
+              /* ignore */
+            }
+          }
+        }
+      } finally {
+        // Ensure the stream is closed so subsequent requests don't fail.
+        try {
+          await reader.cancel();
+        } catch {
+          /* ignore */
+        }
+        try {
+          reader.releaseLock();
+        } catch {
+          /* ignore */
         }
       }
     } catch (err) {
+      // Abort is expected on navigation/unmount; don't surface it as an error.
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return;
+      }
+
       console.error('AI Chat error:', err);
       setError(err instanceof Error ? err.message : 'Erro ao enviar mensagem');
       // Remove the user message if failed
       setMessages(prev => prev.slice(0, -1));
     } finally {
+      // Clear controller if it's still the current one.
+      abortRef.current = null;
       setIsLoading(false);
     }
   }, [messages, isLoading]);
