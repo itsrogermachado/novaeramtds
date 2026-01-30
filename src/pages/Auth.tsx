@@ -268,12 +268,13 @@ export default function Auth() {
                 setIsLogin(!isLogin);
                 setErrors({});
               }}
-              className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors"
+              className="text-sm transition-colors"
+              style={{ color: 'hsl(220 15% 40%)' }}
             >
               {isLogin ? (
-                <>Não tem conta? <span className="font-semibold text-foreground underline-offset-2 hover:underline">Cadastre-se</span></>
+                <>Não tem conta? <span className="font-bold underline" style={{ color: 'hsl(220 25% 20%)' }}>Cadastre-se</span></>
               ) : (
-                <>Já tem conta? <span className="font-semibold text-foreground underline-offset-2 hover:underline">Entrar</span></>
+                <>Já tem conta? <span className="font-bold underline" style={{ color: 'hsl(220 25% 20%)' }}>Entrar</span></>
               )}
             </button>
           </div>
