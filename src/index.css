@@ -653,168 +653,205 @@
   z-index: 1;
 }
 
-/* Premium glass card for auth */
-.auth-card {
-  background: hsl(220 25% 8% / 0.7);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid hsl(0 0% 100% / 0.06);
-  box-shadow: 
-    0 0 0 1px hsl(0 0% 0% / 0.1),
-    0 20px 50px -10px hsl(0 0% 0% / 0.5),
-    0 0 80px hsl(38 70% 50% / 0.03);
+/* ============================================ */
+/* Logo Wrapper - NO CONTAINER                 */
+/* ============================================ */
+
+.ne-logo-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-bottom: 2rem;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
 }
 
-/* Logo floating animation */
-@keyframes logo-float {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-    filter: drop-shadow(0 8px 20px hsl(38 70% 50% / 0.2));
-  }
-  50% {
-    transform: translateY(-8px) scale(1.02);
-    filter: drop-shadow(0 16px 30px hsl(38 70% 50% / 0.3));
-  }
+.ne-logo {
+  width: clamp(160px, 20vw, 220px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px hsl(38 70% 50% / 0.25));
+  animation: ne-logo-float 5s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
 }
 
-.auth-logo {
-  animation: logo-float 5s ease-in-out infinite;
-}
-
-/* Logo glow ring */
-.auth-logo-glow {
+/* Logo glow - radial, no square */
+.ne-logo-glow {
   position: absolute;
-  inset: -20px;
+  width: 280px;
+  height: 140px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background: radial-gradient(
-    circle,
-    hsl(38 70% 50% / 0.15) 0%,
+    ellipse at center,
+    hsl(38 70% 50% / 0.18) 0%,
+    hsl(38 70% 50% / 0.08) 40%,
     transparent 70%
   );
-  filter: blur(20px);
-  z-index: -1;
+  filter: blur(30px);
+  pointer-events: none;
+  z-index: 1;
 }
 
-/* Auth input styles */
-.auth-input {
-  background: hsl(220 25% 10% / 0.8);
-  border: 1px solid hsl(0 0% 100% / 0.08);
-  color: hsl(220 15% 95%);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+@keyframes ne-logo-float {
+  0%, 100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 8px 24px hsl(38 70% 50% / 0.25));
+  }
+  50% {
+    transform: translateY(-10px);
+    filter: drop-shadow(0 18px 36px hsl(38 70% 50% / 0.35));
+  }
 }
 
-.auth-input::placeholder {
-  color: hsl(220 15% 45%);
-}
+/* ============================================ */
+/* Minimal Glass Card                          */
+/* ============================================ */
 
-.auth-input:hover {
-  border-color: hsl(0 0% 100% / 0.12);
-  background: hsl(220 25% 12% / 0.8);
-}
-
-.auth-input:focus {
-  outline: none;
-  border-color: hsl(38 70% 50% / 0.5);
+.auth-card-minimal {
+  background: hsl(220 25% 7% / 0.6);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid hsl(0 0% 100% / 0.04);
   box-shadow: 
-    0 0 0 3px hsl(38 70% 50% / 0.1),
-    0 0 20px hsl(38 70% 50% / 0.08);
-  background: hsl(220 25% 12% / 0.9);
+    0 0 0 1px hsl(0 0% 0% / 0.2),
+    0 25px 60px -15px hsl(0 0% 0% / 0.5);
 }
 
-/* Auth premium button */
-.auth-btn {
+/* ============================================ */
+/* Minimal Input                               */
+/* ============================================ */
+
+.auth-input-minimal {
+  height: 48px;
+  padding-left: 42px;
+  padding-right: 16px;
+  border-radius: 12px;
+  background: hsl(220 25% 8% / 0.7);
+  border: 1px solid hsl(0 0% 100% / 0.06);
+  color: hsl(220 15% 92%);
+  font-size: 14px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-input-minimal::placeholder {
+  color: hsl(220 15% 40%);
+}
+
+.auth-input-minimal:hover {
+  border-color: hsl(0 0% 100% / 0.1);
+  background: hsl(220 25% 10% / 0.8);
+}
+
+.auth-input-minimal:focus {
+  outline: none;
+  border-color: hsl(38 60% 50% / 0.4);
+  box-shadow: 0 0 0 3px hsl(38 60% 50% / 0.08);
+  background: hsl(220 25% 10% / 0.9);
+}
+
+/* Icon minimal */
+.auth-icon-minimal {
+  color: hsl(220 15% 35%);
+  transition: color 0.2s ease;
+}
+
+.auth-icon-minimal.auth-icon-active {
+  color: hsl(38 60% 55%);
+}
+
+/* Toggle minimal */
+.auth-toggle-minimal {
+  color: hsl(220 15% 35%);
+  transition: all 0.2s ease;
+}
+
+.auth-toggle-minimal:hover {
+  color: hsl(220 15% 60%);
+  background: hsl(0 0% 100% / 0.04);
+}
+
+/* ============================================ */
+/* Minimal Button                              */
+/* ============================================ */
+
+.auth-btn-minimal {
+  height: 48px;
+  border-radius: 12px;
   background: linear-gradient(
     135deg,
-    hsl(0 0% 95%) 0%,
-    hsl(0 0% 85%) 100%
+    hsl(0 0% 92%) 0%,
+    hsl(0 0% 82%) 100%
   );
-  color: hsl(220 25% 8%);
+  color: hsl(220 25% 10%);
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  border: none;
+  cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.auth-btn::before {
+.auth-btn-minimal::before {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(
     135deg,
     hsl(0 0% 100%) 0%,
-    hsl(0 0% 90%) 100%
+    hsl(0 0% 88%) 100%
   );
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
 }
 
-.auth-btn:hover::before {
+.auth-btn-minimal:hover::before {
   opacity: 1;
 }
 
-.auth-btn:hover {
+.auth-btn-minimal:hover {
   transform: translateY(-2px);
   box-shadow: 
-    0 8px 25px hsl(0 0% 0% / 0.3),
-    0 0 30px hsl(0 0% 100% / 0.1);
+    0 10px 30px hsl(0 0% 0% / 0.35),
+    0 0 40px hsl(0 0% 100% / 0.08);
 }
 
-.auth-btn:active {
+.auth-btn-minimal:active {
   transform: translateY(0);
 }
 
-.auth-btn span {
+.auth-btn-minimal:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-btn-minimal:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.auth-btn-minimal span {
   position: relative;
   z-index: 1;
 }
 
-/* Auth link styles */
-.auth-link {
-  color: hsl(220 15% 55%);
-  transition: color 0.2s ease;
-}
+/* ============================================ */
+/* Entry Animations                            */
+/* ============================================ */
 
-.auth-link:hover {
-  color: hsl(220 15% 75%);
-}
-
-.auth-link-gold {
-  color: hsl(38 70% 60%);
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.auth-link-gold:hover {
-  color: hsl(38 70% 70%);
-  text-shadow: 0 0 20px hsl(38 70% 50% / 0.3);
-}
-
-/* Icon focus states */
-.auth-icon {
-  color: hsl(220 15% 40%);
-  transition: color 0.2s ease;
-}
-
-.auth-icon-active {
-  color: hsl(38 70% 55%);
-}
-
-/* Password toggle */
-.auth-toggle {
-  color: hsl(220 15% 40%);
-  transition: all 0.2s ease;
-}
-
-.auth-toggle:hover {
-  color: hsl(220 15% 70%);
-  background: hsl(0 0% 100% / 0.05);
-}
-
-/* Entry animations */
 @keyframes auth-card-enter {
   from {
     opacity: 0;
-    transform: translateY(40px) scale(0.96);
+    transform: translateY(30px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -825,7 +862,7 @@
 @keyframes auth-logo-enter {
   from {
     opacity: 0;
-    transform: translateY(-20px) scale(0.9);
+    transform: translateY(-15px) scale(0.95);
   }
   to {
     opacity: 1;
@@ -836,7 +873,7 @@
 @keyframes auth-field-enter {
   from {
     opacity: 0;
-    transform: translateX(-10px);
+    transform: translateX(-8px);
   }
   to {
     opacity: 1;
@@ -845,11 +882,12 @@
 }
 
 .animate-auth-card {
-  animation: auth-card-enter 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: auth-card-enter 0.7s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
+  opacity: 0;
 }
 
 .animate-auth-logo {
-  animation: auth-logo-enter 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+  animation: auth-logo-enter 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .animate-auth-field {
