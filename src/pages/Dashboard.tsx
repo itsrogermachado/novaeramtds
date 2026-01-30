@@ -28,12 +28,12 @@ import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
 import { TutorialsTab } from '@/components/dashboard/TutorialsTab';
 import { DutchingCalculator } from '@/components/dashboard/DutchingCalculator';
 import { UpgradePrompt } from '@/components/dashboard/UpgradePrompt';
-import { MethodsTab } from '@/components/dashboard/MethodsTab';
+
 import { NotificationBadge } from '@/components/dashboard/NotificationBadge';
 import { AiAssistant } from '@/components/dashboard/AiAssistant';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator, Lock, MessageSquare } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator, Lock } from 'lucide-react';
 import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 
@@ -52,15 +52,9 @@ export default function Dashboard() {
   const { expenses, effectiveExpenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
   const { users, isLoading: usersLoading } = useAllUsers();
-  const { newMethodsCount, markAsViewed: markMethodsAsViewed } = useNewMethodsNotification();
+  
   const { newTutorialsCount, markAsViewed: markTutorialsAsViewed } = useNewTutorialsNotification();
 
-  // Mark methods as viewed when tab changes to methods
-  useEffect(() => {
-    if (currentTab === 'methods') {
-      markMethodsAsViewed();
-    }
-  }, [currentTab, markMethodsAsViewed]);
 
   // Mark tutorials as viewed when tab changes to tutorials
   useEffect(() => {
@@ -202,7 +196,6 @@ export default function Dashboard() {
               currentTab={currentTab}
               onTabChange={setCurrentTab}
               onSignOut={handleSignOut}
-              newMethodsCount={newMethodsCount}
               newTutorialsCount={newTutorialsCount}
             />
           }
@@ -229,12 +222,6 @@ export default function Dashboard() {
                 Tutoriais
                 <NotificationBadge count={newTutorialsCount} />
               </TabsTrigger>
-              <TabsTrigger value="methods" className="text-sm whitespace-nowrap gap-1 relative">
-                {!isVip && !isAdmin && <Lock className="h-3 w-3" />}
-                <MessageSquare className="h-3.5 w-3.5" />
-                Métodos
-                <NotificationBadge count={newMethodsCount} />
-              </TabsTrigger>
               <TabsTrigger value="dutching" className="text-sm whitespace-nowrap gap-1">
                 <Calculator className="h-3.5 w-3.5" />
                 Dutching
@@ -258,7 +245,7 @@ export default function Dashboard() {
                 {currentTab === 'my-expenses' && 'Meus Gastos'}
                 {currentTab === 'comparison' && 'Comparativo'}
                 {currentTab === 'tutorials' && 'Tutoriais'}
-                {currentTab === 'methods' && 'Métodos'}
+                
                 {currentTab === 'dutching' && 'Calculadora Dutching'}
                 {currentTab === 'individual' && 'Usuários Individuais'}
                 {currentTab === 'global' && 'Visão Global'}
@@ -362,13 +349,6 @@ export default function Dashboard() {
               <DutchingCalculator />
             </TabsContent>
 
-            <TabsContent value="methods">
-              {(isVip || isAdmin) ? (
-                <MethodsTab />
-              ) : (
-                <UpgradePrompt feature="Os métodos exclusivos" />
-              )}
-            </TabsContent>
 
             {isAdmin && (
               <TabsContent value="individual">
