@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import logo from '@/assets/logo-nova-era-elegant.jpg';
 import { z } from 'zod';
@@ -110,65 +109,48 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-3 sm:p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center auth-bg p-4 sm:p-6">
       {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/30" />
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-gold/5 rounded-full blur-[100px]" />
-      <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[80px]" />
+      <div className="auth-spotlight" />
+      <div className="auth-ambient" />
+      <div className="auth-noise" />
       
-      <div 
-        className="w-full max-w-md relative z-10"
-        style={{ animationDelay: '0.1s' }}
-      >
+      <div className="w-full max-w-[400px] relative z-10">
         {/* Glass Card */}
-        <div 
-          className={cn(
-            "glass-card gradient-border rounded-2xl p-6 sm:p-8 md:p-10",
-            "shadow-premium-lg animate-slide-up-fade"
-          )}
-        >
+        <div className="auth-card rounded-2xl p-8 sm:p-10 animate-auth-card">
+          
           {/* Logo with glow */}
-          <div 
-            className="flex justify-center mb-6 sm:mb-8 animate-slide-up-fade"
-            style={{ animationDelay: '0.2s' }}
-          >
+          <div className="flex justify-center mb-8 animate-auth-logo">
             <div className="relative">
-              <div className="absolute inset-0 bg-gold/20 rounded-full blur-xl scale-150" />
+              <div className="auth-logo-glow" />
               <img 
                 src={logo} 
                 alt="Nova Era" 
-                className="h-20 sm:h-24 md:h-28 w-auto object-contain relative z-10 drop-shadow-lg"
+                className="auth-logo h-28 sm:h-32 w-auto object-contain rounded-xl"
               />
             </div>
           </div>
 
-          {/* Title */}
-          <div 
-            className="text-center mb-6 sm:mb-8 animate-slide-up-fade"
+          {/* Title - minimal */}
+          <h1 
+            className="text-center text-lg font-medium text-[hsl(220,15%,70%)] mb-8 animate-auth-field opacity-0"
             style={{ animationDelay: '0.3s' }}
           >
-            <h1 className="text-xl sm:text-2xl font-display font-semibold text-foreground mb-1.5 sm:mb-2">
-              {isLogin ? 'Entrar na sua conta' : 'Criar conta'}
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              {isLogin ? 'Bem-vindo de volta!' : 'Preencha os dados abaixo'}
-            </p>
-          </div>
+            {isLogin ? 'Acesse sua conta' : 'Criar conta'}
+          </h1>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Full Name (Sign up only) */}
             {!isLogin && (
               <div 
-                className="space-y-2 animate-slide-up-fade"
+                className="space-y-2 animate-auth-field opacity-0"
                 style={{ animationDelay: '0.35s' }}
               >
-                <label htmlFor="fullName" className="text-sm font-medium text-foreground">
-                  Nome Completo
-                </label>
-                <div className="relative group">
+                <div className="relative">
                   <div className={cn(
-                    "absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200",
-                    focusedField === 'fullName' ? "text-gold" : "text-muted-foreground"
+                    "absolute left-4 top-1/2 -translate-y-1/2 auth-icon transition-colors duration-200",
+                    focusedField === 'fullName' && "auth-icon-active"
                   )}>
                     <User className="h-5 w-5" />
                   </div>
@@ -181,32 +163,26 @@ export default function Auth() {
                     onFocus={() => setFocusedField('fullName')}
                     onBlur={() => setFocusedField(null)}
                     className={cn(
-                      "w-full h-12 pl-11 pr-4 rounded-xl border bg-secondary/50 backdrop-blur-sm",
-                      "text-foreground placeholder:text-muted-foreground",
-                      "transition-all duration-300 ease-out",
-                      "focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50",
-                      "hover:border-border/80 hover:bg-secondary/70",
-                      errors.fullName ? "border-destructive" : "border-border"
+                      "w-full h-13 pl-12 pr-4 rounded-xl auth-input text-sm",
+                      errors.fullName && "border-red-500/50"
                     )}
                   />
                 </div>
                 {errors.fullName && (
-                  <p className="text-sm text-destructive animate-slide-up-fade">{errors.fullName}</p>
+                  <p className="text-xs text-red-400 pl-1">{errors.fullName}</p>
                 )}
               </div>
             )}
 
+            {/* Email */}
             <div 
-              className="space-y-2 animate-slide-up-fade"
+              className="space-y-2 animate-auth-field opacity-0"
               style={{ animationDelay: isLogin ? '0.35s' : '0.4s' }}
             >
-              <label htmlFor="email" className="text-sm font-medium text-foreground">
-                Email
-              </label>
-              <div className="relative group">
+              <div className="relative">
                 <div className={cn(
-                  "absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200",
-                  focusedField === 'email' ? "text-gold" : "text-muted-foreground"
+                  "absolute left-4 top-1/2 -translate-y-1/2 auth-icon transition-colors duration-200",
+                  focusedField === 'email' && "auth-icon-active"
                 )}>
                   <Mail className="h-5 w-5" />
                 </div>
@@ -219,31 +195,25 @@ export default function Auth() {
                   onFocus={() => setFocusedField('email')}
                   onBlur={() => setFocusedField(null)}
                   className={cn(
-                    "w-full h-12 pl-11 pr-4 rounded-xl border bg-secondary/50 backdrop-blur-sm",
-                    "text-foreground placeholder:text-muted-foreground",
-                    "transition-all duration-300 ease-out",
-                    "focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50",
-                    "hover:border-border/80 hover:bg-secondary/70",
-                    errors.email ? "border-destructive" : "border-border"
+                    "w-full h-13 pl-12 pr-4 rounded-xl auth-input text-sm",
+                    errors.email && "border-red-500/50"
                   )}
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-destructive animate-slide-up-fade">{errors.email}</p>
+                <p className="text-xs text-red-400 pl-1">{errors.email}</p>
               )}
             </div>
 
+            {/* Password */}
             <div 
-              className="space-y-2 animate-slide-up-fade"
+              className="space-y-2 animate-auth-field opacity-0"
               style={{ animationDelay: isLogin ? '0.4s' : '0.45s' }}
             >
-              <label htmlFor="password" className="text-sm font-medium text-foreground">
-                Senha
-              </label>
-              <div className="relative group">
+              <div className="relative">
                 <div className={cn(
-                  "absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200",
-                  focusedField === 'password' ? "text-gold" : "text-muted-foreground"
+                  "absolute left-4 top-1/2 -translate-y-1/2 auth-icon transition-colors duration-200",
+                  focusedField === 'password' && "auth-icon-active"
                 )}>
                   <Lock className="h-5 w-5" />
                 </div>
@@ -256,53 +226,41 @@ export default function Auth() {
                   onFocus={() => setFocusedField('password')}
                   onBlur={() => setFocusedField(null)}
                   className={cn(
-                    "w-full h-12 pl-11 pr-12 rounded-xl border bg-secondary/50 backdrop-blur-sm",
-                    "text-foreground placeholder:text-muted-foreground",
-                    "transition-all duration-300 ease-out",
-                    "focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/50",
-                    "hover:border-border/80 hover:bg-secondary/70",
-                    errors.password ? "border-destructive" : "border-border"
+                    "w-full h-13 pl-12 pr-12 rounded-xl auth-input text-sm",
+                    errors.password && "border-red-500/50"
                   )}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className={cn(
-                    "absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md",
-                    "text-muted-foreground hover:text-foreground",
-                    "transition-all duration-200 hover:bg-muted/50"
-                  )}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg auth-toggle"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-destructive animate-slide-up-fade">{errors.password}</p>
+                <p className="text-xs text-red-400 pl-1">{errors.password}</p>
               )}
             </div>
 
+            {/* Submit Button */}
             <div 
-              className="animate-slide-up-fade pt-2"
+              className="pt-3 animate-auth-field opacity-0"
               style={{ animationDelay: isLogin ? '0.45s' : '0.5s' }}
             >
-              <Button
+              <button
                 type="submit"
-                className={cn(
-                  "w-full h-12 text-base font-medium rounded-xl",
-                  "btn-premium transition-all duration-300",
-                  "hover:shadow-glow hover:scale-[1.02]",
-                  "active:scale-[0.98]"
-                )}
+                className="w-full h-13 rounded-xl auth-btn text-sm"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Carregando...' : isLogin ? 'Entrar' : 'Criar conta'}
-              </Button>
+                <span>{isSubmitting ? 'Carregando...' : isLogin ? 'Entrar' : 'Criar conta'}</span>
+              </button>
             </div>
           </form>
 
-          {/* Toggle */}
+          {/* Toggle link */}
           <div 
-            className="mt-6 sm:mt-8 text-center animate-slide-up-fade"
+            className="mt-8 text-center animate-auth-field opacity-0"
             style={{ animationDelay: '0.55s' }}
           >
             <button
@@ -311,15 +269,12 @@ export default function Auth() {
                 setIsLogin(!isLogin);
                 setErrors({});
               }}
-              className={cn(
-                "text-sm text-muted-foreground transition-all duration-200",
-                "hover:text-foreground"
-              )}
+              className="text-sm auth-link"
             >
               {isLogin ? (
-                <>Não tem uma conta? <span className="font-semibold text-gold hover:text-gold/80 transition-colors">Cadastre-se</span></>
+                <>Não tem uma conta? <span className="auth-link-gold">Cadastre-se</span></>
               ) : (
-                <>Já tem uma conta? <span className="font-semibold text-gold hover:text-gold/80 transition-colors">Entrar</span></>
+                <>Já tem uma conta? <span className="auth-link-gold">Entrar</span></>
               )}
             </button>
           </div>
