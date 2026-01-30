@@ -2,15 +2,11 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-export type MembershipTier = 'free' | 'vip';
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
   isAdmin: boolean;
-  membershipTier: MembershipTier;
-  isVip: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -23,7 +19,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [membershipTier, setMembershipTier] = useState<MembershipTier>('free');
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -34,11 +29,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setTimeout(() => {
             checkAdminRole(session.user.id);
-            checkMembershipTier(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
-          setMembershipTier('free');
         }
       }
     );
@@ -49,7 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (session?.user) {
         checkAdminRole(session.user.id);
-        checkMembershipTier(session.user.id);
       }
       
       setIsLoading(false);
@@ -70,20 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAdmin(true);
     } else {
       setIsAdmin(false);
-    }
-  };
-
-  const checkMembershipTier = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_memberships')
-      .select('tier')
-      .eq('user_id', userId)
-      .maybeSingle();
-    
-    if (!error && data) {
-      setMembershipTier(data.tier as MembershipTier);
-    } else {
-      setMembershipTier('free');
     }
   };
 
@@ -114,13 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setIsAdmin(false);
-    setMembershipTier('free');
   };
 
-  const isVip = membershipTier === 'vip';
-
   return (
-    <AuthContext.Provider value={{ user, session, isLoading, isAdmin, membershipTier, isVip, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, isLoading, isAdmin, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
