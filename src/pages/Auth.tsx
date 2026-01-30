@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import logo from '@/assets/logo-nova-era-transparent.png';
+import logo from '@/assets/logo-nova-era-gold.png';
 import { z } from 'zod';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
