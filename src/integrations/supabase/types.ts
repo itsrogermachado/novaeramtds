@@ -319,6 +319,63 @@ export type Database = {
           },
         ]
       }
+      payment_transactions: {
+        Row: {
+          amount: number
+          copy_paste: string | null
+          created_at: string
+          description: string | null
+          fee: number | null
+          id: string
+          metadata: Json | null
+          misticpay_transaction_id: string | null
+          payer_document: string | null
+          payer_name: string | null
+          qr_code_base64: string | null
+          qr_code_url: string | null
+          status: string
+          transaction_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          copy_paste?: string | null
+          created_at?: string
+          description?: string | null
+          fee?: number | null
+          id?: string
+          metadata?: Json | null
+          misticpay_transaction_id?: string | null
+          payer_document?: string | null
+          payer_name?: string | null
+          qr_code_base64?: string | null
+          qr_code_url?: string | null
+          status?: string
+          transaction_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          copy_paste?: string | null
+          created_at?: string
+          description?: string | null
+          fee?: number | null
+          id?: string
+          metadata?: Json | null
+          misticpay_transaction_id?: string | null
+          payer_document?: string | null
+          payer_name?: string | null
+          qr_code_base64?: string | null
+          qr_code_url?: string | null
+          status?: string
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
