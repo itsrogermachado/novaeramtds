@@ -36,17 +36,19 @@ export function StoreHeader() {
             <ThemeToggle />
             
             {user ? (
-              <Button asChild variant="outline" size="sm" className="gap-2">
+              <Button asChild size="sm" className="btn-premium gap-2">
                 <Link to="/dashboard">
                   <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">Minha Conta</span>
+                  <span className="hidden sm:inline">Meu Dashboard</span>
+                  <span className="sm:hidden">Dashboard</span>
                 </Link>
               </Button>
             ) : (
               <Button asChild size="sm" className="btn-premium gap-2">
                 <Link to="/auth">
                   <LogIn className="h-4 w-4" />
-                  <span className="hidden sm:inline">Entrar</span>
+                  <span className="hidden sm:inline">Entrar / Cadastrar</span>
+                  <span className="sm:hidden">Entrar</span>
                 </Link>
               </Button>
             )}
