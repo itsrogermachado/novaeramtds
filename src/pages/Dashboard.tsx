@@ -30,6 +30,7 @@ import { DutchingCalculator } from '@/components/dashboard/DutchingCalculator';
 import { UpgradePrompt } from '@/components/dashboard/UpgradePrompt';
 import { MethodsTab } from '@/components/dashboard/MethodsTab';
 import { NotificationBadge } from '@/components/dashboard/NotificationBadge';
+import { AiAssistant } from '@/components/dashboard/AiAssistant';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator, Lock, MessageSquare } from 'lucide-react';
@@ -120,6 +121,37 @@ export default function Dashboard() {
     
     return returned - invested;
   }, [operations]);
+
+  // Calculate top methods for AI context
+  const topMethods = useMemo(() => {
+    const profitByMethod: Record<string, { name: string; profit: number }> = {};
+    
+    operations.forEach(op => {
+      const method = methods.find(m => m.id === op.method_id);
+      if (method) {
+        if (!profitByMethod[method.id]) {
+          profitByMethod[method.id] = { name: method.name, profit: 0 };
+        }
+        profitByMethod[method.id].profit += Number(op.return_amount) - Number(op.invested_amount);
+      }
+    });
+    
+    return Object.values(profitByMethod)
+      .sort((a, b) => b.profit - a.profit)
+      .slice(0, 3)
+      .map(m => m.name);
+  }, [operations, methods]);
+
+  // AI Assistant context
+  const aiContext = useMemo(() => ({
+    totalProfit: profit,
+    totalExpenses,
+    netBalance,
+    operationsCount: operations.length,
+    todayProfit: todayStats.todayProfit,
+    weeklyProfit,
+    topMethods,
+  }), [profit, totalExpenses, netBalance, operations.length, todayStats.todayProfit, weeklyProfit, topMethods]);
 
   // Detect if viewing a single day (e.g., "Hoje")
   const isSingleDayView = useMemo(() => {
@@ -384,6 +416,8 @@ export default function Dashboard() {
           return createExpense(data);
         }}
       />
+
+      <AiAssistant context={aiContext} />
     </div>
   );
 }
