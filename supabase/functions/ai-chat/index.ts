@@ -5,20 +5,45 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+interface UserContext {
+  userName?: string;
+  todayStats?: {
+    totalInvested: number;
+    totalReturn: number;
+    profit: number;
+    operationsCount: number;
+  };
+  periodStats?: {
+    totalInvested: number;
+    totalReturn: number;
+    profit: number;
+    operationsCount: number;
+    totalExpenses: number;
+    netBalance: number;
+    periodLabel: string;
+  };
+  goals?: Array<{
+    title: string;
+    targetAmount: number;
+    currentAmount: number;
+    goalType: string;
+  }>;
+  recentOperations?: Array<{
+    date: string;
+    method: string;
+    invested: number;
+    returned: number;
+    profit: number;
+  }>;
+  methodsPerformance?: Array<{
+    method: string;
+    totalProfit: number;
+    operationsCount: number;
+  }>;
+}
 
-  try {
-    const { messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    const systemPrompt = `Você é o Assistente Nova Era, um assistente virtual amigável e profissional especializado em ajudar usuários com gestão de operações de trading e apostas esportivas.
+function buildSystemPrompt(context?: UserContext): string {
+  let basePrompt = `Você é o Assistente Nova Era, um assistente virtual amigável e profissional especializado em ajudar usuários com gestão de operações de trading e apostas esportivas.
 
 Suas capacidades incluem:
 - Responder dúvidas sobre o uso do sistema Nova Era
@@ -26,6 +51,7 @@ Suas capacidades incluem:
 - Dar dicas sobre organização de operações e gastos
 - Ajudar com cálculos de dutching e gestão de banca
 - Fornecer orientações gerais sobre estratégias
+- **GERAR RELATÓRIOS PERSONALIZADOS** baseados nos dados do usuário
 
 Diretrizes:
 - Seja sempre educado, profissional e prestativo
@@ -34,8 +60,81 @@ Diretrizes:
 - Se não souber algo, admita e sugira alternativas
 - Nunca dê conselhos financeiros específicos ou garantias de lucro
 - Incentive práticas responsáveis de gestão de banca
+- Quando o usuário pedir relatórios ou análises, USE OS DADOS FORNECIDOS no contexto
 
 Você faz parte do painel administrativo Nova Era, uma plataforma de gestão de operações.`;
+
+  if (context) {
+    basePrompt += `\n\n=== DADOS DO USUÁRIO (USE ESTES DADOS PARA RELATÓRIOS) ===`;
+    
+    if (context.userName) {
+      basePrompt += `\n\nNome do usuário: ${context.userName}`;
+    }
+
+    if (context.todayStats) {
+      const { totalInvested, totalReturn, profit, operationsCount } = context.todayStats;
+      basePrompt += `\n\n📊 ESTATÍSTICAS DE HOJE:
+- Operações realizadas: ${operationsCount}
+- Total investido: R$ ${totalInvested.toFixed(2)}
+- Total de retorno: R$ ${totalReturn.toFixed(2)}
+- Lucro/Prejuízo: R$ ${profit.toFixed(2)} (${profit >= 0 ? '✅ Positivo' : '❌ Negativo'})`;
+    }
+
+    if (context.periodStats) {
+      const { totalInvested, totalReturn, profit, operationsCount, totalExpenses, netBalance, periodLabel } = context.periodStats;
+      basePrompt += `\n\n📈 ESTATÍSTICAS DO PERÍODO (${periodLabel}):
+- Operações realizadas: ${operationsCount}
+- Total investido: R$ ${totalInvested.toFixed(2)}
+- Total de retorno: R$ ${totalReturn.toFixed(2)}
+- Lucro bruto: R$ ${profit.toFixed(2)}
+- Total de gastos: R$ ${totalExpenses.toFixed(2)}
+- Balanço líquido: R$ ${netBalance.toFixed(2)} (${netBalance >= 0 ? '✅ Positivo' : '❌ Negativo'})`;
+    }
+
+    if (context.goals && context.goals.length > 0) {
+      basePrompt += `\n\n🎯 METAS DO USUÁRIO:`;
+      context.goals.forEach((goal, i) => {
+        const progress = goal.targetAmount > 0 ? ((goal.currentAmount / goal.targetAmount) * 100).toFixed(1) : 0;
+        basePrompt += `\n${i + 1}. ${goal.title} (${goal.goalType}): R$ ${goal.currentAmount.toFixed(2)} / R$ ${goal.targetAmount.toFixed(2)} (${progress}% concluído)`;
+      });
+    }
+
+    if (context.methodsPerformance && context.methodsPerformance.length > 0) {
+      basePrompt += `\n\n📋 PERFORMANCE POR MÉTODO:`;
+      context.methodsPerformance.forEach((m, i) => {
+        basePrompt += `\n${i + 1}. ${m.method}: R$ ${m.totalProfit.toFixed(2)} lucro (${m.operationsCount} operações)`;
+      });
+    }
+
+    if (context.recentOperations && context.recentOperations.length > 0) {
+      basePrompt += `\n\n📝 ÚLTIMAS ${context.recentOperations.length} OPERAÇÕES:`;
+      context.recentOperations.forEach((op, i) => {
+        basePrompt += `\n${i + 1}. ${op.date} - ${op.method}: Investido R$ ${op.invested.toFixed(2)}, Retorno R$ ${op.returned.toFixed(2)}, Lucro R$ ${op.profit.toFixed(2)}`;
+      });
+    }
+
+    basePrompt += `\n\n=== FIM DOS DADOS ===
+    
+Quando o usuário pedir um relatório, análise ou resumo, utilize os dados acima para fornecer informações precisas e personalizadas.`;
+  }
+
+  return basePrompt;
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { messages, userContext } = await req.json();
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    const systemPrompt = buildSystemPrompt(userContext as UserContext | undefined);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
