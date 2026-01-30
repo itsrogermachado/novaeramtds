@@ -27,14 +27,13 @@ import { AdminGlobalTab } from '@/components/dashboard/AdminGlobalTab';
 import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
 import { TutorialsTab } from '@/components/dashboard/TutorialsTab';
 import { DutchingCalculator } from '@/components/dashboard/DutchingCalculator';
-import { ProductsAdminTab } from '@/components/dashboard/ProductsAdminTab';
 
 
 import { NotificationBadge } from '@/components/dashboard/NotificationBadge';
 import { AiAssistant } from '@/components/dashboard/AiAssistant';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator, ShoppingBag } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator } from 'lucide-react';
 import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 
@@ -227,12 +226,6 @@ export default function Dashboard() {
                 Dutching
               </TabsTrigger>
               {isAdmin && (
-                <TabsTrigger value="products" className="text-sm whitespace-nowrap gap-1">
-                  <ShoppingBag className="h-3.5 w-3.5" />
-                  Produtos
-                </TabsTrigger>
-              )}
-              {isAdmin && (
                 <TabsTrigger value="individual" className="text-sm whitespace-nowrap">
                   Individuais
                 </TabsTrigger>
@@ -251,8 +244,8 @@ export default function Dashboard() {
                 {currentTab === 'my-expenses' && 'Meus Gastos'}
                 {currentTab === 'comparison' && 'Comparativo'}
                 {currentTab === 'tutorials' && 'Tutoriais'}
+                
                 {currentTab === 'dutching' && 'Calculadora Dutching'}
-                {currentTab === 'products' && 'Gerenciar Produtos'}
                 {currentTab === 'individual' && 'Usuários Individuais'}
                 {currentTab === 'global' && 'Visão Global'}
               </span>
@@ -351,11 +344,7 @@ export default function Dashboard() {
               <DutchingCalculator />
             </TabsContent>
 
-            {isAdmin && (
-              <TabsContent value="products">
-                <ProductsAdminTab />
-              </TabsContent>
-            )}
+
             {isAdmin && (
               <TabsContent value="individual">
                 <AdminIndividualTab

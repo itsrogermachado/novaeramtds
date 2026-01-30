@@ -22,7 +22,6 @@ import {
   Shield,
   LogOut,
   UserCircle,
-  ShoppingBag,
 } from 'lucide-react';
 import logo from '@/assets/logo-nova-era-elegant.jpg';
 import { cn } from '@/lib/utils';
@@ -73,7 +72,6 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
     { id: 'comparison', label: 'Comparativo', icon: <Scale className="h-5 w-5" /> },
     { id: 'tutorials', label: 'Tutoriais', icon: <Video className="h-5 w-5" /> },
     { id: 'dutching', label: 'Calculadora Dutching', icon: <Calculator className="h-5 w-5" /> },
-    { id: 'products', label: 'Gerenciar Produtos', icon: <ShoppingBag className="h-5 w-5" />, adminOnly: true },
     { id: 'individual', label: 'Usuários Individuais', icon: <Users className="h-5 w-5" />, adminOnly: true },
     { id: 'global', label: 'Visão Global', icon: <Globe className="h-5 w-5" />, adminOnly: true },
   ];
