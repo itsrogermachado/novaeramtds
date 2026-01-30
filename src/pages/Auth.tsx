@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import logo from '@/assets/logo-nova-era-3d.png';
+import logo from '@/assets/logo-nova-era-transparent.png';
 import { z } from 'zod';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -115,44 +115,43 @@ export default function Auth() {
       <div className="auth-ambient" />
       <div className="auth-noise" />
       
-      <div className="w-full max-w-[400px] relative z-10">
-        {/* Glass Card */}
-        <div className="auth-card rounded-2xl p-8 sm:p-10 animate-auth-card">
-          
-          {/* Logo with glow */}
-          <div className="flex justify-center mb-8 animate-auth-logo">
-            <div className="relative">
-              <div className="auth-logo-glow" />
-              <img 
-                src={logo} 
-                alt="Nova Era" 
-                className="auth-logo h-28 sm:h-32 w-auto object-contain rounded-xl"
-              />
-            </div>
-          </div>
+      <div className="w-full max-w-[380px] relative z-10">
+        
+        {/* Floating Logo - NO container */}
+        <div className="ne-logo-wrap animate-auth-logo">
+          <div className="ne-logo-glow" />
+          <img 
+            src={logo} 
+            alt="Nova Era" 
+            className="ne-logo"
+          />
+        </div>
 
+        {/* Glass Card - more minimal */}
+        <div className="auth-card-minimal rounded-2xl p-7 sm:p-9 animate-auth-card">
+          
           {/* Title - minimal */}
-          <h1 
-            className="text-center text-lg font-medium text-[hsl(220,15%,70%)] mb-8 animate-auth-field opacity-0"
+          <p 
+            className="text-center text-sm tracking-wide text-[hsl(220,15%,50%)] mb-7 animate-auth-field opacity-0"
             style={{ animationDelay: '0.3s' }}
           >
-            {isLogin ? 'Acesse sua conta' : 'Criar conta'}
-          </h1>
+            {isLogin ? 'Acesse sua conta' : 'Crie sua conta'}
+          </p>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Full Name (Sign up only) */}
             {!isLogin && (
               <div 
-                className="space-y-2 animate-auth-field opacity-0"
+                className="animate-auth-field opacity-0"
                 style={{ animationDelay: '0.35s' }}
               >
                 <div className="relative">
                   <div className={cn(
-                    "absolute left-4 top-1/2 -translate-y-1/2 auth-icon transition-colors duration-200",
+                    "absolute left-3.5 top-1/2 -translate-y-1/2 auth-icon-minimal transition-colors duration-200",
                     focusedField === 'fullName' && "auth-icon-active"
                   )}>
-                    <User className="h-5 w-5" />
+                    <User className="h-4 w-4" />
                   </div>
                   <input
                     id="fullName"
@@ -163,28 +162,28 @@ export default function Auth() {
                     onFocus={() => setFocusedField('fullName')}
                     onBlur={() => setFocusedField(null)}
                     className={cn(
-                      "w-full h-13 pl-12 pr-4 rounded-xl auth-input text-sm",
-                      errors.fullName && "border-red-500/50"
+                      "w-full auth-input-minimal",
+                      errors.fullName && "border-red-500/40"
                     )}
                   />
                 </div>
                 {errors.fullName && (
-                  <p className="text-xs text-red-400 pl-1">{errors.fullName}</p>
+                  <p className="text-xs text-red-400/80 mt-1.5 pl-1">{errors.fullName}</p>
                 )}
               </div>
             )}
 
             {/* Email */}
             <div 
-              className="space-y-2 animate-auth-field opacity-0"
+              className="animate-auth-field opacity-0"
               style={{ animationDelay: isLogin ? '0.35s' : '0.4s' }}
             >
               <div className="relative">
                 <div className={cn(
-                  "absolute left-4 top-1/2 -translate-y-1/2 auth-icon transition-colors duration-200",
+                  "absolute left-3.5 top-1/2 -translate-y-1/2 auth-icon-minimal transition-colors duration-200",
                   focusedField === 'email' && "auth-icon-active"
                 )}>
-                  <Mail className="h-5 w-5" />
+                  <Mail className="h-4 w-4" />
                 </div>
                 <input
                   id="email"
@@ -195,27 +194,27 @@ export default function Auth() {
                   onFocus={() => setFocusedField('email')}
                   onBlur={() => setFocusedField(null)}
                   className={cn(
-                    "w-full h-13 pl-12 pr-4 rounded-xl auth-input text-sm",
-                    errors.email && "border-red-500/50"
+                    "w-full auth-input-minimal",
+                    errors.email && "border-red-500/40"
                   )}
                 />
               </div>
               {errors.email && (
-                <p className="text-xs text-red-400 pl-1">{errors.email}</p>
+                <p className="text-xs text-red-400/80 mt-1.5 pl-1">{errors.email}</p>
               )}
             </div>
 
             {/* Password */}
             <div 
-              className="space-y-2 animate-auth-field opacity-0"
+              className="animate-auth-field opacity-0"
               style={{ animationDelay: isLogin ? '0.4s' : '0.45s' }}
             >
               <div className="relative">
                 <div className={cn(
-                  "absolute left-4 top-1/2 -translate-y-1/2 auth-icon transition-colors duration-200",
+                  "absolute left-3.5 top-1/2 -translate-y-1/2 auth-icon-minimal transition-colors duration-200",
                   focusedField === 'password' && "auth-icon-active"
                 )}>
-                  <Lock className="h-5 w-5" />
+                  <Lock className="h-4 w-4" />
                 </div>
                 <input
                   id="password"
@@ -226,31 +225,31 @@ export default function Auth() {
                   onFocus={() => setFocusedField('password')}
                   onBlur={() => setFocusedField(null)}
                   className={cn(
-                    "w-full h-13 pl-12 pr-12 rounded-xl auth-input text-sm",
-                    errors.password && "border-red-500/50"
+                    "w-full auth-input-minimal pr-11",
+                    errors.password && "border-red-500/40"
                   )}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg auth-toggle"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-md auth-toggle-minimal"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-xs text-red-400 pl-1">{errors.password}</p>
+                <p className="text-xs text-red-400/80 mt-1.5 pl-1">{errors.password}</p>
               )}
             </div>
 
             {/* Submit Button */}
             <div 
-              className="pt-3 animate-auth-field opacity-0"
+              className="pt-2 animate-auth-field opacity-0"
               style={{ animationDelay: isLogin ? '0.45s' : '0.5s' }}
             >
               <button
                 type="submit"
-                className="w-full h-13 rounded-xl auth-btn text-sm"
+                className="w-full auth-btn-minimal"
                 disabled={isSubmitting}
               >
                 <span>{isSubmitting ? 'Carregando...' : isLogin ? 'Entrar' : 'Criar conta'}</span>
@@ -260,7 +259,7 @@ export default function Auth() {
 
           {/* Toggle link */}
           <div 
-            className="mt-8 text-center animate-auth-field opacity-0"
+            className="mt-6 text-center animate-auth-field opacity-0"
             style={{ animationDelay: '0.55s' }}
           >
             <button
@@ -269,12 +268,12 @@ export default function Auth() {
                 setIsLogin(!isLogin);
                 setErrors({});
               }}
-              className="text-sm auth-link"
+              className="text-xs auth-link"
             >
               {isLogin ? (
-                <>Não tem uma conta? <span className="auth-link-gold">Cadastre-se</span></>
+                <>Não tem conta? <span className="auth-link-gold">Cadastre-se</span></>
               ) : (
-                <>Já tem uma conta? <span className="auth-link-gold">Entrar</span></>
+                <>Já tem conta? <span className="auth-link-gold">Entrar</span></>
               )}
             </button>
           </div>
