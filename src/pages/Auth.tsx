@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import logo from '@/assets/logo-nova-era-gold.png';
+import logo from '@/assets/logo-nova-era-elegant.jpg';
 import { z } from 'zod';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -130,9 +130,9 @@ export default function Auth() {
         {/* Glass Card - more minimal */}
         <div className="auth-card-minimal rounded-2xl p-7 sm:p-9 animate-auth-card">
           
-          {/* Title - minimal */}
+          {/* Title - elegant silver */}
           <p 
-            className="text-center text-sm tracking-wide text-[hsl(220,15%,50%)] mb-7 animate-auth-field opacity-0"
+            className="text-center text-sm tracking-wide text-muted-foreground mb-7 animate-auth-field opacity-0"
             style={{ animationDelay: '0.3s' }}
           >
             {isLogin ? 'Acesse sua conta' : 'Crie sua conta'}
@@ -161,16 +161,16 @@ export default function Auth() {
                     onChange={(e) => setFullName(e.target.value)}
                     onFocus={() => setFocusedField('fullName')}
                     onBlur={() => setFocusedField(null)}
-                    className={cn(
-                      "w-full auth-input-minimal",
-                      errors.fullName && "border-red-500/40"
-                    )}
-                  />
-                </div>
-                {errors.fullName && (
-                  <p className="text-xs text-red-400/80 mt-1.5 pl-1">{errors.fullName}</p>
-                )}
+                  className={cn(
+                    "w-full auth-input-minimal",
+                    errors.fullName && "border-destructive/40"
+                  )}
+                />
               </div>
+              {errors.fullName && (
+                <p className="text-xs text-destructive mt-1.5 pl-1">{errors.fullName}</p>
+              )}
+            </div>
             )}
 
             {/* Email */}
@@ -195,12 +195,12 @@ export default function Auth() {
                   onBlur={() => setFocusedField(null)}
                   className={cn(
                     "w-full auth-input-minimal",
-                    errors.email && "border-red-500/40"
+                    errors.email && "border-destructive/40"
                   )}
                 />
               </div>
               {errors.email && (
-                <p className="text-xs text-red-400/80 mt-1.5 pl-1">{errors.email}</p>
+                <p className="text-xs text-destructive mt-1.5 pl-1">{errors.email}</p>
               )}
             </div>
 
@@ -226,7 +226,7 @@ export default function Auth() {
                   onBlur={() => setFocusedField(null)}
                   className={cn(
                     "w-full auth-input-minimal pr-11",
-                    errors.password && "border-red-500/40"
+                    errors.password && "border-destructive/40"
                   )}
                 />
                 <button
@@ -238,7 +238,7 @@ export default function Auth() {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-xs text-red-400/80 mt-1.5 pl-1">{errors.password}</p>
+                <p className="text-xs text-destructive mt-1.5 pl-1">{errors.password}</p>
               )}
             </div>
 
@@ -268,12 +268,12 @@ export default function Auth() {
                 setIsLogin(!isLogin);
                 setErrors({});
               }}
-              className="text-xs auth-link"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               {isLogin ? (
-                <>Não tem conta? <span className="auth-link-gold">Cadastre-se</span></>
+                <>Não tem conta? <span className="font-semibold text-foreground">Cadastre-se</span></>
               ) : (
-                <>Já tem conta? <span className="auth-link-gold">Entrar</span></>
+                <>Já tem conta? <span className="font-semibold text-foreground">Entrar</span></>
               )}
             </button>
           </div>
