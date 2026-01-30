@@ -11,10 +11,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@capacitor/android": "^8.0.2",
-    "@capacitor/cli": "^8.0.2",
-    "@capacitor/core": "^8.0.2",
-    "@capacitor/ios": "^8.0.2",
     "@fontsource/nunito": "^5.2.7",
     "@fontsource/rubik": "^5.2.8",
     "@hookform/resolvers": "^3.10.0",
