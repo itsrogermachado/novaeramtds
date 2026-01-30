@@ -30,6 +30,7 @@ import { DutchingCalculator } from '@/components/dashboard/DutchingCalculator';
 import { UpgradePrompt } from '@/components/dashboard/UpgradePrompt';
 import { MethodsTab } from '@/components/dashboard/MethodsTab';
 import { NotificationBadge } from '@/components/dashboard/NotificationBadge';
+import { FloatingAIChat } from '@/components/dashboard/FloatingAIChat';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator, Lock, MessageSquare } from 'lucide-react';
 import { Operation } from '@/hooks/useOperations';
@@ -383,6 +384,9 @@ export default function Dashboard() {
           return createExpense(data);
         }}
       />
+
+      {/* Floating AI Assistant */}
+      <FloatingAIChat />
     </div>
   );
 }
