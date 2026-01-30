@@ -268,12 +268,12 @@ export default function Auth() {
                 setIsLogin(!isLogin);
                 setErrors({});
               }}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors"
             >
               {isLogin ? (
-                <>Não tem conta? <span className="font-semibold text-foreground">Cadastre-se</span></>
+                <>Não tem conta? <span className="font-semibold text-foreground underline-offset-2 hover:underline">Cadastre-se</span></>
               ) : (
-                <>Já tem conta? <span className="font-semibold text-foreground">Entrar</span></>
+                <>Já tem conta? <span className="font-semibold text-foreground underline-offset-2 hover:underline">Entrar</span></>
               )}
             </button>
           </div>
