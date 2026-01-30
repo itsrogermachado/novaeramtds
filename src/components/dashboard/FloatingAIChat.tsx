@@ -16,33 +16,62 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === 'user';
 
   return (
-    <div className={cn('flex gap-2.5', isUser ? 'flex-row-reverse' : 'flex-row')}>
+    <div className={cn('flex gap-3', isUser ? 'flex-row-reverse' : 'flex-row')}>
       <div className={cn(
-        'flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center',
-        isUser ? 'bg-primary text-primary-foreground' : 'bg-muted'
+        'flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center shadow-sm',
+        isUser ? 'bg-primary text-primary-foreground' : 'bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20'
       )}>
-        {isUser ? <User className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
+        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4 text-primary" />}
       </div>
       <div className={cn(
-        'max-w-[85%] rounded-2xl px-3.5 py-2',
+        'max-w-[80%] rounded-2xl px-4 py-3 shadow-sm',
         isUser 
-          ? 'bg-primary text-primary-foreground rounded-br-md' 
-          : 'bg-muted rounded-bl-md'
+          ? 'bg-primary text-primary-foreground rounded-br-sm' 
+          : 'bg-card border border-border rounded-bl-sm'
       )}>
         {isUser ? (
-          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+          <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
         ) : (
-          <div className="prose prose-sm dark:prose-invert max-w-none text-sm">
+          <div className="text-sm leading-relaxed space-y-2 text-foreground/90">
             <ReactMarkdown
               components={{
-                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                ul: ({ children }) => <ul className="mb-2 ml-4 list-disc">{children}</ul>,
-                ol: ({ children }) => <ol className="mb-2 ml-4 list-decimal">{children}</ol>,
-                li: ({ children }) => <li className="mb-1">{children}</li>,
-                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                code: ({ children }) => (
-                  <code className="bg-background/50 px-1.5 py-0.5 rounded text-xs">{children}</code>
+                p: ({ children }) => (
+                  <p className="mb-2.5 last:mb-0 leading-relaxed">{children}</p>
                 ),
+                h1: ({ children }) => (
+                  <h4 className="font-semibold text-foreground mb-2 mt-3 first:mt-0">{children}</h4>
+                ),
+                h2: ({ children }) => (
+                  <h4 className="font-semibold text-foreground mb-2 mt-3 first:mt-0">{children}</h4>
+                ),
+                h3: ({ children }) => (
+                  <h4 className="font-semibold text-foreground mb-2 mt-3 first:mt-0">{children}</h4>
+                ),
+                ul: ({ children }) => (
+                  <ul className="mb-2.5 space-y-1.5 ml-1">{children}</ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="mb-2.5 space-y-1.5 ml-1 list-decimal list-inside">{children}</ol>
+                ),
+                li: ({ children }) => (
+                  <li className="flex gap-2 items-start">
+                    <span className="text-primary mt-1.5 text-xs">•</span>
+                    <span className="flex-1">{children}</span>
+                  </li>
+                ),
+                strong: ({ children }) => (
+                  <strong className="font-semibold text-foreground">{children}</strong>
+                ),
+                em: ({ children }) => (
+                  <em className="italic text-muted-foreground">{children}</em>
+                ),
+                code: ({ children }) => (
+                  <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono text-primary">{children}</code>
+                ),
+                blockquote: ({ children }) => (
+                  <blockquote className="border-l-2 border-primary/50 pl-3 italic text-muted-foreground my-2">{children}</blockquote>
+                ),
+                hr: () => <hr className="my-3 border-border/50" />,
               }}
             >
               {message.content}
