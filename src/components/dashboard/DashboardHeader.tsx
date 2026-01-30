@@ -150,7 +150,7 @@ export function DashboardHeader({
             <Button size="sm" variant="outline" asChild className="flex-1 sm:flex-none gap-1.5 sm:gap-2 h-8 text-xs sm:text-sm px-2.5 sm:px-3">
               <a href="https://check.proxynovaera.shop/" target="_blank" rel="noopener noreferrer">
                 <Shield className="h-3.5 w-3.5" />
-                <span className="truncate">Proxy</span>
+                <span className="truncate">Consulte sua proxy</span>
               </a>
             </Button>
 
