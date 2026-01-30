@@ -16,7 +16,6 @@ import {
   Scale,
   Video,
   Calculator,
-  MessageSquare,
   Users,
   Globe,
   Lock,
@@ -41,11 +40,10 @@ interface MobileNavProps {
   currentTab: string;
   onTabChange: (tab: string) => void;
   onSignOut: () => void;
-  newMethodsCount?: number;
   newTutorialsCount?: number;
 }
 
-export function MobileNav({ currentTab, onTabChange, onSignOut, newMethodsCount = 0, newTutorialsCount = 0 }: MobileNavProps) {
+export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCount = 0 }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const { isAdmin, isVip, membershipTier, user } = useAuth();
   const navigate = useNavigate();
@@ -76,7 +74,6 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newMethodsCount 
     { id: 'my-expenses', label: 'Meus Gastos', icon: <Receipt className="h-5 w-5" /> },
     { id: 'comparison', label: 'Comparativo', icon: <Scale className="h-5 w-5" /> },
     { id: 'tutorials', label: 'Tutoriais', icon: <Video className="h-5 w-5" />, locked: !isVip && !isAdmin },
-    { id: 'methods', label: 'Métodos', icon: <MessageSquare className="h-5 w-5" />, locked: !isVip && !isAdmin },
     { id: 'dutching', label: 'Calculadora Dutching', icon: <Calculator className="h-5 w-5" /> },
     { id: 'individual', label: 'Usuários Individuais', icon: <Users className="h-5 w-5" />, adminOnly: true },
     { id: 'global', label: 'Visão Global', icon: <Globe className="h-5 w-5" />, adminOnly: true },
@@ -131,7 +128,6 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newMethodsCount 
                     currentTab === item.id ? "text-primary-foreground" : "text-muted-foreground"
                   )}>
                     {item.icon}
-                    {item.id === 'methods' && <NotificationBadge count={newMethodsCount} />}
                     {item.id === 'tutorials' && <NotificationBadge count={newTutorialsCount} />}
                   </span>
                   <span className="flex-1 font-medium">{item.label}</span>
