@@ -68,6 +68,16 @@ serve(async (req) => {
       }
     }
 
+    // Format messages to support multimodal content (text + images)
+    const formattedMessages = messages.map((msg: { role: string; content: string | Array<{ type: string; text?: string; image_url?: { url: string } }> }) => {
+      // If content is already an array (multimodal), keep it as is
+      if (Array.isArray(msg.content)) {
+        return msg;
+      }
+      // Otherwise, it's a simple text message
+      return msg;
+    });
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -78,7 +88,7 @@ serve(async (req) => {
         model: "openai/gpt-5.2",
         messages: [
           { role: "system", content: systemPrompt },
-          ...messages,
+          ...formattedMessages,
         ],
         stream: true,
       }),

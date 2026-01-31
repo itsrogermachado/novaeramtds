@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, memo } from 'react';
-import { Send, Loader2, Sparkles, Bot, User, X, Trash2 } from 'lucide-react';
+import { Send, Loader2, Sparkles, Bot, User, X, Trash2, ImagePlus, X as XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -7,10 +7,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { toast } from 'sonner';
+
+type MessageContent = 
+  | string 
+  | Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }>;
 
 type Message = {
   role: 'user' | 'assistant';
-  content: string;
+  content: MessageContent;
 };
 
 type AiContext = {
@@ -37,29 +42,67 @@ const QUICK_PROMPTS = [
   { label: '📈 Tendências', prompt: 'Qual a tendência dos meus resultados?' },
 ];
 
+const MAX_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB limit
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+// Helper to extract text content from a message
+const getTextContent = (content: MessageContent): string => {
+  if (typeof content === 'string') return content;
+  const textPart = content.find(part => part.type === 'text');
+  return textPart && 'text' in textPart ? textPart.text : '';
+};
+
+// Helper to extract images from a message
+const getImageUrls = (content: MessageContent): string[] => {
+  if (typeof content === 'string') return [];
+  return content
+    .filter((part): part is { type: 'image_url'; image_url: { url: string } } => part.type === 'image_url')
+    .map(part => part.image_url.url);
+};
+
+// Convert file to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+};
+
 // Memoized chat content to prevent re-renders
 interface ChatContentProps {
   messages: Message[];
   isLoading: boolean;
   input: string;
+  pendingImages: string[];
   onInputChange: (value: string) => void;
   onSubmit: (e?: React.FormEvent) => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
   onQuickPrompt: (prompt: string) => void;
+  onImageAdd: (files: FileList | null) => void;
+  onImageRemove: (index: number) => void;
+  onPaste: (e: React.ClipboardEvent) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   scrollRef: React.RefObject<HTMLDivElement>;
+  fileInputRef: React.RefObject<HTMLInputElement>;
 }
 
 const ChatContent = memo(function ChatContent({
   messages,
   isLoading,
   input,
+  pendingImages,
   onInputChange,
   onSubmit,
   onKeyDown,
   onQuickPrompt,
+  onImageAdd,
+  onImageRemove,
+  onPaste,
   textareaRef,
   scrollRef,
+  fileInputRef,
 }: ChatContentProps) {
   return (
     <div className="flex flex-col h-full">
@@ -73,7 +116,7 @@ const ChatContent = memo(function ChatContent({
             <div>
               <h4 className="font-medium mb-1">Olá! Sou seu assistente</h4>
               <p className="text-sm text-muted-foreground">
-                Posso analisar suas operações e dar insights rápidos.
+                Posso analisar suas operações, imagens e dar insights rápidos.
               </p>
             </div>
             
@@ -97,42 +140,61 @@ const ChatContent = memo(function ChatContent({
           </div>
         ) : (
           <div className="space-y-4">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "flex gap-2",
-                  msg.role === 'user' ? 'justify-end' : 'justify-start'
-                )}
-              >
-                {msg.role === 'assistant' && (
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-r from-primary to-primary/60 flex items-center justify-center flex-shrink-0">
-                    <Bot className="h-3.5 w-3.5 text-primary-foreground" />
-                  </div>
-                )}
+            {messages.map((msg, i) => {
+              const textContent = getTextContent(msg.content);
+              const imageUrls = getImageUrls(msg.content);
+              
+              return (
                 <div
+                  key={i}
                   className={cn(
-                    "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm",
-                    msg.role === 'user'
-                      ? 'bg-primary text-primary-foreground rounded-br-md'
-                      : 'bg-muted rounded-bl-md'
+                    "flex gap-2",
+                    msg.role === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
-                  {msg.role === 'assistant' ? (
-                    <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1">
-                      <ReactMarkdown>{msg.content || '...'}</ReactMarkdown>
+                  {msg.role === 'assistant' && (
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-r from-primary to-primary/60 flex items-center justify-center flex-shrink-0">
+                      <Bot className="h-3.5 w-3.5 text-primary-foreground" />
                     </div>
-                  ) : (
-                    <p>{msg.content}</p>
+                  )}
+                  <div
+                    className={cn(
+                      "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm",
+                      msg.role === 'user'
+                        ? 'bg-primary text-primary-foreground rounded-br-md'
+                        : 'bg-muted rounded-bl-md'
+                    )}
+                  >
+                    {/* Display images if any */}
+                    {imageUrls.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {imageUrls.map((url, imgIdx) => (
+                          <img
+                            key={imgIdx}
+                            src={url}
+                            alt={`Uploaded ${imgIdx + 1}`}
+                            className="max-w-[200px] max-h-[150px] rounded-lg object-cover"
+                          />
+                        ))}
+                      </div>
+                    )}
+                    
+                    {msg.role === 'assistant' ? (
+                      <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1">
+                        <ReactMarkdown>{textContent || '...'}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      textContent && <p>{textContent}</p>
+                    )}
+                  </div>
+                  {msg.role === 'user' && (
+                    <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                      <User className="h-3.5 w-3.5 text-secondary-foreground" />
+                    </div>
                   )}
                 </div>
-                {msg.role === 'user' && (
-                  <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                    <User className="h-3.5 w-3.5 text-secondary-foreground" />
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
             {isLoading && messages[messages.length - 1]?.role === 'user' && (
               <div className="flex gap-2 justify-start">
                 <div className="w-7 h-7 rounded-full bg-gradient-to-r from-primary to-primary/60 flex items-center justify-center">
@@ -149,13 +211,59 @@ const ChatContent = memo(function ChatContent({
 
       {/* Input */}
       <form onSubmit={onSubmit} className="p-4 border-t border-border bg-background/50">
+        {/* Pending images preview */}
+        {pendingImages.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {pendingImages.map((img, idx) => (
+              <div key={idx} className="relative group">
+                <img
+                  src={img}
+                  alt={`Preview ${idx + 1}`}
+                  className="w-16 h-16 rounded-lg object-cover border border-border"
+                />
+                <button
+                  type="button"
+                  onClick={() => onImageRemove(idx)}
+                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <XIcon className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        
         <div className="flex gap-2">
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => onImageAdd(e.target.files)}
+          />
+          
+          {/* Image upload button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-11 w-11 rounded-xl flex-shrink-0"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+            title="Anexar imagem"
+          >
+            <ImagePlus className="h-4 w-4" />
+          </Button>
+          
           <Textarea
             ref={textareaRef}
             value={input}
             onChange={(e) => onInputChange(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Digite sua mensagem..."
+            onPaste={onPaste}
+            placeholder="Digite ou cole uma imagem..."
             className="min-h-[44px] max-h-32 resize-none rounded-xl"
             rows={1}
             disabled={isLoading}
@@ -164,7 +272,7 @@ const ChatContent = memo(function ChatContent({
             type="submit"
             size="icon"
             className="h-11 w-11 rounded-xl flex-shrink-0"
-            disabled={!input.trim() || isLoading}
+            disabled={(!input.trim() && pendingImages.length === 0) || isLoading}
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -182,9 +290,11 @@ export function AiAssistant({ context, embedded = false }: AiAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [pendingImages, setPendingImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
   
   // Store context in ref to avoid re-creating streamChat on every context change
@@ -207,9 +317,78 @@ export function AiAssistant({ context, embedded = false }: AiAssistantProps) {
     }
   }, [isOpen]);
 
-  const streamChat = useCallback(async (userMessage: string) => {
+  const handleImageAdd = useCallback(async (files: FileList | null) => {
+    if (!files) return;
+    
+    const validImages: string[] = [];
+    
+    for (const file of Array.from(files)) {
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        toast.error(`Tipo de arquivo não suportado: ${file.type}`);
+        continue;
+      }
+      
+      if (file.size > MAX_IMAGE_SIZE) {
+        toast.error(`Imagem muito grande (máx 4MB): ${file.name}`);
+        continue;
+      }
+      
+      try {
+        const base64 = await fileToBase64(file);
+        validImages.push(base64);
+      } catch {
+        toast.error(`Erro ao processar: ${file.name}`);
+      }
+    }
+    
+    if (validImages.length > 0) {
+      setPendingImages(prev => [...prev, ...validImages].slice(0, 4)); // Max 4 images
+    }
+  }, []);
+
+  const handleImageRemove = useCallback((index: number) => {
+    setPendingImages(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    
+    const imageFiles: File[] = [];
+    
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) imageFiles.push(file);
+      }
+    }
+    
+    if (imageFiles.length > 0) {
+      e.preventDefault(); // Prevent pasting image as text
+      const dataTransfer = new DataTransfer();
+      imageFiles.forEach(f => dataTransfer.items.add(f));
+      handleImageAdd(dataTransfer.files);
+    }
+  }, [handleImageAdd]);
+
+  const streamChat = useCallback(async (userMessage: string, images: string[] = []) => {
     setIsLoading(true);
-    const userMsg: Message = { role: 'user', content: userMessage };
+    
+    // Build message content
+    let content: MessageContent;
+    if (images.length > 0) {
+      content = [
+        { type: 'text' as const, text: userMessage || 'Analise esta imagem' },
+        ...images.map(img => ({ 
+          type: 'image_url' as const, 
+          image_url: { url: img } 
+        }))
+      ];
+    } else {
+      content = userMessage;
+    }
+    
+    const userMsg: Message = { role: 'user', content };
     
     setMessages(prev => {
       const newMessages = [...prev, userMsg];
@@ -293,13 +472,14 @@ export function AiAssistant({ context, embedded = false }: AiAssistantProps) {
     });
     
     setInput('');
+    setPendingImages([]);
   }, []);
 
   const handleSubmit = useCallback((e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!input.trim() || isLoading) return;
-    streamChat(input.trim());
-  }, [input, isLoading, streamChat]);
+    if ((!input.trim() && pendingImages.length === 0) || isLoading) return;
+    streamChat(input.trim(), pendingImages);
+  }, [input, pendingImages, isLoading, streamChat]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -319,6 +499,7 @@ export function AiAssistant({ context, embedded = false }: AiAssistantProps) {
 
   const handleClearChat = useCallback(() => {
     setMessages([]);
+    setPendingImages([]);
   }, []);
 
   // Trigger button for embedded mode
@@ -363,7 +544,7 @@ export function AiAssistant({ context, embedded = false }: AiAssistantProps) {
                   </div>
                   <div>
                     <SheetTitle className="text-sm font-semibold">Assistente Nova Era</SheetTitle>
-                    <p className="text-xs text-muted-foreground">Seu parceiro de trading</p>
+                    <p className="text-xs text-muted-foreground">Analisa texto e imagens</p>
                   </div>
                 </div>
                 {messages.length > 0 && (
@@ -384,12 +565,17 @@ export function AiAssistant({ context, embedded = false }: AiAssistantProps) {
                 messages={messages}
                 isLoading={isLoading}
                 input={input}
+                pendingImages={pendingImages}
                 onInputChange={handleInputChange}
                 onSubmit={handleSubmit}
                 onKeyDown={handleKeyDown}
                 onQuickPrompt={handleQuickPrompt}
+                onImageAdd={handleImageAdd}
+                onImageRemove={handleImageRemove}
+                onPaste={handlePaste}
                 textareaRef={textareaRef}
                 scrollRef={scrollRef}
+                fileInputRef={fileInputRef}
               />
             </div>
           </SheetContent>
@@ -434,7 +620,7 @@ export function AiAssistant({ context, embedded = false }: AiAssistantProps) {
               </div>
               <div>
                 <h3 className="font-semibold text-sm">Assistente Nova Era</h3>
-                <p className="text-xs text-muted-foreground">Seu parceiro de trading</p>
+                <p className="text-xs text-muted-foreground">Analisa texto e imagens</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -464,12 +650,17 @@ export function AiAssistant({ context, embedded = false }: AiAssistantProps) {
             messages={messages}
             isLoading={isLoading}
             input={input}
+            pendingImages={pendingImages}
             onInputChange={handleInputChange}
             onSubmit={handleSubmit}
             onKeyDown={handleKeyDown}
             onQuickPrompt={handleQuickPrompt}
+            onImageAdd={handleImageAdd}
+            onImageRemove={handleImageRemove}
+            onPaste={handlePaste}
             textareaRef={textareaRef}
             scrollRef={scrollRef}
+            fileInputRef={fileInputRef}
           />
         </div>
       )}
