@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, memo } from 'react';
-import { Send, Loader2, Sparkles, Bot, User, X } from 'lucide-react';
+import { Send, Loader2, Sparkles, Bot, User, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -317,6 +317,10 @@ export function AiAssistant({ context, embedded = false }: AiAssistantProps) {
     setInput(value);
   }, []);
 
+  const handleClearChat = useCallback(() => {
+    setMessages([]);
+  }, []);
+
   // Trigger button for embedded mode
   const TriggerButton = () => (
     <Button
@@ -362,6 +366,17 @@ export function AiAssistant({ context, embedded = false }: AiAssistantProps) {
                     <p className="text-xs text-muted-foreground">Seu parceiro de trading</p>
                   </div>
                 </div>
+                {messages.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={handleClearChat}
+                    title="Limpar conversa"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </SheetHeader>
             <div className="h-[calc(90vh-73px)]">
@@ -422,14 +437,27 @@ export function AiAssistant({ context, embedded = false }: AiAssistantProps) {
                 <p className="text-xs text-muted-foreground">Seu parceiro de trading</p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setIsOpen(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              {messages.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={handleClearChat}
+                  title="Limpar conversa"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setIsOpen(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <ChatContent
