@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { MessageCircle, X, Send, Loader2, Sparkles, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
+import { Send, Loader2, Sparkles, Bot, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -23,6 +25,7 @@ type AiContext = {
 
 interface AiAssistantProps {
   context?: AiContext;
+  embedded?: boolean;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
@@ -34,14 +37,14 @@ const QUICK_PROMPTS = [
   { label: '📈 Tendências', prompt: 'Identifique tendências nos meus resultados recentes' },
 ];
 
-export function AiAssistant({ context }: AiAssistantProps) {
+export function AiAssistant({ context, embedded = false }: AiAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isMobile = useIsMobile();
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -53,7 +56,7 @@ export function AiAssistant({ context }: AiAssistantProps) {
   // Focus textarea when chat opens
   useEffect(() => {
     if (isOpen && textareaRef.current) {
-      textareaRef.current.focus();
+      setTimeout(() => textareaRef.current?.focus(), 100);
     }
   }, [isOpen]);
 
@@ -155,28 +158,205 @@ export function AiAssistant({ context }: AiAssistantProps) {
     streamChat(prompt);
   };
 
+  // Chat content component (reused in both modes)
+  const ChatContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Messages */}
+      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-4 py-8">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center">
+              <Bot className="h-7 w-7 text-primary" />
+            </div>
+            <div>
+              <h4 className="font-medium mb-1">Olá! Sou seu assistente</h4>
+              <p className="text-sm text-muted-foreground">
+                Posso analisar suas operações, dar insights e ajudar com estratégias.
+              </p>
+            </div>
+            
+            {/* Quick prompts - horizontal scroll on mobile */}
+            <div className="w-full mt-2 overflow-x-auto pb-2">
+              <div className="flex gap-2 min-w-max md:grid md:grid-cols-2 md:min-w-0">
+                {QUICK_PROMPTS.map((item) => (
+                  <Button
+                    key={item.label}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-auto py-2 px-3 whitespace-nowrap"
+                    onClick={() => handleQuickPrompt(item.prompt)}
+                    disabled={isLoading}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "flex gap-2",
+                  msg.role === 'user' ? 'justify-end' : 'justify-start'
+                )}
+              >
+                {msg.role === 'assistant' && (
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-r from-primary to-primary/60 flex items-center justify-center flex-shrink-0">
+                    <Bot className="h-3.5 w-3.5 text-primary-foreground" />
+                  </div>
+                )}
+                <div
+                  className={cn(
+                    "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm",
+                    msg.role === 'user'
+                      ? 'bg-primary text-primary-foreground rounded-br-md'
+                      : 'bg-muted rounded-bl-md'
+                  )}
+                >
+                  {msg.role === 'assistant' ? (
+                    <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1">
+                      <ReactMarkdown>{msg.content || '...'}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p>{msg.content}</p>
+                  )}
+                </div>
+                {msg.role === 'user' && (
+                  <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                    <User className="h-3.5 w-3.5 text-secondary-foreground" />
+                  </div>
+                )}
+              </div>
+            ))}
+            {isLoading && messages[messages.length - 1]?.role === 'user' && (
+              <div className="flex gap-2 justify-start">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-r from-primary to-primary/60 flex items-center justify-center">
+                  <Bot className="h-3.5 w-3.5 text-primary-foreground" />
+                </div>
+                <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-2.5">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </ScrollArea>
+
+      {/* Input */}
+      <form onSubmit={handleSubmit} className="p-4 border-t border-border bg-background/50">
+        <div className="flex gap-2">
+          <Textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Digite sua mensagem..."
+            className="min-h-[44px] max-h-32 resize-none rounded-xl"
+            rows={1}
+            disabled={isLoading}
+          />
+          <Button
+            type="submit"
+            size="icon"
+            className="h-11 w-11 rounded-xl flex-shrink-0"
+            disabled={!input.trim() || isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+
+  // Trigger button for embedded mode
+  const TriggerButton = () => (
+    <Button
+      onClick={() => setIsOpen(true)}
+      variant="outline"
+      size="sm"
+      className="gap-2 h-8 px-3 text-xs md:text-sm bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 hover:border-primary/40 hover:bg-primary/15 transition-all"
+    >
+      <Sparkles className="h-3.5 w-3.5 text-primary" />
+      <span className="hidden sm:inline">Assistente IA</span>
+      <span className="sm:hidden">IA</span>
+    </Button>
+  );
+
+  // Mobile: Use Sheet (fullscreen drawer)
+  if (isMobile) {
+    return (
+      <>
+        {embedded && <TriggerButton />}
+        
+        {!embedded && (
+          <Button
+            onClick={() => setIsOpen(true)}
+            variant="outline"
+            size="sm"
+            className="fixed bottom-4 right-4 z-50 gap-2 h-10 px-4 shadow-lg bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20"
+          >
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span>IA</span>
+          </Button>
+        )}
+
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetContent side="bottom" className="h-[90vh] p-0 rounded-t-2xl">
+            <SheetHeader className="p-4 border-b border-border bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-primary/60 flex items-center justify-center">
+                    <Sparkles className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <SheetTitle className="text-sm font-semibold">Assistente Nova Era</SheetTitle>
+                    <p className="text-xs text-muted-foreground">Seu parceiro de trading</p>
+                  </div>
+                </div>
+              </div>
+            </SheetHeader>
+            <div className="h-[calc(90vh-73px)]">
+              <ChatContent />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </>
+    );
+  }
+
+  // Desktop: Use popover-style panel
   return (
     <>
-      {/* Floating button */}
-      <Button
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "fixed bottom-4 right-4 z-50 rounded-xl px-4 py-3 shadow-lg transition-all duration-300 gap-2",
-          "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-        )}
-      >
-        {isOpen ? <X className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
-        <span className="font-medium">{isOpen ? "Fechar" : "Seu agente de operações"}</span>
-      </Button>
+      {embedded && <TriggerButton />}
+      
+      {!embedded && (
+        <Button
+          onClick={() => setIsOpen(!isOpen)}
+          className={cn(
+            "fixed bottom-4 right-4 z-50 rounded-xl px-4 py-3 shadow-lg transition-all duration-300 gap-2",
+            "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+          )}
+        >
+          {isOpen ? <X className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+          <span className="font-medium">{isOpen ? "Fechar" : "Assistente IA"}</span>
+        </Button>
+      )}
 
       {/* Chat window */}
       {isOpen && (
         <div
           className={cn(
             "fixed z-50 bg-card border border-border rounded-2xl shadow-2xl flex flex-col transition-all duration-300",
-            isExpanded
-              ? "bottom-4 right-4 left-4 top-4 md:left-auto md:w-[600px] md:top-4"
-              : "bottom-20 right-4 w-[360px] h-[500px] max-h-[calc(100vh-120px)]"
+            embedded
+              ? "bottom-12 right-0 w-[400px] h-[500px] max-h-[calc(100vh-120px)]"
+              : "bottom-20 right-4 w-[380px] h-[520px] max-h-[calc(100vh-120px)]"
           )}
         >
           {/* Header */}
@@ -194,121 +374,13 @@ export function AiAssistant({ context }: AiAssistantProps) {
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              onClick={() => setIsExpanded(!isExpanded)}
+              onClick={() => setIsOpen(false)}
             >
-              {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+              <X className="h-4 w-4" />
             </Button>
           </div>
 
-          {/* Messages */}
-          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-            {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center">
-                  <Bot className="h-8 w-8 text-primary" />
-                </div>
-                <div>
-                  <h4 className="font-medium mb-1">Olá! Sou seu assistente</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Posso analisar suas operações, dar insights e ajudar com estratégias.
-                  </p>
-                </div>
-                
-                {/* Quick prompts */}
-                <div className="grid grid-cols-2 gap-2 w-full mt-2">
-                  {QUICK_PROMPTS.map((item) => (
-                    <Button
-                      key={item.label}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-auto py-2 px-3"
-                      onClick={() => handleQuickPrompt(item.prompt)}
-                      disabled={isLoading}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {messages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      "flex gap-2",
-                      msg.role === 'user' ? 'justify-end' : 'justify-start'
-                    )}
-                  >
-                    {msg.role === 'assistant' && (
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-r from-primary to-primary/60 flex items-center justify-center flex-shrink-0">
-                        <Bot className="h-3.5 w-3.5 text-primary-foreground" />
-                      </div>
-                    )}
-                    <div
-                      className={cn(
-                        "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm",
-                        msg.role === 'user'
-                          ? 'bg-primary text-primary-foreground rounded-br-md'
-                          : 'bg-muted rounded-bl-md'
-                      )}
-                    >
-                      {msg.role === 'assistant' ? (
-                        <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1">
-                          <ReactMarkdown>{msg.content || '...'}</ReactMarkdown>
-                        </div>
-                      ) : (
-                        <p>{msg.content}</p>
-                      )}
-                    </div>
-                    {msg.role === 'user' && (
-                      <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                        <User className="h-3.5 w-3.5 text-secondary-foreground" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {isLoading && messages[messages.length - 1]?.role === 'user' && (
-                  <div className="flex gap-2 justify-start">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-r from-primary to-primary/60 flex items-center justify-center">
-                      <Bot className="h-3.5 w-3.5 text-primary-foreground" />
-                    </div>
-                    <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-2.5">
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </ScrollArea>
-
-          {/* Input */}
-          <form onSubmit={handleSubmit} className="p-4 border-t border-border">
-            <div className="flex gap-2">
-              <Textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Digite sua mensagem..."
-                className="min-h-[44px] max-h-32 resize-none rounded-xl"
-                rows={1}
-                disabled={isLoading}
-              />
-              <Button
-                type="submit"
-                size="icon"
-                className="h-11 w-11 rounded-xl flex-shrink-0"
-                disabled={!input.trim() || isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </form>
+          <ChatContent />
         </div>
       )}
     </>

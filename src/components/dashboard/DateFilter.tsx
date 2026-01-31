@@ -9,9 +9,10 @@ import { cn } from '@/lib/utils';
 interface DateFilterProps {
   dateRange: { start: Date; end: Date };
   onDateRangeChange: (range: { start: Date; end: Date }) => void;
+  children?: React.ReactNode;
 }
 
-export function DateFilter({ dateRange, onDateRangeChange }: DateFilterProps) {
+export function DateFilter({ dateRange, onDateRangeChange, children }: DateFilterProps) {
   const setToday = () => {
     const now = new Date();
     onDateRangeChange({
@@ -112,6 +113,9 @@ export function DateFilter({ dateRange, onDateRangeChange }: DateFilterProps) {
           </PopoverContent>
         </Popover>
       </div>
+
+      {/* AI Assistant slot */}
+      {children}
     </div>
   );
 }
