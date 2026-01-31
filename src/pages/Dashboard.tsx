@@ -202,7 +202,9 @@ export default function Dashboard() {
         />
 
         <main className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
-          <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
+          <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange}>
+            <AiAssistant context={aiContext} embedded />
+          </DateFilter>
 
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-4 md:space-y-6">
             {/* Desktop tabs - hidden on mobile (use drawer instead) */}
@@ -392,7 +394,7 @@ export default function Dashboard() {
         }}
       />
 
-      <AiAssistant context={aiContext} />
+      
     </div>
   );
 }
