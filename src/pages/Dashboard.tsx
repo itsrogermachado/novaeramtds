@@ -25,7 +25,7 @@ import { AdminIndividualTab } from '@/components/dashboard/AdminIndividualTab';
 import { AdminGlobalTab } from '@/components/dashboard/AdminGlobalTab';
 import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
 import { TutorialsTab } from '@/components/dashboard/TutorialsTab';
-import { DutchingCalculator } from '@/components/dashboard/DutchingCalculator';
+import { SurebetCalculator } from '@/components/dashboard/SurebetCalculator';
 import { NotificationBadge } from '@/components/dashboard/NotificationBadge';
 import { AiAssistant } from '@/components/dashboard/AiAssistant';
 
@@ -222,9 +222,9 @@ export default function Dashboard() {
                 Tutoriais
                 <NotificationBadge count={newTutorialsCount} />
               </TabsTrigger>
-              <TabsTrigger value="dutching" className="text-sm whitespace-nowrap gap-1">
+              <TabsTrigger value="surebet" className="text-sm whitespace-nowrap gap-1">
                 <Calculator className="h-3.5 w-3.5" />
-                Dutching
+                Surebet
               </TabsTrigger>
               {isAdmin && (
                 <TabsTrigger value="individual" className="text-sm whitespace-nowrap">
@@ -246,7 +246,7 @@ export default function Dashboard() {
                 {currentTab === 'comparison' && 'Comparativo'}
                 {currentTab === 'tutorials' && 'Tutoriais'}
                 
-                {currentTab === 'dutching' && 'Calculadora Dutching'}
+                {currentTab === 'surebet' && 'Calculadora Surebet'}
                 {currentTab === 'individual' && 'Usuários Individuais'}
                 {currentTab === 'global' && 'Visão Global'}
               </span>
@@ -334,8 +334,8 @@ export default function Dashboard() {
               <TutorialsTab />
             </TabsContent>
 
-            <TabsContent value="dutching">
-              <DutchingCalculator />
+            <TabsContent value="surebet">
+              <SurebetCalculator />
             </TabsContent>
 
 
