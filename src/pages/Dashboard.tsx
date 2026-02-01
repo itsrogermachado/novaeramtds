@@ -206,7 +206,10 @@ export default function Dashboard() {
 
         <main className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
           <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange}>
-            <AiAssistant context={aiContext} embedded />
+            <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
+              <BalanceAdjustmentDialog onSubmit={createAdjustment} />
+              <AiAssistant context={aiContext} embedded />
+            </div>
           </DateFilter>
 
           <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-4 md:space-y-6">
@@ -284,19 +287,14 @@ export default function Dashboard() {
                   icon={<TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />} 
                   className="animation-delay-400"
                 />
-                <div className="col-span-2 md:col-span-1 relative">
-                  <StatsCard 
-                    title="Balanço" 
-                    value={formatCurrency(netBalance)} 
-                    subtitle={totalAdjustments !== 0 ? `Ajustes: ${formatCurrency(totalAdjustments)}` : undefined}
-                    trend={netBalance >= 0 ? 'up' : 'down'} 
-                    icon={<Scale className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
-                    className="animation-delay-500"
-                  />
-                  <div className="absolute top-2 right-2">
-                    <BalanceAdjustmentDialog onSubmit={createAdjustment} />
-                  </div>
-                </div>
+                <StatsCard 
+                  title="Balanço" 
+                  value={formatCurrency(netBalance)} 
+                  subtitle={totalAdjustments !== 0 ? `Ajustes: ${formatCurrency(totalAdjustments)}` : undefined}
+                  trend={netBalance >= 0 ? 'up' : 'down'} 
+                  icon={<Scale className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
+                  className="col-span-2 md:col-span-1 animation-delay-500"
+                />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
