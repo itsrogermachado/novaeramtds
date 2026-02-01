@@ -55,6 +55,15 @@ export default function Dashboard() {
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
   const { users, isLoading: usersLoading } = useAllUsers();
   const { totalAdjustments, createAdjustment } = useBalanceAdjustments(dateRange);
+
+  // All-time data for cumulative balance calculation (independent of date filter)
+  const allTimeRange = useMemo(() => ({
+    start: new Date(2000, 0, 1), // Far enough in the past
+    end: new Date(),
+  }), []);
+  const { operations: allTimeOperations } = useOperations(allTimeRange);
+  const { effectiveExpenses: allTimeEffectiveExpenses } = useExpenses(allTimeRange);
+  const { totalAdjustments: allTimeTotalAdjustments } = useBalanceAdjustments(allTimeRange);
   
   const { newTutorialsCount, markAsViewed: markTutorialsAsViewed } = useNewTutorialsNotification();
 
@@ -80,12 +89,21 @@ export default function Dashboard() {
     navigate('/auth');
   };
 
+  // Cumulative balance (all-time, independent of date filter)
+  const cumulativeBalance = useMemo(() => {
+    const allTimeInvested = allTimeOperations.reduce((sum, op) => sum + Number(op.invested_amount), 0);
+    const allTimeReturn = allTimeOperations.reduce((sum, op) => sum + Number(op.return_amount), 0);
+    const allTimeProfit = allTimeReturn - allTimeInvested;
+    const allTimeExpenses = allTimeEffectiveExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+    return allTimeProfit - allTimeExpenses + allTimeTotalAdjustments;
+  }, [allTimeOperations, allTimeEffectiveExpenses, allTimeTotalAdjustments]);
+
   // Calculate stats - use effectiveExpenses for calculations (only expenses with date <= today)
   const totalInvested = operations.reduce((sum, op) => sum + Number(op.invested_amount), 0);
   const totalReturn = operations.reduce((sum, op) => sum + Number(op.return_amount), 0);
   const profit = totalReturn - totalInvested;
   const totalExpenses = effectiveExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-  const netBalance = profit - totalExpenses + totalAdjustments;
+  const netBalance = profit - totalExpenses + totalAdjustments; // Period balance for reference
 
   // Calculate today's stats
   const todayStats = useMemo(() => {
@@ -288,10 +306,10 @@ export default function Dashboard() {
                   className="animation-delay-400"
                 />
                 <StatsCard 
-                  title="Balanço" 
-                  value={formatCurrency(netBalance)} 
-                  subtitle={totalAdjustments !== 0 ? `Ajustes: ${formatCurrency(totalAdjustments)}` : undefined}
-                  trend={netBalance >= 0 ? 'up' : 'down'} 
+                  title="Balanço Total" 
+                  value={formatCurrency(cumulativeBalance)} 
+                  subtitle={`Período: ${formatCurrency(netBalance)}`}
+                  trend={cumulativeBalance >= 0 ? 'up' : 'down'} 
                   icon={<Scale className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
                   className="col-span-2 md:col-span-1 animation-delay-500"
                 />
