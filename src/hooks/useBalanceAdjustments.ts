@@ -20,8 +20,11 @@ export function useBalanceAdjustments(dateRange?: DateRange, userId?: string, sh
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Determine which user_id to filter by
+  const effectiveUserId = userId || user?.id;
+
   const { data: adjustments = [], isLoading } = useQuery({
-    queryKey: ['balance-adjustments', dateRange?.start, dateRange?.end, userId, showAll],
+    queryKey: ['balance-adjustments', dateRange?.start, dateRange?.end, effectiveUserId, showAll],
     queryFn: async () => {
       let query = supabase
         .from('balance_adjustments')
@@ -34,8 +37,9 @@ export function useBalanceAdjustments(dateRange?: DateRange, userId?: string, sh
         query = query.gte('adjustment_date', startDate).lte('adjustment_date', endDate);
       }
 
-      if (userId && !showAll) {
-        query = query.eq('user_id', userId);
+      // Always filter by user unless showAll is explicitly true (admin global view)
+      if (!showAll && effectiveUserId) {
+        query = query.eq('user_id', effectiveUserId);
       }
 
       const { data, error } = await query;
