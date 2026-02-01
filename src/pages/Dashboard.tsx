@@ -6,6 +6,7 @@ import { useOperations } from '@/hooks/useOperations';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useGoals } from '@/hooks/useGoals';
 import { useAllUsers } from '@/hooks/useAllUsers';
+import { useBalanceAdjustments } from '@/hooks/useBalanceAdjustments';
 
 import { useNewTutorialsNotification } from '@/hooks/useNewTutorialsNotification';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +28,7 @@ import { AdminGlobalTab } from '@/components/dashboard/AdminGlobalTab';
 import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
 import { TutorialsTab } from '@/components/dashboard/TutorialsTab';
 import { DutchingCalculator } from '@/components/dashboard/DutchingCalculator';
+import { BalanceAdjustmentDialog } from '@/components/dashboard/BalanceAdjustmentDialog';
 
 
 import { NotificationBadge } from '@/components/dashboard/NotificationBadge';
@@ -52,6 +54,7 @@ export default function Dashboard() {
   const { expenses, effectiveExpenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
   const { users, isLoading: usersLoading } = useAllUsers();
+  const { totalAdjustments, createAdjustment } = useBalanceAdjustments(dateRange);
   
   const { newTutorialsCount, markAsViewed: markTutorialsAsViewed } = useNewTutorialsNotification();
 
@@ -82,7 +85,7 @@ export default function Dashboard() {
   const totalReturn = operations.reduce((sum, op) => sum + Number(op.return_amount), 0);
   const profit = totalReturn - totalInvested;
   const totalExpenses = effectiveExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-  const netBalance = profit - totalExpenses;
+  const netBalance = profit - totalExpenses + totalAdjustments;
 
   // Calculate today's stats
   const todayStats = useMemo(() => {
@@ -281,13 +284,19 @@ export default function Dashboard() {
                   icon={<TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />} 
                   className="animation-delay-400"
                 />
-                <StatsCard 
-                  title="Balanço" 
-                  value={formatCurrency(netBalance)} 
-                  trend={netBalance >= 0 ? 'up' : 'down'} 
-                  icon={<Scale className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
-                  className="col-span-2 md:col-span-1 animation-delay-500"
-                />
+                <div className="col-span-2 md:col-span-1 relative">
+                  <StatsCard 
+                    title="Balanço" 
+                    value={formatCurrency(netBalance)} 
+                    subtitle={totalAdjustments !== 0 ? `Ajustes: ${formatCurrency(totalAdjustments)}` : undefined}
+                    trend={netBalance >= 0 ? 'up' : 'down'} 
+                    icon={<Scale className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
+                    className="animation-delay-500"
+                  />
+                  <div className="absolute top-2 right-2">
+                    <BalanceAdjustmentDialog onSubmit={createAdjustment} />
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
