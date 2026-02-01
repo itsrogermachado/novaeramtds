@@ -290,38 +290,39 @@ export function SurebetCalculator() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-          <Calculator className="h-5 w-5 text-primary" />
-          <span className="font-semibold text-primary">CALCULADORA DE SUREBET</span>
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-xl bg-primary/20 border border-primary/30">
+            <Calculator className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Calculadora de Surebet</h2>
+            <p className="text-sm text-muted-foreground">
+              Calcule stakes e lucros da sua arbitragem
+            </p>
+          </div>
         </div>
-        <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          Calcule stakes e lucros da sua arbitragem
-        </p>
       </div>
 
       {/* Seletor de número de casas */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-4">
-            <Label htmlFor="house-count" className="font-semibold whitespace-nowrap">
-              Número de Casas
-            </Label>
-            <Select value={numberOfHouses.toString()} onValueChange={handleHouseCountChange}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                  <SelectItem key={n} value={n.toString()}>
-                    {n} casas
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-2">
+        <Label className="text-sm text-muted-foreground flex items-center gap-2">
+          <Settings className="h-4 w-4" />
+          Número de Casas
+        </Label>
+        <Select value={numberOfHouses.toString()} onValueChange={handleHouseCountChange}>
+          <SelectTrigger className="w-full bg-muted/50 border-border/50 h-12">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+              <SelectItem key={n} value={n.toString()}>
+                {n} casas
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Cards das Casas */}
       <div className={cn(
@@ -339,15 +340,15 @@ export function SurebetCalculator() {
             <Card 
               key={house.id} 
               className={cn(
-                "transition-all duration-300",
-                house.isFixed && "ring-2 ring-primary"
+                "transition-all duration-300 bg-card/50 backdrop-blur-sm border-border/50",
+                house.isFixed && "ring-2 ring-primary shadow-lg shadow-primary/10"
               )}
             >
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between text-base">
-                  <span className="text-primary">Casa {index + 1}</span>
+                <CardTitle className="flex items-center justify-between text-lg">
+                  <span className="text-primary font-bold">Casa {index + 1}</span>
                   {house.isFixed && (
-                    <Badge variant="secondary" className="gap-1">
+                    <Badge className="gap-1 bg-primary/20 text-primary border-primary/30">
                       <Lock className="h-3 w-3" />
                       Fixada
                     </Badge>
@@ -357,96 +358,116 @@ export function SurebetCalculator() {
               <CardContent className="space-y-4">
                 {/* Odd */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Odd</Label>
+                  <Label className="text-sm text-muted-foreground">Odd</Label>
                   <Input
                     type="number"
                     step="0.01"
                     min="1.01"
                     value={house.odd}
                     onChange={(e) => updateHouse(house.id, 'odd', e.target.value)}
-                    className="h-11 text-lg font-semibold"
+                    className="h-12 text-lg font-semibold bg-muted/50 border-border/50 focus:border-primary"
                     placeholder="2.00"
                   />
                 </div>
 
                 {/* Stake */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Stake</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">R$</span>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={house.stake}
-                      onChange={(e) => updateHouse(house.id, 'stake', e.target.value)}
-                      className="h-11 pl-10 text-lg font-semibold"
-                      placeholder="100.00"
-                    />
+                  <Label className="text-sm text-muted-foreground">Stake</Label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={house.stake}
+                        onChange={(e) => updateHouse(house.id, 'stake', e.target.value)}
+                        className="h-12 pl-10 text-lg font-semibold bg-muted/50 border-border/50 focus:border-primary"
+                        placeholder="100.00"
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-12 w-12 bg-primary/20 border-primary/30 hover:bg-primary/30 text-primary font-bold"
+                      onClick={() => {
+                        const currentStake = parseFloat(house.stake) || 0;
+                        updateHouse(house.id, 'stake', (currentStake * 2).toString());
+                      }}
+                      title="Banca (dobrar stake)"
+                    >
+                      B
+                    </Button>
                   </div>
                 </div>
 
-                {/* Configurações Avançadas */}
+                {/* Configurações */}
                 <Collapsible 
                   open={expandedConfigs.has(house.id)}
                   onOpenChange={() => toggleConfig(house.id)}
                 >
                   <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="w-full justify-between text-muted-foreground">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full justify-between text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg"
+                    >
                       <span className="flex items-center gap-2">
-                        <Settings className="h-4 w-4" />
-                        Configurações
+                        <div className="p-1 rounded bg-muted">
+                          <Settings className="h-3 w-3" />
+                        </div>
+                        CONFIGURAÇÕES
                       </span>
                       <ChevronDown className={cn(
-                        "h-4 w-4 transition-transform",
+                        "h-4 w-4 transition-transform duration-200",
                         expandedConfigs.has(house.id) && "rotate-180"
                       )} />
                     </Button>
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-3 pt-3">
+                  <CollapsibleContent className="space-y-3 pt-3 animate-in slide-in-from-top-2">
                     {/* Aumento % */}
-                    <div className="flex items-center gap-2">
-                      <Label className="text-xs flex-1">Aumento (%)</Label>
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                      <Label className="text-xs flex-1 text-muted-foreground">Aumento (%)</Label>
                       <Input
                         type="number"
                         step="0.1"
                         value={house.increasePercent}
                         onChange={(e) => updateHouse(house.id, 'increasePercent', e.target.value)}
-                        className="w-20 h-8 text-sm"
+                        className="w-24 h-9 text-sm bg-muted/50 border-border/50"
                         placeholder="0"
                       />
                     </div>
                     
                     {/* Comissão % */}
-                    <div className="flex items-center gap-2">
-                      <Label className="text-xs flex-1">Comissão (%)</Label>
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                      <Label className="text-xs flex-1 text-muted-foreground">Comissão (%)</Label>
                       <Input
                         type="number"
                         step="0.1"
                         value={house.commissionPercent}
                         onChange={(e) => updateHouse(house.id, 'commissionPercent', e.target.value)}
-                        className="w-20 h-8 text-sm"
+                        className="w-24 h-9 text-sm bg-muted/50 border-border/50"
                         placeholder="0"
                       />
                     </div>
                     
                     {/* Cashback */}
-                    <div className="flex items-center gap-2">
-                      <Label className="text-xs flex-1">Cashback (R$)</Label>
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                      <Label className="text-xs flex-1 text-muted-foreground">Cashback (R$)</Label>
                       <Input
                         type="number"
                         step="0.01"
                         value={house.cashbackValue}
                         onChange={(e) => updateHouse(house.id, 'cashbackValue', e.target.value)}
-                        className="w-20 h-8 text-sm"
+                        className="w-24 h-9 text-sm bg-muted/50 border-border/50"
                         placeholder="0"
                       />
                     </div>
                     
                     {/* Freebet */}
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs flex items-center gap-1">
-                        <Gift className="h-3 w-3" />
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
+                      <Label className="text-xs flex items-center gap-2 text-muted-foreground">
+                        <Gift className="h-3 w-3 text-primary" />
                         Freebet
                       </Label>
                       <Switch
@@ -458,29 +479,35 @@ export function SurebetCalculator() {
                 </Collapsible>
 
                 {/* Resultado */}
-                <div className="pt-3 border-t space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground flex items-center gap-1">
+                <div className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                    <TrendingUp className="h-3 w-3 text-primary" />
+                    RESULTADO
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground flex items-center gap-1">
                       <TrendingUp className="h-3 w-3" />
                       Lucro
                     </span>
                     <span className={cn(
-                      "font-semibold",
+                      "font-bold text-lg",
                       isProfitable && "text-success",
-                      isLoss && "text-destructive"
+                      isLoss && "text-destructive",
+                      !isProfitable && !isLoss && "text-primary"
                     )}>
                       {formatCurrency(houseProfit.profit)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground flex items-center gap-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground flex items-center gap-1">
                       <Percent className="h-3 w-3" />
                       ROI
                     </span>
                     <span className={cn(
                       "font-semibold",
                       isProfitable && "text-success",
-                      isLoss && "text-destructive"
+                      isLoss && "text-destructive",
+                      !isProfitable && !isLoss && "text-primary"
                     )}>
                       {houseProfit.roi.toFixed(4)}%
                     </span>
@@ -489,12 +516,16 @@ export function SurebetCalculator() {
 
                 {/* Botão Fixar Stake */}
                 <Button
-                  variant={house.isFixed ? "secondary" : "outline"}
-                  size="sm"
-                  className="w-full"
+                  variant={house.isFixed ? "default" : "outline"}
+                  className={cn(
+                    "w-full h-11 font-semibold transition-all",
+                    house.isFixed 
+                      ? "bg-primary hover:bg-primary/90" 
+                      : "border-primary/50 text-primary hover:bg-primary/10"
+                  )}
                   onClick={() => fixStake(house.id)}
                 >
-                  {house.isFixed ? 'Stake Fixada' : 'Fixar Stake'}
+                  {house.isFixed ? 'Stake Fixa' : 'Fixar Stake'}
                 </Button>
               </CardContent>
             </Card>
@@ -504,46 +535,63 @@ export function SurebetCalculator() {
 
       {/* Resumo Geral */}
       <Card className={cn(
-        "transition-all",
-        results.isSurebet && "ring-2 ring-success/50 bg-success/5"
+        "transition-all bg-card/50 backdrop-blur-sm border-border/50",
+        results.isSurebet && "ring-2 ring-success/30 shadow-lg shadow-success/10"
       )}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
-            Resumo Geral
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/20">
+              <DollarSign className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <span className="text-lg font-bold">Resumo Geral</span>
+              <p className="text-xs text-muted-foreground font-normal">Análise completa da surebet</p>
+            </div>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 rounded-lg bg-muted/50">
-              <p className="text-sm text-muted-foreground mb-1">Stake Total</p>
-              <p className="text-xl font-bold">{formatCurrency(results.totalStake)}</p>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="p-4 rounded-xl bg-muted/30 border border-border/30">
+              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                <DollarSign className="h-3 w-3" />
+                Stake Total
+              </p>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(results.totalStake)}</p>
+              <p className="text-xs text-muted-foreground mt-1">Risco total da operação</p>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/50">
-              <p className="text-sm text-muted-foreground mb-1">ROI Mínimo</p>
+            <div className="p-4 rounded-xl bg-muted/30 border border-border/30">
+              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                <Percent className="h-3 w-3" />
+                ROI
+              </p>
               <p className={cn(
-                "text-xl font-bold",
+                "text-2xl font-bold",
                 results.overallRoi >= 0 ? "text-success" : "text-destructive"
               )}>
                 {results.overallRoi.toFixed(2)}%
               </p>
+              <p className="text-xs text-muted-foreground mt-1">Retorno sobre investimento</p>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/50">
-              <p className="text-sm text-muted-foreground mb-1">Lucro Garantido</p>
+            <div className="p-4 rounded-xl bg-muted/30 border border-border/30">
+              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" />
+                Lucro Garantido
+              </p>
               <p className={cn(
-                "text-xl font-bold",
+                "text-2xl font-bold",
                 results.overallRoi >= 0 ? "text-success" : "text-destructive"
               )}>
                 {formatCurrency(Math.min(...results.houseProfits.map(hp => hp.profit)))}
               </p>
+              <p className="text-xs text-muted-foreground mt-1">Mínimo garantido</p>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/50">
-              <p className="text-sm text-muted-foreground mb-1">Status</p>
+            <div className="p-4 rounded-xl bg-muted/30 border border-border/30 flex flex-col items-center justify-center">
+              <p className="text-xs text-muted-foreground mb-2">Status</p>
               <Badge 
                 variant={results.isSurebet ? "default" : "destructive"}
                 className={cn(
-                  "mt-1",
-                  results.isSurebet && "bg-success hover:bg-success/90"
+                  "text-sm px-4 py-1",
+                  results.isSurebet && "bg-success hover:bg-success/90 shadow-lg shadow-success/30"
                 )}
               >
                 {results.isSurebet ? '✓ Surebet' : '✗ Sem Lucro'}
@@ -552,21 +600,21 @@ export function SurebetCalculator() {
           </div>
 
           {/* Ações */}
-          <div className="flex flex-wrap gap-2 mt-6">
-            <Button onClick={saveToHistory} className="gap-2">
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={saveToHistory} className="gap-2 h-11 px-6 bg-primary hover:bg-primary/90">
               <TrendingUp className="h-4 w-4" />
               Adicionar à Planilha
             </Button>
-            <Button variant="outline" onClick={copyAsText} className="gap-2">
+            <Button variant="outline" onClick={copyAsText} className="gap-2 h-11 border-border/50 hover:bg-muted/50">
               {copiedText ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               {copiedText ? 'Copiado!' : 'Compartilhar Texto'}
             </Button>
           </div>
 
           {/* Lucro por Casa */}
-          <div className="mt-6 pt-6 border-t">
-            <h4 className="font-semibold mb-3">Lucro por Casa</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
+          <div className="pt-4 border-t border-border/30">
+            <h4 className="font-semibold mb-4 text-sm text-muted-foreground">Lucro por Casa</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {houses.map((house, index) => {
                 const houseProfit = results.houseProfits[index];
                 const isProfitable = houseProfit.profit >= 0;
@@ -575,14 +623,16 @@ export function SurebetCalculator() {
                   <div 
                     key={house.id}
                     className={cn(
-                      "p-3 rounded-lg border text-center",
-                      isProfitable ? "bg-success/5 border-success/20" : "bg-destructive/5 border-destructive/20"
+                      "p-4 rounded-xl border text-center transition-all",
+                      isProfitable 
+                        ? "bg-success/5 border-success/20 hover:border-success/40" 
+                        : "bg-destructive/5 border-destructive/20 hover:border-destructive/40"
                     )}
                   >
-                    <p className="text-xs text-muted-foreground">Casa {index + 1}</p>
-                    <p className="text-sm font-medium">{house.odd}</p>
+                    <p className="text-xs text-muted-foreground mb-1">Casa {index + 1}</p>
+                    <p className="text-lg font-bold text-primary">{house.odd}</p>
                     <p className={cn(
-                      "font-semibold",
+                      "font-bold text-lg",
                       isProfitable ? "text-success" : "text-destructive"
                     )}>
                       {formatCurrency(houseProfit.profit)}
