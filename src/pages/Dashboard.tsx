@@ -35,7 +35,7 @@ import { NotificationBadge } from '@/components/dashboard/NotificationBadge';
 import { AiAssistant } from '@/components/dashboard/AiAssistant';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, Wallet, Receipt, Scale, Video, Calculator } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Receipt, Video, Calculator } from 'lucide-react';
 import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 
@@ -261,7 +261,7 @@ export default function Dashboard() {
 
             <TabsContent value="my-operations" className="space-y-4 md:space-y-6">
               {/* Stats Cards - Available to all */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
                 <StatsCard 
                   title="Operações" 
                   value={String(operations.length)} 
@@ -286,14 +286,6 @@ export default function Dashboard() {
                   value={formatCurrency(totalExpenses)} 
                   icon={<TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />} 
                   className="animation-delay-400"
-                />
-                <StatsCard 
-                  title="Balanço" 
-                  value={formatCurrency(netBalance)} 
-                  subtitle={totalAdjustments !== 0 ? `Ajustes: ${formatCurrency(totalAdjustments)}` : undefined}
-                  trend={netBalance >= 0 ? 'up' : 'down'} 
-                  icon={<Scale className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
-                  className="col-span-2 md:col-span-1 animation-delay-500"
                 />
               </div>
 
