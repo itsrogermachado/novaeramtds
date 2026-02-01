@@ -6,7 +6,7 @@ import { useOperations } from '@/hooks/useOperations';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useGoals } from '@/hooks/useGoals';
 import { useAllUsers } from '@/hooks/useAllUsers';
-import { useBalanceAdjustments } from '@/hooks/useBalanceAdjustments';
+
 
 import { useNewTutorialsNotification } from '@/hooks/useNewTutorialsNotification';
 import { useToast } from '@/hooks/use-toast';
@@ -28,7 +28,6 @@ import { AdminGlobalTab } from '@/components/dashboard/AdminGlobalTab';
 import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
 import { TutorialsTab } from '@/components/dashboard/TutorialsTab';
 import { DutchingCalculator } from '@/components/dashboard/DutchingCalculator';
-import { BalanceAdjustmentDialog } from '@/components/dashboard/BalanceAdjustmentDialog';
 
 
 import { NotificationBadge } from '@/components/dashboard/NotificationBadge';
@@ -54,7 +53,6 @@ export default function Dashboard() {
   const { expenses, effectiveExpenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
   const { users, isLoading: usersLoading } = useAllUsers();
-  const { totalAdjustments, createAdjustment } = useBalanceAdjustments(dateRange);
   
   const { newTutorialsCount, markAsViewed: markTutorialsAsViewed } = useNewTutorialsNotification();
 
@@ -85,7 +83,7 @@ export default function Dashboard() {
   const totalReturn = operations.reduce((sum, op) => sum + Number(op.return_amount), 0);
   const profit = totalReturn - totalInvested;
   const totalExpenses = effectiveExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-  const netBalance = profit - totalExpenses + totalAdjustments;
+  const netBalance = profit - totalExpenses;
 
   // Calculate today's stats
   const todayStats = useMemo(() => {
@@ -207,7 +205,6 @@ export default function Dashboard() {
         <main className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
           <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange}>
             <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
-              <BalanceAdjustmentDialog onSubmit={createAdjustment} />
               <AiAssistant context={aiContext} embedded />
             </div>
           </DateFilter>
