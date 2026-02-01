@@ -33,6 +33,8 @@ export function ComparisonTab({ operations, expenses }: ComparisonTabProps) {
             <SelectItem value="3">Últimos 3 meses</SelectItem>
             <SelectItem value="6">Últimos 6 meses</SelectItem>
             <SelectItem value="12">Últimos 12 meses</SelectItem>
+            <SelectItem value="24">Últimos 24 meses</SelectItem>
+            <SelectItem value="120">Total (10 anos)</SelectItem>
           </SelectContent>
         </Select>
       </div>

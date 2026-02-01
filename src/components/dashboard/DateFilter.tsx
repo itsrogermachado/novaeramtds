@@ -1,4 +1,4 @@
-import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfDay, endOfDay, startOfWeek, endOfWeek, subYears } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -21,6 +21,14 @@ export function DateFilter({ dateRange, onDateRangeChange, children }: DateFilte
     });
   };
 
+  const setThisWeek = () => {
+    const now = new Date();
+    onDateRangeChange({
+      start: startOfWeek(now, { weekStartsOn: 1 }), // Monday
+      end: endOfWeek(now, { weekStartsOn: 1 }),
+    });
+  };
+
   const setThisMonth = () => {
     const now = new Date();
     onDateRangeChange({
@@ -29,18 +37,32 @@ export function DateFilter({ dateRange, onDateRangeChange, children }: DateFilte
     });
   };
 
+  const setAllTime = () => {
+    onDateRangeChange({
+      start: subYears(new Date(), 10), // 10 years back
+      end: endOfDay(new Date()),
+    });
+  };
+
   const isToday = 
     format(dateRange.start, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd') &&
     format(dateRange.end, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+
+  const isThisWeek = 
+    format(dateRange.start, 'yyyy-MM-dd') === format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd') &&
+    format(dateRange.end, 'yyyy-MM-dd') === format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
 
   const isThisMonth = 
     format(dateRange.start, 'yyyy-MM-dd') === format(startOfMonth(new Date()), 'yyyy-MM-dd') &&
     format(dateRange.end, 'yyyy-MM-dd') === format(endOfMonth(new Date()), 'yyyy-MM-dd');
 
+  const isAllTime = 
+    format(dateRange.start, 'yyyy-MM-dd') === format(subYears(new Date(), 10), 'yyyy-MM-dd');
+
   return (
     <div className="flex flex-col xs:flex-row flex-wrap items-start xs:items-center gap-2 md:gap-3">
       {/* Quick filter buttons */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Button
           variant={isToday ? "default" : "outline"}
           size="sm"
@@ -51,6 +73,15 @@ export function DateFilter({ dateRange, onDateRangeChange, children }: DateFilte
         </Button>
 
         <Button
+          variant={isThisWeek ? "default" : "outline"}
+          size="sm"
+          onClick={setThisWeek}
+          className="text-xs md:text-sm h-8 px-2.5 sm:px-3"
+        >
+          Semana
+        </Button>
+
+        <Button
           variant={isThisMonth ? "default" : "outline"}
           size="sm"
           onClick={setThisMonth}
@@ -58,6 +89,15 @@ export function DateFilter({ dateRange, onDateRangeChange, children }: DateFilte
         >
           <span className="hidden xs:inline">Este mês</span>
           <span className="xs:hidden">Mês</span>
+        </Button>
+
+        <Button
+          variant={isAllTime ? "default" : "outline"}
+          size="sm"
+          onClick={setAllTime}
+          className="text-xs md:text-sm h-8 px-2.5 sm:px-3"
+        >
+          Total
         </Button>
       </div>
 
