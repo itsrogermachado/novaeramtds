@@ -71,7 +71,7 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
     { id: 'my-expenses', label: 'Meus Gastos', icon: <Receipt className="h-5 w-5" /> },
     { id: 'comparison', label: 'Comparativo', icon: <Scale className="h-5 w-5" /> },
     { id: 'tutorials', label: 'Tutoriais', icon: <Video className="h-5 w-5" /> },
-    { id: 'dutching', label: 'Calculadora Dutching', icon: <Calculator className="h-5 w-5" /> },
+    { id: 'surebet', label: 'Calculadora Surebet', icon: <Calculator className="h-5 w-5" /> },
     { id: 'individual', label: 'Usuários Individuais', icon: <Users className="h-5 w-5" />, adminOnly: true },
     { id: 'global', label: 'Visão Global', icon: <Globe className="h-5 w-5" />, adminOnly: true },
   ];
