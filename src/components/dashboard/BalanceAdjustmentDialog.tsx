@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Plus, Minus } from 'lucide-react';
+import { CalendarIcon, Plus, Minus, PiggyBank } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,43 +68,51 @@ export function BalanceAdjustmentDialog({ onSubmit, trigger }: BalanceAdjustment
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" />
-            Ajustar Balanço
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="h-8 w-8 shrink-0"
+            title="Ajustar Balanço"
+          >
+            <PiggyBank className="h-4 w-4" />
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Ajustar Balanço Líquido</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg">Ajustar Balanço Líquido</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Tipo de Ajuste</Label>
+            <Label className="text-sm">Tipo de Ajuste</Label>
             <div className="flex gap-2">
               <Button
                 type="button"
                 variant={isPositive ? 'default' : 'outline'}
-                className={cn("flex-1 gap-1.5", isPositive && "bg-success hover:bg-success/90")}
+                size="sm"
+                className={cn("flex-1 gap-1.5 h-9", isPositive && "bg-success hover:bg-success/90")}
                 onClick={() => setIsPositive(true)}
               >
                 <Plus className="h-4 w-4" />
-                Adicionar
+                <span className="hidden xs:inline">Adicionar</span>
+                <span className="xs:hidden">Add</span>
               </Button>
               <Button
                 type="button"
                 variant={!isPositive ? 'default' : 'outline'}
-                className={cn("flex-1 gap-1.5", !isPositive && "bg-destructive hover:bg-destructive/90")}
+                size="sm"
+                className={cn("flex-1 gap-1.5 h-9", !isPositive && "bg-destructive hover:bg-destructive/90")}
                 onClick={() => setIsPositive(false)}
               >
                 <Minus className="h-4 w-4" />
-                Subtrair
+                <span className="hidden xs:inline">Subtrair</span>
+                <span className="xs:hidden">Sub</span>
               </Button>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Valor (R$)</Label>
+            <Label htmlFor="amount" className="text-sm">Valor (R$)</Label>
             <Input
               id="amount"
               type="text"
@@ -112,12 +120,13 @@ export function BalanceAdjustmentDialog({ onSubmit, trigger }: BalanceAdjustment
               placeholder="0,00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              className="h-10"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
+            <Label htmlFor="description" className="text-sm">Descrição</Label>
             <Textarea
               id="description"
               placeholder="Ex: Correção de valor esquecido"
@@ -125,16 +134,17 @@ export function BalanceAdjustmentDialog({ onSubmit, trigger }: BalanceAdjustment
               onChange={(e) => setDescription(e.target.value)}
               required
               rows={2}
+              className="resize-none"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Data do Ajuste</Label>
+            <Label className="text-sm">Data do Ajuste</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal">
+                <Button variant="outline" className="w-full justify-start text-left font-normal h-10 text-sm">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  {format(date, "dd/MM/yyyy", { locale: ptBR })}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -149,12 +159,12 @@ export function BalanceAdjustmentDialog({ onSubmit, trigger }: BalanceAdjustment
             </Popover>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1 h-10">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Salvando...' : 'Salvar Ajuste'}
+            <Button type="submit" disabled={isSubmitting} className="flex-1 h-10">
+              {isSubmitting ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
         </form>
