@@ -56,6 +56,34 @@ export function useTeam() {
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [teamName, setTeamNameState] = useState('Meu Time');
 
+// Fetch team info from dedicated teams table
+  const fetchTeamInfo = useCallback(async () => {
+    if (!user) return;
+
+    // Fetch or create team for manager
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .select('name')
+      .eq('manager_id', user.id)
+      .maybeSingle();
+
+    if (teamError) {
+      console.error('Error fetching team:', teamError);
+    }
+
+    if (team) {
+      setTeamNameState(team.name);
+    } else {
+      // Create team row if it doesn't exist (first time manager)
+      const { error: insertError } = await supabase
+        .from('teams')
+        .insert({ manager_id: user.id, name: 'Meu Time' });
+      if (!insertError) {
+        setTeamNameState('Meu Time');
+      }
+    }
+  }, [user]);
+
   // Fetch team members (as manager)
   const fetchTeamMembers = useCallback(async () => {
     if (!user) return;
@@ -69,11 +97,6 @@ export function useTeam() {
     if (error) {
       console.error('Error fetching team members:', error);
       return;
-    }
-
-    // Get team name from first record
-    if (data && data.length > 0) {
-      setTeamNameState(data[0].team_name || 'Meu Time');
     }
 
     // Fetch operator profiles
@@ -102,7 +125,7 @@ export function useTeam() {
     // Check if I'm an operator in any team
     const { data: membership, error } = await supabase
       .from('team_members')
-      .select('manager_id, team_name')
+      .select('manager_id')
       .eq('operator_id', user.id)
       .maybeSingle();
 
@@ -110,6 +133,13 @@ export function useTeam() {
       setMyTeamInfo(null);
       return;
     }
+
+    // Get team name from teams table
+    const { data: teamData } = await supabase
+      .from('teams')
+      .select('name')
+      .eq('manager_id', membership.manager_id)
+      .maybeSingle();
 
     // Get manager profile
     const { data: managerProfile } = await supabase
@@ -139,7 +169,7 @@ export function useTeam() {
     setMyTeamInfo({
       manager_id: membership.manager_id,
       manager_profile: managerProfile || undefined,
-      team_name: membership.team_name || 'Meu Time',
+      team_name: teamData?.name || 'Meu Time',
       teammates: teammates
         ?.filter(t => t.operator_id !== user.id)
         .map(t => {
@@ -219,7 +249,6 @@ export function useTeam() {
           password: data.password,
           fullName: data.fullName,
           nickname: data.nickname,
-          teamName: teamName,
         },
       });
 
@@ -274,14 +303,17 @@ export function useTeam() {
     await fetchTeamMembers();
   };
 
-  // Update team name
+  // Update team name in dedicated teams table
   const updateTeamName = async (newName: string) => {
     if (!user) return;
 
+    // Upsert: update if exists, insert if not
     const { error } = await supabase
-      .from('team_members')
-      .update({ team_name: newName })
-      .eq('manager_id', user.id);
+      .from('teams')
+      .upsert(
+        { manager_id: user.id, name: newName },
+        { onConflict: 'manager_id' }
+      );
 
     if (error) {
       console.error('Error updating team name:', error);
@@ -297,11 +329,11 @@ export function useTeam() {
   useEffect(() => {
     if (user) {
       setIsLoading(true);
-      Promise.all([fetchTeamMembers(), fetchMyTeamInfo()]).finally(() => {
+      Promise.all([fetchTeamInfo(), fetchTeamMembers(), fetchMyTeamInfo()]).finally(() => {
         setIsLoading(false);
       });
     }
-  }, [user, fetchTeamMembers, fetchMyTeamInfo]);
+  }, [user, fetchTeamInfo, fetchTeamMembers, fetchMyTeamInfo]);
 
   // Fetch stats when team members change
   useEffect(() => {
@@ -334,6 +366,6 @@ export function useTeam() {
     removeTeamMember,
     updateNickname,
     updateTeamName,
-    refetch: () => Promise.all([fetchTeamMembers(), fetchMyTeamInfo()]),
+    refetch: () => Promise.all([fetchTeamInfo(), fetchTeamMembers(), fetchMyTeamInfo()]),
   };
 }
