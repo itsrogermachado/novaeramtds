@@ -253,10 +253,13 @@ export function useTeam() {
       });
 
       if (response.error) {
-        return { error: response.error.message || 'Erro ao criar operador' };
+        const msg = response.error.message || 'Erro ao criar operador';
+        toast.error(msg);
+        return { error: msg };
       }
 
       if (response.data?.error) {
+        toast.error(response.data.error);
         return { error: response.data.error };
       }
 
@@ -265,7 +268,9 @@ export function useTeam() {
       return { error: null, operator: response.data.operator };
     } catch (error: any) {
       console.error('Error creating operator:', error);
-      return { error: error.message || 'Erro ao criar operador' };
+      const msg = error?.message || 'Erro ao criar operador';
+      toast.error(msg);
+      return { error: msg };
     }
   };
 
