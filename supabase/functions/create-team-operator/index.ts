@@ -32,17 +32,23 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create client with user's token to get manager ID
+    // Get JWT token from auth header
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
+    // Extract JWT from Bearer token
+    const jwt = authHeader.replace("Bearer ", "");
+
+    // Create admin client and use getUser with JWT directly
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
     });
 
-    // Verify the manager is authenticated
-    const { data: { user: manager }, error: authError } = await userClient.auth.getUser();
+    // Verify the manager is authenticated using the JWT
+    const { data: { user: manager }, error: authError } = await adminClient.auth.getUser(jwt);
     if (authError || !manager) {
       console.error("create-team-operator: auth failed", authError);
       return new Response(
@@ -75,13 +81,7 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create admin client with service role key
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    // Reuse adminClient for database operations
 
     // Check if email is already in use
     const { data: existingProfile } = await adminClient
