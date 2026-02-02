@@ -269,34 +269,28 @@ export type Database = {
       }
       team_members: {
         Row: {
-          accepted_at: string | null
           created_at: string
           id: string
-          invited_at: string
           manager_id: string
           nickname: string | null
           operator_id: string
-          status: Database["public"]["Enums"]["team_member_status"]
+          team_name: string | null
         }
         Insert: {
-          accepted_at?: string | null
           created_at?: string
           id?: string
-          invited_at?: string
           manager_id: string
           nickname?: string | null
           operator_id: string
-          status?: Database["public"]["Enums"]["team_member_status"]
+          team_name?: string | null
         }
         Update: {
-          accepted_at?: string | null
           created_at?: string
           id?: string
-          invited_at?: string
           manager_id?: string
           nickname?: string | null
           operator_id?: string
-          status?: Database["public"]["Enums"]["team_member_status"]
+          team_name?: string | null
         }
         Relationships: []
       }
@@ -419,7 +413,6 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       goal_type: "monthly" | "daily" | "weekly"
-      team_member_status: "pending" | "active" | "declined"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -549,7 +542,6 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       goal_type: ["monthly", "daily", "weekly"],
-      team_member_status: ["pending", "active", "declined"],
     },
   },
 } as const

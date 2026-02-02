@@ -8,9 +8,7 @@ export interface TeamMember {
   manager_id: string;
   operator_id: string;
   nickname: string | null;
-  status: 'pending' | 'active' | 'declined';
-  invited_at: string;
-  accepted_at: string | null;
+  team_name: string;
   created_at: string;
   operator_profile?: {
     full_name: string | null;
@@ -33,23 +31,30 @@ export interface TeamOperatorStats {
   net_profit: number;
 }
 
-export interface TeamInvite {
-  id: string;
+export interface MyTeamInfo {
   manager_id: string;
   manager_profile?: {
     full_name: string | null;
     email: string | null;
+    avatar_url: string | null;
   };
-  invited_at: string;
+  team_name: string;
+  teammates: {
+    id: string;
+    nickname: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
+  }[];
 }
 
 export function useTeam() {
   const { user } = useAuth();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [pendingInvites, setPendingInvites] = useState<TeamInvite[]>([]);
+  const [myTeamInfo, setMyTeamInfo] = useState<MyTeamInfo | null>(null);
   const [teamStats, setTeamStats] = useState<TeamOperatorStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [teamName, setTeamNameState] = useState('Meu Time');
 
   // Fetch team members (as manager)
   const fetchTeamMembers = useCallback(async () => {
@@ -66,6 +71,11 @@ export function useTeam() {
       return;
     }
 
+    // Get team name from first record
+    if (data && data.length > 0) {
+      setTeamNameState(data[0].team_name || 'Meu Time');
+    }
+
     // Fetch operator profiles
     const operatorIds = data?.map(m => m.operator_id) || [];
     if (operatorIds.length > 0) {
@@ -76,7 +86,6 @@ export function useTeam() {
 
       const membersWithProfiles = data?.map(member => ({
         ...member,
-        status: member.status as 'pending' | 'active' | 'declined',
         operator_profile: profiles?.find(p => p.id === member.operator_id) || undefined,
       })) || [];
 
@@ -86,58 +95,76 @@ export function useTeam() {
     }
   }, [user]);
 
-  // Fetch pending invites (as operator)
-  const fetchPendingInvites = useCallback(async () => {
+  // Fetch info about the team I belong to (as operator)
+  const fetchMyTeamInfo = useCallback(async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
+    // Check if I'm an operator in any team
+    const { data: membership, error } = await supabase
       .from('team_members')
-      .select('id, manager_id, invited_at')
+      .select('manager_id, team_name')
       .eq('operator_id', user.id)
-      .eq('status', 'pending');
+      .maybeSingle();
 
-    if (error) {
-      console.error('Error fetching invites:', error);
+    if (error || !membership) {
+      setMyTeamInfo(null);
       return;
     }
 
-    // Fetch manager profiles
-    const managerIds = data?.map(i => i.manager_id) || [];
-    if (managerIds.length > 0) {
+    // Get manager profile
+    const { data: managerProfile } = await supabase
+      .from('profiles')
+      .select('full_name, email, avatar_url')
+      .eq('id', membership.manager_id)
+      .single();
+
+    // Get all teammates (other operators in the same team)
+    const { data: teammates } = await supabase
+      .from('team_members')
+      .select('operator_id, nickname')
+      .eq('manager_id', membership.manager_id);
+
+    // Get teammate profiles
+    const teammateIds = teammates?.map(t => t.operator_id).filter(id => id !== user.id) || [];
+    let teammateProfiles: { id: string; full_name: string | null; avatar_url: string | null }[] = [];
+    
+    if (teammateIds.length > 0) {
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, full_name, email')
-        .in('id', managerIds);
-
-      const invitesWithProfiles = data?.map(invite => ({
-        ...invite,
-        manager_profile: profiles?.find(p => p.id === invite.manager_id) || undefined,
-      })) || [];
-
-      setPendingInvites(invitesWithProfiles);
-    } else {
-      setPendingInvites([]);
+        .select('id, full_name, avatar_url')
+        .in('id', teammateIds);
+      teammateProfiles = profiles || [];
     }
+
+    setMyTeamInfo({
+      manager_id: membership.manager_id,
+      manager_profile: managerProfile || undefined,
+      team_name: membership.team_name || 'Meu Time',
+      teammates: teammates
+        ?.filter(t => t.operator_id !== user.id)
+        .map(t => {
+          const profile = teammateProfiles.find(p => p.id === t.operator_id);
+          return {
+            id: t.operator_id,
+            nickname: t.nickname,
+            full_name: profile?.full_name || null,
+            avatar_url: profile?.avatar_url || null,
+          };
+        }) || [],
+    });
   }, [user]);
 
-  // Fetch team statistics
+  // Fetch team statistics (for managers)
   const fetchTeamStats = useCallback(async () => {
-    if (!user) return;
-
-    setIsLoadingStats(true);
-
-    // Get active team members
-    const activeMembers = teamMembers.filter(m => m.status === 'active');
-    if (activeMembers.length === 0) {
+    if (!user || teamMembers.length === 0) {
       setTeamStats([]);
-      setIsLoadingStats(false);
       return;
     }
 
-    const operatorIds = activeMembers.map(m => m.operator_id);
+    setIsLoadingStats(true);
     const stats: TeamOperatorStats[] = [];
 
-    for (const member of activeMembers) {
+    for (const member of teamMembers) {
       // Fetch operations
       const { data: operations } = await supabase
         .from('operations')
@@ -176,100 +203,41 @@ export function useTeam() {
     setIsLoadingStats(false);
   }, [user, teamMembers]);
 
-  // Invite operator by email
-  const inviteOperator = async (email: string, nickname?: string) => {
+  // Create operator account (manager only)
+  const createOperator = async (data: {
+    email: string;
+    password: string;
+    fullName: string;
+    nickname?: string;
+  }) => {
     if (!user) return { error: 'Usuário não autenticado' };
 
-    // Find user by email
-    const { data: profiles, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, email')
-      .eq('email', email.toLowerCase().trim())
-      .maybeSingle();
-
-    if (profileError) {
-      console.error('Error finding user:', profileError);
-      return { error: 'Erro ao buscar usuário' };
-    }
-
-    if (!profiles) {
-      return { error: 'Nenhum usuário encontrado com este email' };
-    }
-
-    if (profiles.id === user.id) {
-      return { error: 'Você não pode convidar a si mesmo' };
-    }
-
-    // Check if already invited
-    const { data: existing } = await supabase
-      .from('team_members')
-      .select('id, status')
-      .eq('manager_id', user.id)
-      .eq('operator_id', profiles.id)
-      .maybeSingle();
-
-    if (existing) {
-      if (existing.status === 'active') {
-        return { error: 'Este usuário já faz parte do seu time' };
-      }
-      if (existing.status === 'pending') {
-        return { error: 'Já existe um convite pendente para este usuário' };
-      }
-      // If declined, delete and recreate
-      await supabase.from('team_members').delete().eq('id', existing.id);
-    }
-
-    // Create invite
-    const { error } = await supabase
-      .from('team_members')
-      .insert({
-        manager_id: user.id,
-        operator_id: profiles.id,
-        nickname: nickname || null,
+    try {
+      const response = await supabase.functions.invoke('create-team-operator', {
+        body: {
+          email: data.email,
+          password: data.password,
+          fullName: data.fullName,
+          nickname: data.nickname,
+          teamName: teamName,
+        },
       });
 
-    if (error) {
-      console.error('Error inviting operator:', error);
-      return { error: 'Erro ao enviar convite' };
+      if (response.error) {
+        return { error: response.error.message || 'Erro ao criar operador' };
+      }
+
+      if (response.data?.error) {
+        return { error: response.data.error };
+      }
+
+      toast.success('Operador criado com sucesso!');
+      await fetchTeamMembers();
+      return { error: null, operator: response.data.operator };
+    } catch (error: any) {
+      console.error('Error creating operator:', error);
+      return { error: error.message || 'Erro ao criar operador' };
     }
-
-    toast.success('Convite enviado com sucesso!');
-    await fetchTeamMembers();
-    return { error: null };
-  };
-
-  // Accept invite
-  const acceptInvite = async (inviteId: string) => {
-    const { error } = await supabase
-      .from('team_members')
-      .update({ status: 'active', accepted_at: new Date().toISOString() })
-      .eq('id', inviteId);
-
-    if (error) {
-      console.error('Error accepting invite:', error);
-      toast.error('Erro ao aceitar convite');
-      return;
-    }
-
-    toast.success('Convite aceito! Você agora faz parte do time.');
-    await fetchPendingInvites();
-  };
-
-  // Decline invite
-  const declineInvite = async (inviteId: string) => {
-    const { error } = await supabase
-      .from('team_members')
-      .update({ status: 'declined' })
-      .eq('id', inviteId);
-
-    if (error) {
-      console.error('Error declining invite:', error);
-      toast.error('Erro ao recusar convite');
-      return;
-    }
-
-    toast.success('Convite recusado.');
-    await fetchPendingInvites();
   };
 
   // Remove team member
@@ -306,15 +274,34 @@ export function useTeam() {
     await fetchTeamMembers();
   };
 
+  // Update team name
+  const updateTeamName = async (newName: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('team_members')
+      .update({ team_name: newName })
+      .eq('manager_id', user.id);
+
+    if (error) {
+      console.error('Error updating team name:', error);
+      toast.error('Erro ao atualizar nome do time');
+      return;
+    }
+
+    setTeamNameState(newName);
+    toast.success('Nome do time atualizado!');
+  };
+
   // Initial fetch
   useEffect(() => {
     if (user) {
       setIsLoading(true);
-      Promise.all([fetchTeamMembers(), fetchPendingInvites()]).finally(() => {
+      Promise.all([fetchTeamMembers(), fetchMyTeamInfo()]).finally(() => {
         setIsLoading(false);
       });
     }
-  }, [user, fetchTeamMembers, fetchPendingInvites]);
+  }, [user, fetchTeamMembers, fetchMyTeamInfo]);
 
   // Fetch stats when team members change
   useEffect(() => {
@@ -337,16 +324,16 @@ export function useTeam() {
 
   return {
     teamMembers,
-    pendingInvites,
+    myTeamInfo,
     teamStats,
     teamTotals,
+    teamName,
     isLoading,
     isLoadingStats,
-    inviteOperator,
-    acceptInvite,
-    declineInvite,
+    createOperator,
     removeTeamMember,
     updateNickname,
-    refetch: () => Promise.all([fetchTeamMembers(), fetchPendingInvites()]),
+    updateTeamName,
+    refetch: () => Promise.all([fetchTeamMembers(), fetchMyTeamInfo()]),
   };
 }
