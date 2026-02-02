@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
@@ -21,6 +22,7 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log("create-team-operator: request received");
     // Get the authorization header to identify the manager
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
@@ -42,6 +44,7 @@ serve(async (req: Request): Promise<Response> => {
     // Verify the manager is authenticated
     const { data: { user: manager }, error: authError } = await userClient.auth.getUser();
     if (authError || !manager) {
+      console.error("create-team-operator: auth failed", authError);
       return new Response(
         JSON.stringify({ error: "Usuário não autenticado" }),
         { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -50,6 +53,12 @@ serve(async (req: Request): Promise<Response> => {
 
     // Parse request body
     const { email, password, fullName, nickname }: CreateOperatorRequest = await req.json();
+
+    console.log("create-team-operator: payload validated", {
+      managerId: manager.id,
+      email: (email || "").toLowerCase().trim(),
+      hasNickname: Boolean(nickname && nickname.trim()),
+    });
 
     // Validate inputs
     if (!email || !password || !fullName) {
