@@ -25,21 +25,50 @@ serve(async (req: Request): Promise<Response> => {
     console.log("create-team-operator: request received");
     // Get the authorization header to identify the manager
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
+    if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
       return new Response(
         JSON.stringify({ error: "Não autorizado" }),
         { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    // Get JWT token from auth header
+    // Extract JWT from Bearer token
+    const jwt = authHeader.slice("Bearer ".length).trim();
+    const invalidToken = !jwt || jwt === "undefined" || jwt === "null";
+    console.log("create-team-operator: auth header inspected", {
+      hasAuthHeader: Boolean(authHeader),
+      tokenLength: jwt?.length || 0,
+      invalidToken,
+    });
+
+    if (invalidToken) {
+      return new Response(
+        JSON.stringify({ error: "Usuário não autenticado" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Backend clients
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Extract JWT from Bearer token
-    const jwt = authHeader.replace("Bearer ", "");
+    // Verify JWT via claims (more reliable than session-based methods in edge runtime)
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(jwt);
+    const managerId = claimsData?.claims?.sub;
 
-    // Create admin client and use getUser with JWT directly
+    if (claimsError || !managerId) {
+      console.error("create-team-operator: auth failed", claimsError);
+      return new Response(
+        JSON.stringify({ error: "Usuário não autenticado" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Admin client for privileged operations (create user, bypass RLS)
     const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
@@ -47,21 +76,11 @@ serve(async (req: Request): Promise<Response> => {
       },
     });
 
-    // Verify the manager is authenticated using the JWT
-    const { data: { user: manager }, error: authError } = await adminClient.auth.getUser(jwt);
-    if (authError || !manager) {
-      console.error("create-team-operator: auth failed", authError);
-      return new Response(
-        JSON.stringify({ error: "Usuário não autenticado" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
     // Parse request body
     const { email, password, fullName, nickname }: CreateOperatorRequest = await req.json();
 
     console.log("create-team-operator: payload validated", {
-      managerId: manager.id,
+      managerId,
       email: (email || "").toLowerCase().trim(),
       hasNickname: Boolean(nickname && nickname.trim()),
     });
@@ -119,7 +138,7 @@ serve(async (req: Request): Promise<Response> => {
     const { error: teamError } = await adminClient
       .from("team_members")
       .insert({
-        manager_id: manager.id,
+        manager_id: managerId,
         operator_id: newUser.user.id,
         nickname: nickname?.trim() || null,
       });

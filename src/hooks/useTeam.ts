@@ -243,7 +243,7 @@ export function useTeam() {
     if (!user) return { error: 'Usuário não autenticado' };
 
     try {
-      const response = await supabase.functions.invoke('create-team-operator', {
+      const { data: resData, error: resError } = await supabase.functions.invoke('create-team-operator', {
         body: {
           email: data.email,
           password: data.password,
@@ -252,20 +252,23 @@ export function useTeam() {
         },
       });
 
-      if (response.error) {
-        const msg = response.error.message || 'Erro ao criar operador';
+      // When the backend returns non-2xx, supabase-js often surfaces a generic error message.
+      // Prefer showing the backend's JSON error when present.
+      const serverMsg = (resData as any)?.error as string | undefined;
+      if (serverMsg) {
+        toast.error(serverMsg);
+        return { error: serverMsg };
+      }
+
+      if (resError) {
+        const msg = resError.message || 'Erro ao criar operador';
         toast.error(msg);
         return { error: msg };
       }
 
-      if (response.data?.error) {
-        toast.error(response.data.error);
-        return { error: response.data.error };
-      }
-
       toast.success('Operador criado com sucesso!');
       await fetchTeamMembers();
-      return { error: null, operator: response.data.operator };
+      return { error: null, operator: (resData as any)?.operator };
     } catch (error: any) {
       console.error('Error creating operator:', error);
       const msg = error?.message || 'Erro ao criar operador';
