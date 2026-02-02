@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useTeam, TeamOperatorStats } from '@/hooks/useTeam';
+import { useTeam } from '@/hooks/useTeam';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -39,55 +38,68 @@ import {
   Users,
   UserPlus,
   TrendingUp,
-  TrendingDown,
   DollarSign,
   Receipt,
   BarChart3,
-  Mail,
   Check,
   X,
   Trash2,
   Edit2,
   RefreshCw,
-  Clock,
   UserCheck,
+  Crown,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function TeamTab() {
   const {
     teamMembers,
-    pendingInvites,
+    myTeamInfo,
     teamStats,
     teamTotals,
+    teamName,
     isLoading,
     isLoadingStats,
-    inviteOperator,
-    acceptInvite,
-    declineInvite,
+    createOperator,
     removeTeamMember,
     updateNickname,
+    updateTeamName,
     refetch,
   } = useTeam();
 
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteNickname, setInviteNickname] = useState('');
-  const [isInviting, setIsInviting] = useState(false);
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newOperator, setNewOperator] = useState({
+    email: '',
+    password: '',
+    fullName: '',
+    nickname: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [editingMember, setEditingMember] = useState<string | null>(null);
   const [editNickname, setEditNickname] = useState('');
+  const [editingTeamName, setEditingTeamName] = useState(false);
+  const [newTeamName, setNewTeamName] = useState(teamName);
 
-  const handleInvite = async () => {
-    if (!inviteEmail.trim()) return;
+  const handleCreateOperator = async () => {
+    if (!newOperator.email.trim() || !newOperator.password || !newOperator.fullName.trim()) {
+      return;
+    }
     
-    setIsInviting(true);
-    const result = await inviteOperator(inviteEmail, inviteNickname || undefined);
-    setIsInviting(false);
+    setIsCreating(true);
+    const result = await createOperator({
+      email: newOperator.email,
+      password: newOperator.password,
+      fullName: newOperator.fullName,
+      nickname: newOperator.nickname || undefined,
+    });
+    setIsCreating(false);
 
     if (!result.error) {
-      setInviteEmail('');
-      setInviteNickname('');
-      setInviteDialogOpen(false);
+      setNewOperator({ email: '', password: '', fullName: '', nickname: '' });
+      setCreateDialogOpen(false);
     }
   };
 
@@ -95,6 +107,13 @@ export function TeamTab() {
     await updateNickname(memberId, editNickname);
     setEditingMember(null);
     setEditNickname('');
+  };
+
+  const handleUpdateTeamName = async () => {
+    if (newTeamName.trim() && newTeamName !== teamName) {
+      await updateTeamName(newTeamName.trim());
+    }
+    setEditingTeamName(false);
   };
 
   const formatCurrency = (value: number) => {
@@ -111,9 +130,6 @@ export function TeamTab() {
     return email?.[0]?.toUpperCase() || 'U';
   };
 
-  const activeMembers = teamMembers.filter(m => m.status === 'active');
-  const pendingMembers = teamMembers.filter(m => m.status === 'pending');
-
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -123,70 +139,112 @@ export function TeamTab() {
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Pending Invites Received */}
-      {pendingInvites.length > 0 && (
-        <Card className="border-yellow-500/50 bg-yellow-500/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Mail className="h-5 w-5 text-yellow-500" />
-              Convites Pendentes
+  // If user is an operator (belongs to a team), show team info
+  if (myTeamInfo) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              {myTeamInfo.team_name}
             </CardTitle>
             <CardDescription>
-              Você foi convidado para fazer parte de um time
+              Você faz parte deste time
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {pendingInvites.map((invite) => (
-                <div
-                  key={invite.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-card border"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {invite.manager_profile?.full_name || 'Gestor'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {invite.manager_profile?.email}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => acceptInvite(invite.id)}
-                      className="gap-1"
-                    >
-                      <Check className="h-4 w-4" />
-                      Aceitar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => declineInvite(invite.id)}
-                      className="gap-1"
-                    >
-                      <X className="h-4 w-4" />
-                      Recusar
-                    </Button>
-                  </div>
+          <CardContent className="space-y-4">
+            {/* Manager */}
+            <div>
+              <p className="text-sm font-medium text-muted-foreground mb-2">Gestor</p>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-card border">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={myTeamInfo.manager_profile?.avatar_url || undefined} />
+                  <AvatarFallback>
+                    {getInitials(myTeamInfo.manager_profile?.full_name || null, myTeamInfo.manager_profile?.email || null)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="font-medium flex items-center gap-2">
+                    {myTeamInfo.manager_profile?.full_name || 'Gestor'}
+                    <Crown className="h-4 w-4 text-yellow-500" />
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {myTeamInfo.manager_profile?.email}
+                  </p>
                 </div>
-              ))}
+              </div>
             </div>
+
+            {/* Teammates */}
+            {myTeamInfo.teammates.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-2">
+                  Colegas de time ({myTeamInfo.teammates.length})
+                </p>
+                <div className="space-y-2">
+                  {myTeamInfo.teammates.map((teammate) => (
+                    <div key={teammate.id} className="flex items-center gap-3 p-3 rounded-lg bg-card border">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={teammate.avatar_url || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {getInitials(teammate.full_name, null)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="font-medium text-sm">
+                        {teammate.nickname || teammate.full_name || 'Operador'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
-      )}
+      </div>
+    );
+  }
 
-      {/* Header with stats summary */}
+  // Manager view - manage team
+  return (
+    <div className="space-y-6">
+      {/* Header with team name */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Users className="h-6 w-6" />
-            Meu Time
-          </h2>
+          {editingTeamName ? (
+            <div className="flex items-center gap-2">
+              <Input
+                value={newTeamName}
+                onChange={(e) => setNewTeamName(e.target.value)}
+                className="h-9 w-48"
+                placeholder="Nome do time"
+              />
+              <Button size="icon" variant="ghost" className="h-9 w-9" onClick={handleUpdateTeamName}>
+                <Check className="h-4 w-4" />
+              </Button>
+              <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => setEditingTeamName(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Users className="h-6 w-6" />
+              {teamName}
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+                onClick={() => {
+                  setNewTeamName(teamName);
+                  setEditingTeamName(true);
+                }}
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
+            </h2>
+          )}
           <p className="text-muted-foreground">
-            {activeMembers.length} operador{activeMembers.length !== 1 ? 'es' : ''} ativo{activeMembers.length !== 1 ? 's' : ''}
+            {teamMembers.length} operador{teamMembers.length !== 1 ? 'es' : ''}
           </p>
         </div>
         <div className="flex gap-2">
@@ -194,47 +252,80 @@ export function TeamTab() {
             <RefreshCw className="h-4 w-4 mr-2" />
             Atualizar
           </Button>
-          <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm">
                 <UserPlus className="h-4 w-4 mr-2" />
-                Convidar Operador
+                Criar Operador
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Convidar Operador</DialogTitle>
+                <DialogTitle>Criar Conta de Operador</DialogTitle>
                 <DialogDescription>
-                  Envie um convite para um usuário cadastrado se juntar ao seu time.
+                  Crie uma conta para um novo operador do seu time. Você definirá o email e senha de acesso.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email do operador</Label>
+                  <Label htmlFor="fullName">Nome completo *</Label>
+                  <Input
+                    id="fullName"
+                    placeholder="João da Silva"
+                    value={newOperator.fullName}
+                    onChange={(e) => setNewOperator(prev => ({ ...prev, fullName: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email *</Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="operador@email.com"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
+                    value={newOperator.email}
+                    onChange={(e) => setNewOperator(prev => ({ ...prev, email: e.target.value }))}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha *</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Mínimo 6 caracteres"
+                      value={newOperator.password}
+                      onChange={(e) => setNewOperator(prev => ({ ...prev, password: e.target.value }))}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="nickname">Apelido (opcional)</Label>
                   <Input
                     id="nickname"
                     placeholder="Ex: João - Conta Principal"
-                    value={inviteNickname}
-                    onChange={(e) => setInviteNickname(e.target.value)}
+                    value={newOperator.nickname}
+                    onChange={(e) => setNewOperator(prev => ({ ...prev, nickname: e.target.value }))}
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
+                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={handleInvite} disabled={isInviting || !inviteEmail.trim()}>
-                  {isInviting ? 'Enviando...' : 'Enviar Convite'}
+                <Button 
+                  onClick={handleCreateOperator} 
+                  disabled={isCreating || !newOperator.email.trim() || !newOperator.password || !newOperator.fullName.trim()}
+                >
+                  {isCreating ? 'Criando...' : 'Criar Operador'}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -243,7 +334,7 @@ export function TeamTab() {
       </div>
 
       {/* Team Totals */}
-      {activeMembers.length > 0 && (
+      {teamMembers.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card className="bg-card/50 backdrop-blur-sm">
             <CardContent className="p-4">
@@ -278,7 +369,7 @@ export function TeamTab() {
                 <TrendingUp className="h-4 w-4 text-green-500" />
                 <span className="text-xs">Lucro Bruto</span>
               </div>
-              <p className={cn("text-2xl font-bold", teamTotals.totalProfit >= 0 ? "text-green-500" : "text-red-500")}>
+              <p className={cn("text-2xl font-bold", teamTotals.totalProfit >= 0 ? "text-green-500" : "text-destructive")}>
                 {formatCurrency(teamTotals.totalProfit)}
               </p>
             </CardContent>
@@ -300,7 +391,7 @@ export function TeamTab() {
                 <TrendingUp className="h-4 w-4 text-primary" />
                 <span className="text-xs">Lucro Líquido</span>
               </div>
-              <p className={cn("text-2xl font-bold", teamTotals.netProfit >= 0 ? "text-primary" : "text-red-500")}>
+              <p className={cn("text-2xl font-bold", teamTotals.netProfit >= 0 ? "text-primary" : "text-destructive")}>
                 {formatCurrency(teamTotals.netProfit)}
               </p>
             </CardContent>
@@ -308,74 +399,13 @@ export function TeamTab() {
         </div>
       )}
 
-      {/* Pending Members */}
-      {pendingMembers.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="h-5 w-5 text-yellow-500" />
-              Convites Enviados
-              <Badge variant="secondary">{pendingMembers.length}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {pendingMembers.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
-                >
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={member.operator_profile?.avatar_url || undefined} />
-                      <AvatarFallback className="text-xs">
-                        {getInitials(member.operator_profile?.full_name || null, member.operator_profile?.email || null)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">
-                        {member.nickname || member.operator_profile?.full_name || 'Operador'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {member.operator_profile?.email} • Aguardando resposta
-                      </p>
-                    </div>
-                  </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Cancelar convite?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Isso irá cancelar o convite enviado para este operador.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Voltar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => removeTeamMember(member.id)}>
-                          Cancelar Convite
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Team Members Stats Table */}
-      {activeMembers.length > 0 ? (
+      {teamMembers.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <UserCheck className="h-5 w-5" />
-              Operadores Ativos
+              Operadores
             </CardTitle>
             <CardDescription>
               Performance individual de cada operador do seu time
@@ -457,13 +487,13 @@ export function TeamTab() {
                           <TableCell className="text-right">
                             {formatCurrency(stat.total_invested)}
                           </TableCell>
-                          <TableCell className={cn("text-right font-medium", stat.total_profit >= 0 ? "text-green-500" : "text-red-500")}>
+                          <TableCell className={cn("text-right font-medium", stat.total_profit >= 0 ? "text-green-500" : "text-destructive")}>
                             {formatCurrency(stat.total_profit)}
                           </TableCell>
                           <TableCell className="text-right text-orange-500">
                             {formatCurrency(stat.total_expenses)}
                           </TableCell>
-                          <TableCell className={cn("text-right font-bold", stat.net_profit >= 0 ? "text-primary" : "text-red-500")}>
+                          <TableCell className={cn("text-right font-bold", stat.net_profit >= 0 ? "text-primary" : "text-destructive")}>
                             {formatCurrency(stat.net_profit)}
                           </TableCell>
                           <TableCell>
@@ -493,7 +523,7 @@ export function TeamTab() {
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>Remover do time?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Você não terá mais acesso aos dados deste operador. Essa ação não afeta a conta do operador.
+                                      Você não terá mais acesso aos dados deste operador. A conta do operador continuará existindo, mas não estará mais vinculada ao seu time.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
@@ -524,11 +554,11 @@ export function TeamTab() {
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">Nenhum operador no time</h3>
             <p className="text-muted-foreground mb-4 max-w-md">
-              Convide operadores para fazer parte do seu time e acompanhe a performance de todos em um único lugar.
+              Crie contas para seus operadores e acompanhe a performance de todos em um único lugar.
             </p>
-            <Button onClick={() => setInviteDialogOpen(true)}>
+            <Button onClick={() => setCreateDialogOpen(true)}>
               <UserPlus className="h-4 w-4 mr-2" />
-              Convidar Primeiro Operador
+              Criar Primeiro Operador
             </Button>
           </CardContent>
         </Card>
