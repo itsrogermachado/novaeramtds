@@ -12,7 +12,6 @@ interface CreateOperatorRequest {
   password: string;
   fullName: string;
   nickname?: string;
-  teamName?: string;
 }
 
 serve(async (req: Request): Promise<Response> => {
@@ -50,7 +49,7 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     // Parse request body
-    const { email, password, fullName, nickname, teamName }: CreateOperatorRequest = await req.json();
+    const { email, password, fullName, nickname }: CreateOperatorRequest = await req.json();
 
     // Validate inputs
     if (!email || !password || !fullName) {
@@ -107,14 +106,13 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Add team member relationship
+    // Add team member relationship (team_name is now managed in the teams table)
     const { error: teamError } = await adminClient
       .from("team_members")
       .insert({
         manager_id: manager.id,
         operator_id: newUser.user.id,
         nickname: nickname?.trim() || null,
-        team_name: teamName?.trim() || "Meu Time",
       });
 
     if (teamError) {
