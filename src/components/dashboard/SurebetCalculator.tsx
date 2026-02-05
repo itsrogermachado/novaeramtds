@@ -503,10 +503,20 @@ export function SurebetCalculator() {
                     <TrendingUp className="h-3 w-3 text-primary" />
                     RESULTADO
                   </div>
+                  {/* Retorno bruto da aposta individual */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Retorno</span>
+                    <span className="font-semibold text-foreground">
+                      {formatCurrency(
+                        parseFloat(house.stake) * parseFloat(house.odd) * (1 + (parseFloat(house.increasePercent) || 0) / 100)
+                      )}
+                    </span>
+                  </div>
+                  {/* Lucro líquido considerando todas as casas */}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground flex items-center gap-1">
                       <TrendingUp className="h-3 w-3" />
-                      Lucro
+                      Lucro Surebet
                     </span>
                     <span className={cn(
                       "font-bold text-lg",
@@ -528,9 +538,14 @@ export function SurebetCalculator() {
                       isLoss && "text-destructive",
                       !isProfitable && !isLoss && "text-primary"
                     )}>
-                      {houseProfit.roi.toFixed(4)}%
+                      {houseProfit.roi.toFixed(2)}%
                     </span>
                   </div>
+                  {numberOfHouses >= 2 && (
+                    <p className="text-xs text-muted-foreground/70 pt-1 border-t border-border/30">
+                      Lucro se esta casa vencer (descontando stakes das outras)
+                    </p>
+                  )}
                 </div>
 
                 {/* Botão Fixar Stake */}
