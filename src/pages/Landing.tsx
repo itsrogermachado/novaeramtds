@@ -195,14 +195,14 @@ export default function Landing() {
               className="text-center mb-6 animate-auth-field opacity-0"
               style={{ animationDelay: '0.5s' }}
             >
-              <div className="ne-logo-wrap mb-4">
-                <div className="ne-logo-glow" />
-                <img 
-                  src={logo} 
-                  alt="Nova Era" 
-                  className="ne-logo"
-                />
-              </div>
+            <div className="ne-logo-wrap animate-auth-logo mb-6">
+              <div className="ne-logo-glow" />
+              <img 
+                src={logo} 
+                alt="Nova Era" 
+                className="ne-logo"
+              />
+            </div>
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Store className="h-5 w-5" style={{ color: 'hsl(220 25% 30%)' }} />
                 <h2
