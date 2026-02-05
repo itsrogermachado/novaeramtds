@@ -15,6 +15,7 @@ const Signup = lazy(() => import("./pages/Signup"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const StoreCategory = lazy(() => import("./pages/StoreCategory"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -54,6 +55,7 @@ const App = () => (
                   <Route path="/cadastro" element={<Signup />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/loja/:slug" element={<StoreCategory />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

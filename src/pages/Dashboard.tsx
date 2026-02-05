@@ -29,9 +29,11 @@ import { SurebetCalculator } from '@/components/dashboard/SurebetCalculator';
 import { TeamTab } from '@/components/dashboard/TeamTab';
 import { NotificationBadge } from '@/components/dashboard/NotificationBadge';
 import { AiAssistant } from '@/components/dashboard/AiAssistant';
+import { StoreCategoriesTab } from '@/components/dashboard/StoreCategoriesTab';
+import { StoreProductsTab } from '@/components/dashboard/StoreProductsTab';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, Wallet, Receipt, Video, Calculator, Users } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Receipt, Video, Calculator, Users, Store, Package, ShoppingBag } from 'lucide-react';
 import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 
@@ -232,6 +234,18 @@ export default function Dashboard() {
                 Meu Time
               </TabsTrigger>
               {isAdmin && (
+                <TabsTrigger value="store-categories" className="text-sm whitespace-nowrap gap-1">
+                  <Package className="h-3.5 w-3.5" />
+                  Categorias
+                </TabsTrigger>
+              )}
+              {isAdmin && (
+                <TabsTrigger value="store-products" className="text-sm whitespace-nowrap gap-1">
+                  <ShoppingBag className="h-3.5 w-3.5" />
+                  Produtos
+                </TabsTrigger>
+              )}
+              {isAdmin && (
                 <TabsTrigger value="individual" className="text-sm whitespace-nowrap">
                   Individuais
                 </TabsTrigger>
@@ -253,6 +267,8 @@ export default function Dashboard() {
                 
                 {currentTab === 'surebet' && 'Calculadora Surebet'}
                 {currentTab === 'team' && 'Meu Time'}
+                {currentTab === 'store-categories' && 'Categorias da Loja'}
+                {currentTab === 'store-products' && 'Produtos da Loja'}
                 {currentTab === 'individual' && 'Usuários Individuais'}
                 {currentTab === 'global' && 'Visão Global'}
               </span>
@@ -348,6 +364,17 @@ export default function Dashboard() {
               <TeamTab />
             </TabsContent>
 
+            {isAdmin && (
+              <TabsContent value="store-categories">
+                <StoreCategoriesTab />
+              </TabsContent>
+            )}
+
+            {isAdmin && (
+              <TabsContent value="store-products">
+                <StoreProductsTab />
+              </TabsContent>
+            )}
 
             {isAdmin && (
               <TabsContent value="individual">
