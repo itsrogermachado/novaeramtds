@@ -67,7 +67,7 @@ export default function Landing() {
           <div className="w-full max-w-[480px] flex flex-col items-center">
             
             {/* Floating Logo */}
-            <div className="ne-logo-wrap animate-auth-logo mb-8">
+            <div className="ne-logo-wrap animate-auth-logo mb-4">
               <div className="ne-logo-glow" />
               <img 
                 src={logo} 
@@ -198,14 +198,17 @@ export default function Landing() {
               style={{ animationDelay: '0.5s' }}
             >
               <div className="flex flex-col items-center gap-3 mb-4">
-                <img 
-                  src={logo} 
-                  alt="Nova Era" 
-                  className="h-16 w-16 object-contain opacity-80"
-                />
+                <div className="ne-logo-wrap">
+                  <div className="ne-logo-glow" />
+                  <img 
+                    src={logo} 
+                    alt="Nova Era" 
+                    className="ne-logo"
+                  />
+                </div>
                 <div className="flex items-center gap-2">
                   <Store className="h-5 w-5" style={{ color: 'hsl(220 25% 30%)' }} />
-                  <h2 
+                  <h2
                     className="text-xl font-bold"
                     style={{ color: 'hsl(220 25% 15%)' }}
                   >
