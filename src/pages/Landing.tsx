@@ -4,6 +4,7 @@ import logo from '@/assets/logo-nova-era-3d.png';
 import { BarChart3, FileText, Shield, ArrowRight, ChevronUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import InlineLoginPanel from '@/components/landing/InlineLoginPanel';
+import { StoreCategoriesSection } from '@/components/store/StoreCategoriesSection';
 
 export default function Landing() {
   const { user, isLoading } = useAuth();
@@ -179,6 +180,9 @@ export default function Landing() {
         >
           Acesso seguro • Dados protegidos • Interface rápida
         </p>
+
+        {/* Store Section */}
+        <StoreCategoriesSection />
       </div>
     </div>
   );
