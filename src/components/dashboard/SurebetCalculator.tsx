@@ -151,6 +151,12 @@ export function SurebetCalculator() {
 
     const totalStake = validHouses.reduce((sum, h) => sum + parseFloat(h.stake), 0);
 
+    // Calcula o investimento real (freebets não são desembolsadas)
+    const realInvestment = validHouses.reduce((sum, h) => {
+      const stake = parseFloat(h.stake) || 0;
+      return sum + (h.isFreebet ? 0 : stake);
+    }, 0);
+
     const houseProfits = houses.map(house => {
       const odd = parseFloat(house.odd) || 0;
       const stake = parseFloat(house.stake) || 0;
@@ -158,42 +164,49 @@ export function SurebetCalculator() {
       const commissionPercent = parseFloat(house.commissionPercent) || 0;
       const cashbackValue = parseFloat(house.cashbackValue) || 0;
       
+      if (odd <= 1 || stake <= 0) {
+        return { profit: 0, roi: 0 };
+      }
+      
       // Odd efetiva com aumento
       const effectiveOdd = odd * (1 + increasePercent / 100);
       
-      // Retorno bruto
-      let grossReturn = stake * effectiveOdd;
-      
-      // Freebet: stake não é retornada
+      // Retorno bruto quando esta casa vence
+      let grossReturn: number;
       if (house.isFreebet) {
+        // Freebet: retorna (odd - 1) * stake, pois a stake não é devolvida
         grossReturn = stake * (effectiveOdd - 1);
+      } else {
+        // Normal: retorna odd * stake
+        grossReturn = stake * effectiveOdd;
       }
       
-      // Comissão sobre lucro
-      const grossProfit = grossReturn - stake;
-      const commission = grossProfit > 0 ? grossProfit * (commissionPercent / 100) : 0;
+      // Comissão sobre o lucro líquido da aposta (não sobre o total)
+      const betProfit = house.isFreebet ? grossReturn : grossReturn - stake;
+      const commission = betProfit > 0 ? betProfit * (commissionPercent / 100) : 0;
       
-      // Lucro líquido: retorno - investimento total + cashback - comissão
-      // Quando esta casa vence, perdemos as stakes das outras casas
-      const otherStakes = validHouses
-        .filter(h => h.id !== house.id)
-        .reduce((sum, h) => sum + parseFloat(h.stake), 0);
-      
-      const profit = grossReturn - totalStake + cashbackValue - commission;
-      const roi = totalStake > 0 ? (profit / totalStake) * 100 : 0;
+      // Lucro líquido: retorno - investimento real + cashback - comissão
+      // Quando esta casa vence, recebemos o retorno mas perdemos o investimento real
+      const profit = grossReturn - realInvestment + cashbackValue - commission;
+      const roi = realInvestment > 0 ? (profit / realInvestment) * 100 : 0;
 
       return { profit, roi };
     });
 
     // Verifica se é surebet (todos os resultados têm lucro positivo)
-    const isSurebet = houseProfits.every(hp => hp.profit >= 0) && houseProfits.some(hp => hp.profit > 0);
+    const validProfits = houseProfits.filter((_, i) => {
+      const h = houses[i];
+      return parseFloat(h.odd) > 1 && parseFloat(h.stake) > 0;
+    });
+    const isSurebet = validProfits.length >= 2 && validProfits.every(hp => hp.profit >= 0) && validProfits.some(hp => hp.profit > 0);
     
     // ROI médio (considerando o cenário com menor lucro)
-    const minProfit = Math.min(...houseProfits.map(hp => hp.profit));
-    const overallRoi = totalStake > 0 ? (minProfit / totalStake) * 100 : 0;
+    const minProfit = validProfits.length > 0 ? Math.min(...validProfits.map(hp => hp.profit)) : 0;
+    const overallRoi = realInvestment > 0 ? (minProfit / realInvestment) * 100 : 0;
 
     return {
       totalStake,
+      realInvestment,
       houseProfits,
       overallRoi,
       isSurebet,
@@ -215,13 +228,17 @@ export function SurebetCalculator() {
       return;
     }
 
-    const minProfit = Math.min(...results.houseProfits.map(hp => hp.profit));
+    const validProfits = results.houseProfits.filter((_, i) => {
+      const h = houses[i];
+      return parseFloat(h.odd) > 1 && parseFloat(h.stake) > 0;
+    });
+    const minProfit = validProfits.length > 0 ? Math.min(...validProfits.map(hp => hp.profit)) : 0;
     
     const { error } = await createEntry({
-      total_invested: results.totalStake,
+      total_invested: results.realInvestment,
       odds: validHouses.map(h => parseFloat(h.odd)),
       stakes: validHouses.map(h => parseFloat(h.stake)),
-      guaranteed_return: results.totalStake + minProfit,
+      guaranteed_return: results.realInvestment + minProfit,
       profit: minProfit,
       roi: results.overallRoi,
     });
@@ -249,9 +266,11 @@ export function SurebetCalculator() {
     let text = '📊 Surebet\n\n';
     validHouses.forEach((house, index) => {
       const profit = results.houseProfits[houses.indexOf(house)];
-      text += `Casa ${index + 1}: Odd ${house.odd} | Stake R$ ${house.stake} | Lucro: R$ ${profit.profit.toFixed(2)}\n`;
+      const freebetMark = house.isFreebet ? ' [FB]' : '';
+      text += `Casa ${index + 1}${freebetMark}: Odd ${house.odd} | Stake R$ ${house.stake} | Lucro: R$ ${profit.profit.toFixed(2)}\n`;
     });
-    text += `\n💰 Total: R$ ${results.totalStake.toFixed(2)}`;
+    text += `\n💰 Investimento: R$ ${results.realInvestment.toFixed(2)}`;
+    text += `\n📈 ROI: ${results.overallRoi.toFixed(2)}%`;
     text += `\n📈 ROI: ${results.overallRoi.toFixed(2)}%`;
 
     navigator.clipboard.writeText(text);
@@ -554,10 +573,14 @@ export function SurebetCalculator() {
             <div className="p-4 rounded-xl bg-muted/30 border border-border/30">
               <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
                 <DollarSign className="h-3 w-3" />
-                Stake Total
+                Investimento Real
               </p>
-              <p className="text-2xl font-bold text-foreground">{formatCurrency(results.totalStake)}</p>
-              <p className="text-xs text-muted-foreground mt-1">Risco total da operação</p>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(results.realInvestment)}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {results.totalStake !== results.realInvestment 
+                  ? `Stakes: ${formatCurrency(results.totalStake)}` 
+                  : 'Valor desembolsado'}
+              </p>
             </div>
             <div className="p-4 rounded-xl bg-muted/30 border border-border/30">
               <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
@@ -581,7 +604,11 @@ export function SurebetCalculator() {
                 "text-2xl font-bold",
                 results.overallRoi >= 0 ? "text-success" : "text-destructive"
               )}>
-                {formatCurrency(Math.min(...results.houseProfits.map(hp => hp.profit)))}
+                {formatCurrency(
+                  houses.some(h => parseFloat(h.odd) > 1 && parseFloat(h.stake) > 0)
+                    ? Math.min(...results.houseProfits.filter((_, i) => parseFloat(houses[i].odd) > 1 && parseFloat(houses[i].stake) > 0).map(hp => hp.profit))
+                    : 0
+                )}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Mínimo garantido</p>
             </div>
