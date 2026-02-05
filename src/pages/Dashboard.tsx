@@ -9,6 +9,7 @@ import { useAllUsers } from '@/hooks/useAllUsers';
 import { useNewTutorialsNotification } from '@/hooks/useNewTutorialsNotification';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { MobileNav } from '@/components/dashboard/MobileNav';
 import { DateFilter } from '@/components/dashboard/DateFilter';
 import { StatsCard } from '@/components/dashboard/StatsCard';
@@ -27,13 +28,12 @@ import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
 import { TutorialsTab } from '@/components/dashboard/TutorialsTab';
 import { SurebetCalculator } from '@/components/dashboard/SurebetCalculator';
 import { TeamTab } from '@/components/dashboard/TeamTab';
-import { NotificationBadge } from '@/components/dashboard/NotificationBadge';
 import { AiAssistant } from '@/components/dashboard/AiAssistant';
 import { StoreCategoriesTab } from '@/components/dashboard/StoreCategoriesTab';
 import { StoreProductsTab } from '@/components/dashboard/StoreProductsTab';
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, TrendingDown, Wallet, Receipt, Video, Calculator, Users, Store, Package, ShoppingBag } from 'lucide-react';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { TrendingUp, TrendingDown, Wallet, Receipt } from 'lucide-react';
 import { Operation } from '@/hooks/useOperations';
 import { Expense } from '@/hooks/useExpenses';
 
@@ -184,78 +184,40 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Subtle background pattern */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-muted/30 via-background to-background pointer-events-none" />
-      
-      <div className="relative">
-        <DashboardHeader
-          onOpenNewOperation={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
-          mobileNav={
-            <MobileNav
-              currentTab={currentTab}
-              onTabChange={setCurrentTab}
-              onSignOut={handleSignOut}
-              newTutorialsCount={newTutorialsCount}
-            />
-          }
-        />
+    <SidebarProvider defaultOpen={true}>
+      <div className="min-h-screen flex w-full bg-background">
+        {/* Subtle background pattern */}
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-muted/30 via-background to-background pointer-events-none" />
+        
+        {/* Desktop Sidebar - hidden on mobile */}
+        <div className="hidden md:block relative z-10">
+          <DashboardSidebar
+            currentTab={currentTab}
+            onTabChange={setCurrentTab}
+            onSignOut={handleSignOut}
+            newTutorialsCount={newTutorialsCount}
+          />
+        </div>
+        
+        <div className="flex-1 relative flex flex-col min-w-0">
+          <DashboardHeader
+            onOpenNewOperation={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
+            mobileNav={
+              <MobileNav
+                currentTab={currentTab}
+                onTabChange={setCurrentTab}
+                onSignOut={handleSignOut}
+                newTutorialsCount={newTutorialsCount}
+              />
+            }
+          />
 
-        <main className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
-          <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange}>
-            <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
-              <AiAssistant context={aiContext} embedded />
-            </div>
-          </DateFilter>
-
-          <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-4 md:space-y-6">
-            {/* Desktop tabs - hidden on mobile (use drawer instead) */}
-            <TabsList className="hidden md:flex w-auto overflow-x-auto flex-nowrap justify-start">
-              <TabsTrigger value="my-operations" className="text-sm whitespace-nowrap">
-                Operações
-              </TabsTrigger>
-              <TabsTrigger value="my-expenses" className="text-sm whitespace-nowrap">
-                Gastos
-              </TabsTrigger>
-              <TabsTrigger value="comparison" className="text-sm whitespace-nowrap">
-                Comparativo
-              </TabsTrigger>
-              <TabsTrigger value="tutorials" className="text-sm whitespace-nowrap gap-1 relative">
-                <Video className="h-3.5 w-3.5" />
-                Tutoriais
-                <NotificationBadge count={newTutorialsCount} />
-              </TabsTrigger>
-              <TabsTrigger value="surebet" className="text-sm whitespace-nowrap gap-1">
-                <Calculator className="h-3.5 w-3.5" />
-                Surebet
-              </TabsTrigger>
-              <TabsTrigger value="team" className="text-sm whitespace-nowrap gap-1">
-                <Users className="h-3.5 w-3.5" />
-                Meu Time
-              </TabsTrigger>
-              {isAdmin && (
-                <TabsTrigger value="store-categories" className="text-sm whitespace-nowrap gap-1">
-                  <Package className="h-3.5 w-3.5" />
-                  Categorias
-                </TabsTrigger>
-              )}
-              {isAdmin && (
-                <TabsTrigger value="store-products" className="text-sm whitespace-nowrap gap-1">
-                  <ShoppingBag className="h-3.5 w-3.5" />
-                  Produtos
-                </TabsTrigger>
-              )}
-              {isAdmin && (
-                <TabsTrigger value="individual" className="text-sm whitespace-nowrap">
-                  Individuais
-                </TabsTrigger>
-              )}
-              {isAdmin && (
-                <TabsTrigger value="global" className="text-sm whitespace-nowrap">
-                  Global
-                </TabsTrigger>
-              )}
-            </TabsList>
+          <main className="flex-1 p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6 overflow-auto">
+            <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange}>
+              <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
+                <AiAssistant context={aiContext} embedded />
+              </div>
+            </DateFilter>
 
             {/* Mobile section title */}
             <div className="md:hidden flex items-center gap-2 px-1">
@@ -264,7 +226,6 @@ export default function Dashboard() {
                 {currentTab === 'my-expenses' && 'Meus Gastos'}
                 {currentTab === 'comparison' && 'Comparativo'}
                 {currentTab === 'tutorials' && 'Tutoriais'}
-                
                 {currentTab === 'surebet' && 'Calculadora Surebet'}
                 {currentTab === 'team' && 'Meu Time'}
                 {currentTab === 'store-categories' && 'Categorias da Loja'}
@@ -274,156 +235,165 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <TabsContent value="my-operations" className="space-y-4 md:space-y-6">
-              {/* Stats Cards - Available to all */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
-                <StatsCard 
-                  title="Operações" 
-                  value={String(operations.length)} 
-                  icon={<Receipt className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
-                  className="animation-delay-100"
-                />
-                <StatsCard 
-                  title="Investido" 
-                  value={formatCurrency(totalInvested)} 
-                  icon={<Wallet className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
-                  className="animation-delay-200"
-                />
-                <StatsCard 
-                  title="Lucro" 
-                  value={formatCurrency(profit)} 
-                  trend={profit >= 0 ? 'up' : 'down'} 
-                  icon={<TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-success" />} 
-                  className="animation-delay-300"
-                />
-                <StatsCard 
-                  title="Gastos" 
-                  value={formatCurrency(totalExpenses)} 
-                  icon={<TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />} 
-                  className="animation-delay-400"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
-                <div className="lg:col-span-3 space-y-4 md:space-y-6">
-                  {/* Charts - Available to all */}
-                  {!isSingleDayView && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                      <ProfitEvolutionChart operations={operations} />
-                      <ExpensesByCategoryChart expenses={effectiveExpenses} />
-                    </div>
-                  )}
-                  <OperationsTable
-                    operations={operations}
-                    isLoading={opsLoading}
-                    onAdd={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
-                    onEdit={(op) => { setEditingOperation(op); setOperationDialogOpen(true); }}
-                    onDelete={handleDeleteOperation}
+            {/* Content based on current tab */}
+            {currentTab === 'my-operations' && (
+              <div className="space-y-4 md:space-y-6 animate-fade-in">
+                {/* Stats Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+                  <StatsCard 
+                    title="Operações" 
+                    value={String(operations.length)} 
+                    icon={<Receipt className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
+                    className="animation-delay-100"
+                  />
+                  <StatsCard 
+                    title="Investido" 
+                    value={formatCurrency(totalInvested)} 
+                    icon={<Wallet className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
+                    className="animation-delay-200"
+                  />
+                  <StatsCard 
+                    title="Lucro" 
+                    value={formatCurrency(profit)} 
+                    trend={profit >= 0 ? 'up' : 'down'} 
+                    icon={<TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-success" />} 
+                    className="animation-delay-300"
+                  />
+                  <StatsCard 
+                    title="Gastos" 
+                    value={formatCurrency(totalExpenses)} 
+                    icon={<TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />} 
+                    className="animation-delay-400"
                   />
                 </div>
-                <div className="space-y-3 md:space-y-4">
-                  {/* Goals Card - Available to all */}
-                  <GoalsCard
-                    goals={goals}
-                    todayProfit={todayStats.todayProfit}
-                    weeklyProfit={weeklyProfit}
-                    netBalance={netBalance}
-                    onCreate={createGoal}
-                    onUpdate={updateGoal}
-                    onDelete={deleteGoal}
-                  />
-                  <ProfitByMethodCard operations={operations} methods={methods} />
-                  <UpcomingExpensesCard expenses={upcomingExpenses} />
+
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
+                  <div className="lg:col-span-3 space-y-4 md:space-y-6">
+                    {!isSingleDayView && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <ProfitEvolutionChart operations={operations} />
+                        <ExpensesByCategoryChart expenses={effectiveExpenses} />
+                      </div>
+                    )}
+                    <OperationsTable
+                      operations={operations}
+                      isLoading={opsLoading}
+                      onAdd={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
+                      onEdit={(op) => { setEditingOperation(op); setOperationDialogOpen(true); }}
+                      onDelete={handleDeleteOperation}
+                    />
+                  </div>
+                  <div className="space-y-3 md:space-y-4">
+                    <GoalsCard
+                      goals={goals}
+                      todayProfit={todayStats.todayProfit}
+                      weeklyProfit={weeklyProfit}
+                      netBalance={netBalance}
+                      onCreate={createGoal}
+                      onUpdate={updateGoal}
+                      onDelete={deleteGoal}
+                    />
+                    <ProfitByMethodCard operations={operations} methods={methods} />
+                    <UpcomingExpensesCard expenses={upcomingExpenses} />
+                  </div>
                 </div>
               </div>
-            </TabsContent>
+            )}
 
-            <TabsContent value="my-expenses" className="space-y-6">
-              <ExpensesTable
-                expenses={expenses}
-                isLoading={expLoading}
-                onAdd={() => { setEditingExpense(null); setExpenseDialogOpen(true); }}
-                onEdit={(exp) => { setEditingExpense(exp); setExpenseDialogOpen(true); }}
-                onDelete={handleDeleteExpense}
-              />
-            </TabsContent>
+            {currentTab === 'my-expenses' && (
+              <div className="space-y-6 animate-fade-in">
+                <ExpensesTable
+                  expenses={expenses}
+                  isLoading={expLoading}
+                  onAdd={() => { setEditingExpense(null); setExpenseDialogOpen(true); }}
+                  onEdit={(exp) => { setEditingExpense(exp); setExpenseDialogOpen(true); }}
+                  onDelete={handleDeleteExpense}
+                />
+              </div>
+            )}
 
-            <TabsContent value="comparison">
-              <ComparisonTab operations={operations} expenses={effectiveExpenses} />
-            </TabsContent>
+            {currentTab === 'comparison' && (
+              <div className="animate-fade-in">
+                <ComparisonTab operations={operations} expenses={effectiveExpenses} />
+              </div>
+            )}
 
-            <TabsContent value="tutorials">
-              <TutorialsTab />
-            </TabsContent>
+            {currentTab === 'tutorials' && (
+              <div className="animate-fade-in">
+                <TutorialsTab />
+              </div>
+            )}
 
-            <TabsContent value="surebet">
-              <SurebetCalculator />
-            </TabsContent>
+            {currentTab === 'surebet' && (
+              <div className="animate-fade-in">
+                <SurebetCalculator />
+              </div>
+            )}
 
-            <TabsContent value="team">
-              <TeamTab />
-            </TabsContent>
+            {currentTab === 'team' && (
+              <div className="animate-fade-in">
+                <TeamTab />
+              </div>
+            )}
 
-            {isAdmin && (
-              <TabsContent value="store-categories">
+            {isAdmin && currentTab === 'store-categories' && (
+              <div className="animate-fade-in">
                 <StoreCategoriesTab />
-              </TabsContent>
+              </div>
             )}
 
-            {isAdmin && (
-              <TabsContent value="store-products">
+            {isAdmin && currentTab === 'store-products' && (
+              <div className="animate-fade-in">
                 <StoreProductsTab />
-              </TabsContent>
+              </div>
             )}
 
-            {isAdmin && (
-              <TabsContent value="individual">
+            {isAdmin && currentTab === 'individual' && (
+              <div className="animate-fade-in">
                 <AdminIndividualTab
                   users={users}
                   allOperations={allOperations}
                   isLoading={usersLoading}
                 />
-              </TabsContent>
+              </div>
             )}
 
-            {isAdmin && (
-              <TabsContent value="global">
+            {isAdmin && currentTab === 'global' && (
+              <div className="animate-fade-in">
                 <AdminGlobalTab
                   operations={allOperations}
                   expenses={allEffectiveExpenses}
                   users={users}
                 />
-              </TabsContent>
+              </div>
             )}
-          </Tabs>
-        </main>
+          </main>
+        </div>
+
+        <OperationDialog
+          open={operationDialogOpen}
+          onOpenChange={setOperationDialogOpen}
+          operation={editingOperation}
+          methods={methods}
+          onSubmit={async (data) => {
+            if (editingOperation) return updateOperation(editingOperation.id, data);
+            return createOperation(data);
+          }}
+          onCreateMethod={createMethod}
+          onDeleteMethod={deleteMethod}
+        />
+
+        <ExpenseDialog
+          open={expenseDialogOpen}
+          onOpenChange={setExpenseDialogOpen}
+          expense={editingExpense}
+          categories={categories}
+          onSubmit={async (data) => {
+            if (editingExpense) return updateExpense(editingExpense.id, data);
+            return createExpense(data);
+          }}
+        />
       </div>
-
-      <OperationDialog
-        open={operationDialogOpen}
-        onOpenChange={setOperationDialogOpen}
-        operation={editingOperation}
-        methods={methods}
-        onSubmit={async (data) => {
-          if (editingOperation) return updateOperation(editingOperation.id, data);
-          return createOperation(data);
-        }}
-        onCreateMethod={createMethod}
-        onDeleteMethod={deleteMethod}
-      />
-
-      <ExpenseDialog
-        open={expenseDialogOpen}
-        onOpenChange={setExpenseDialogOpen}
-        expense={editingExpense}
-        categories={categories}
-        onSubmit={async (data) => {
-          if (editingExpense) return updateExpense(editingExpense.id, data);
-          return createExpense(data);
-        }}
-      />
-
-      
-    </div>
+    </SidebarProvider>
   );
 }
