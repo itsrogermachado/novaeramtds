@@ -53,21 +53,21 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen auth-bg">
+    <div className="min-h-screen auth-bg overflow-auto">
       {/* Background effects */}
       <div className="auth-spotlight" />
       <div className="auth-ambient" />
       <div className="auth-noise" />
 
       {/* Main Two-Column Layout */}
-      <div className="relative z-10 min-h-screen flex flex-col lg:flex-row">
+      <div className="relative z-10 min-h-screen flex flex-col lg:flex-row items-stretch">
         
         {/* LEFT SIDE - Dashboard Access */}
-        <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-          <div className="w-full max-w-[480px] flex flex-col items-center">
+        <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12">
+          <div className="w-full max-w-[460px] flex flex-col items-center">
             
             {/* Floating Logo */}
-            <div className="ne-logo-wrap animate-auth-logo mb-4">
+            <div className="ne-logo-wrap animate-auth-logo mb-6">
               <div className="ne-logo-glow" />
               <img 
                 src={logo} 
@@ -77,9 +77,7 @@ export default function Landing() {
             </div>
 
             {/* Main Card */}
-            <div 
-              className="auth-card-minimal rounded-2xl p-7 sm:p-9 w-full animate-auth-card"
-            >
+            <div className="auth-card-minimal rounded-2xl p-7 sm:p-9 w-full animate-auth-card">
               {/* Title */}
               <h1 
                 className="text-center text-xl sm:text-2xl font-bold mb-2 animate-auth-field opacity-0"
@@ -146,7 +144,7 @@ export default function Landing() {
 
             {/* Benefits Section */}
             <div 
-              className="mt-8 w-full grid gap-4 animate-auth-field opacity-0"
+              className="mt-6 w-full grid gap-3 animate-auth-field opacity-0"
               style={{ animationDelay: '0.5s' }}
             >
               {benefits.map((benefit, index) => (
@@ -180,7 +178,7 @@ export default function Landing() {
 
             {/* Footer Text */}
             <p 
-              className="mt-8 text-xs text-muted-foreground text-center animate-auth-field opacity-0"
+              className="mt-6 text-xs text-muted-foreground text-center animate-auth-field opacity-0"
               style={{ animationDelay: '0.55s' }}
             >
               Acesso seguro • Dados protegidos • Interface rápida
@@ -189,40 +187,40 @@ export default function Landing() {
         </div>
 
         {/* RIGHT SIDE - Store */}
-        <div className="flex-1 flex flex-col items-center justify-start p-4 sm:p-6 lg:p-8 lg:border-l lg:border-white/30">
-          <div className="w-full max-w-[520px] pt-8 lg:pt-16">
+        <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 lg:border-l lg:border-white/20">
+          <div className="w-full max-w-[460px] flex flex-col items-center">
             
             {/* Store Header with Logo */}
             <div 
-              className="text-center mb-8 animate-auth-field opacity-0"
+              className="text-center mb-6 animate-auth-field opacity-0"
               style={{ animationDelay: '0.5s' }}
             >
-              <div className="flex flex-col items-center gap-3 mb-4">
-                <div className="ne-logo-wrap">
-                  <div className="ne-logo-glow" />
-                  <img 
-                    src={logo} 
-                    alt="Nova Era" 
-                    className="ne-logo"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Store className="h-5 w-5" style={{ color: 'hsl(220 25% 30%)' }} />
-                  <h2
-                    className="text-xl font-bold"
-                    style={{ color: 'hsl(220 25% 15%)' }}
-                  >
-                    Loja Nova Era
-                  </h2>
-                </div>
+              <div className="ne-logo-wrap mb-4">
+                <div className="ne-logo-glow" />
+                <img 
+                  src={logo} 
+                  alt="Nova Era" 
+                  className="ne-logo"
+                />
+              </div>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Store className="h-5 w-5" style={{ color: 'hsl(220 25% 30%)' }} />
+                <h2
+                  className="text-xl font-bold"
+                  style={{ color: 'hsl(220 25% 15%)' }}
+                >
+                  Loja Nova Era
+                </h2>
               </div>
               <p className="text-sm text-muted-foreground">
                 Explore produtos e serviços digitais que impulsionam sua operação.
               </p>
             </div>
 
-            {/* Store Categories - Use component without header */}
-            <StoreCategoriesSection hideHeader />
+            {/* Store Categories */}
+            <div className="w-full">
+              <StoreCategoriesSection hideHeader />
+            </div>
           </div>
         </div>
       </div>
