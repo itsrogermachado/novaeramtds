@@ -60,10 +60,10 @@ export default function Landing() {
       <div className="auth-noise" />
 
       {/* Main Two-Column Layout */}
-      <div className="relative z-10 min-h-screen flex flex-col lg:flex-row items-stretch">
+      <div className="relative z-10 min-h-screen grid grid-cols-1 lg:grid-cols-2">
         
         {/* LEFT SIDE - Dashboard Access */}
-        <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12">
+        <div className="flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 min-h-[50vh] lg:min-h-screen">
           <div className="w-full max-w-[460px] flex flex-col items-center">
             
             {/* Floating Logo */}
@@ -187,7 +187,7 @@ export default function Landing() {
         </div>
 
         {/* RIGHT SIDE - Store */}
-        <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 lg:border-l lg:border-white/20">
+        <div className="flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 lg:border-l lg:border-white/20 min-h-[50vh] lg:min-h-screen">
           <div className="w-full max-w-[460px] flex flex-col items-center">
             
             {/* Store Header with Logo */}
