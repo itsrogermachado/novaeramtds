@@ -190,11 +190,7 @@ export default function Landing() {
         <div className="flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 lg:border-l lg:border-white/20 min-h-[50vh] lg:min-h-screen">
           <div className="w-full max-w-[460px] flex flex-col items-center">
             
-            {/* Store Header with Logo */}
-            <div 
-              className="text-center mb-6 animate-auth-field opacity-0"
-              style={{ animationDelay: '0.5s' }}
-            >
+            {/* Floating Logo - matching left side position */}
             <div className="ne-logo-wrap animate-auth-logo mb-6">
               <div className="ne-logo-glow" />
               <img 
@@ -203,22 +199,24 @@ export default function Landing() {
                 className="ne-logo"
               />
             </div>
+
+            {/* Store Card */}
+            <div className="auth-card-minimal rounded-2xl p-7 sm:p-9 w-full animate-auth-card">
+              {/* Store Header */}
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Store className="h-5 w-5" style={{ color: 'hsl(220 25% 30%)' }} />
                 <h2
-                  className="text-xl font-bold"
+                  className="text-xl sm:text-2xl font-bold"
                   style={{ color: 'hsl(220 25% 15%)' }}
                 >
                   Loja Nova Era
                 </h2>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-center text-sm text-muted-foreground mb-6">
                 Explore produtos e serviços digitais que impulsionam sua operação.
               </p>
-            </div>
 
-            {/* Store Categories */}
-            <div className="w-full">
+              {/* Store Categories */}
               <StoreCategoriesSection hideHeader />
             </div>
           </div>
