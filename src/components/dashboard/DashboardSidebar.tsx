@@ -107,7 +107,7 @@ export function DashboardSidebar({
       collapsible="icon"
     >
 
-      <SidebarContent className="px-2 py-4">
+      <SidebarContent className="px-2 pt-6 pb-4">
         {/* Main Navigation */}
         <SidebarGroup>
           {!isCollapsed && (
