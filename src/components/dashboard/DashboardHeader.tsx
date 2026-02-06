@@ -99,95 +99,96 @@ export function DashboardHeader({
       {/* Subtle background pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gold/5 via-transparent to-transparent pointer-events-none" />
       
-      <div className="relative flex flex-col gap-2.5 sm:gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="relative flex items-center justify-between md:justify-end gap-2.5 sm:gap-3">
         {/* Logo and title row - only show on mobile since sidebar has this on desktop */}
-        <div className="flex items-center justify-between md:hidden">
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            {/* Mobile nav trigger */}
-            {mobileNav}
-            
-            {/* Logo with glow effect - mobile only */}
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-gold/20 to-gold/10 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <img src={logo} alt="Nova Era" className="relative h-8 sm:h-9 w-auto object-contain rounded-lg shadow-elegant" />
+        <div className="flex items-center gap-2.5 sm:gap-3 md:hidden">
+          {/* Mobile nav trigger */}
+          {mobileNav}
+          
+          {/* Logo with glow effect - mobile only */}
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-gold/20 to-gold/10 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <img src={logo} alt="Nova Era" className="relative h-8 sm:h-9 w-auto object-contain rounded-lg shadow-elegant" />
+          </div>
+          <div className="hidden sm:block">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h1 className="text-base sm:text-lg font-display font-semibold text-foreground">
+                Nova Era
+              </h1>
+              <Sparkles className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-gold animate-pulse-glow" />
             </div>
-            <div className="hidden sm:block">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <h1 className="text-base sm:text-lg font-display font-semibold text-foreground">
-                  Nova Era
-                </h1>
-                <Sparkles className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-gold animate-pulse-glow" />
-              </div>
-              <p className="text-xs text-muted-foreground hidden sm:block">
-                Painel Administrativo
-              </p>
-            </div>
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              Painel Administrativo
+            </p>
           </div>
         </div>
 
-        {/* Actions row - reorganized for mobile */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 md:gap-3">
-          {/* Primary action - full width on mobile */}
+        {/* Actions - all aligned to the right */}
+        <div className="hidden md:flex items-center gap-2 md:gap-3">
           <Button 
             size="sm" 
             onClick={onOpenNewOperation} 
-            className="w-full sm:w-auto gap-2 btn-premium text-primary-foreground h-9 sm:h-8"
+            className="gap-2 btn-premium text-primary-foreground h-8"
           >
             <Plus className="h-4 w-4" />
             <span>Nova Operação</span>
           </Button>
 
-          {/* Secondary actions - side by side on mobile */}
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" asChild className="flex-1 sm:flex-none gap-1.5 sm:gap-2 h-8 text-xs sm:text-sm px-2.5 sm:px-3">
-              <a href="https://check.proxynovaera.shop/" target="_blank" rel="noopener noreferrer">
-                <Shield className="h-3.5 w-3.5" />
-                <span className="truncate">Consulte sua proxy</span>
-              </a>
+          <Button size="sm" variant="outline" asChild className="gap-2 h-8 text-sm px-3">
+            <a href="https://check.proxynovaera.shop/" target="_blank" rel="noopener noreferrer">
+              <Shield className="h-3.5 w-3.5" />
+              <span>Consulte sua proxy</span>
+            </a>
+          </Button>
+
+          {isAdmin && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handleBackupExport}
+              disabled={isExporting}
+              className="gap-2 h-8 text-sm px-3"
+            >
+              {isExporting ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Download className="h-3.5 w-3.5" />
+              )}
+              <span>Backup</span>
             </Button>
+          )}
 
-            {/* Admin backup button */}
-            {isAdmin && (
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={handleBackupExport}
-                disabled={isExporting}
-                className="gap-1.5 h-8 text-xs sm:text-sm px-2.5 sm:px-3"
-              >
-                {isExporting ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Download className="h-3.5 w-3.5" />
-                )}
-                <span className="truncate">Backup</span>
-              </Button>
-            )}
+          <ThemeToggle />
+          
+          <button
+            onClick={() => navigate('/profile')}
+            className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full transition-transform hover:scale-105"
+            title="Meu Perfil"
+          >
+            <Avatar className="h-8 w-8 border-2 border-border hover:border-primary transition-colors">
+              <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'Avatar'} />
+              <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                {getInitials()}
+              </AvatarFallback>
+            </Avatar>
+          </button>
 
-            {/* Desktop-only controls */}
-            <div className="hidden md:flex items-center gap-3">
-              <ThemeToggle />
-              
-              {/* Profile Avatar */}
-              <button
-                onClick={() => navigate('/profile')}
-                className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full transition-transform hover:scale-105"
-                title="Meu Perfil"
-              >
-                <Avatar className="h-8 w-8 border-2 border-border hover:border-primary transition-colors">
-                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'Avatar'} />
-                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                    {getInitials()}
-                  </AvatarFallback>
-                </Avatar>
-              </button>
+          <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200">
+            <LogOut className="h-4 w-4" />
+            Sair
+          </Button>
+        </div>
 
-              <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200">
-                <LogOut className="h-4 w-4" />
-                Sair
-              </Button>
-            </div>
-          </div>
+        {/* Mobile actions */}
+        <div className="flex md:hidden items-center gap-2">
+          <Button 
+            size="sm" 
+            onClick={onOpenNewOperation} 
+            className="gap-2 btn-premium text-primary-foreground h-9"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Nova Operação</span>
+          </Button>
         </div>
       </div>
 
