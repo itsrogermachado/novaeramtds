@@ -124,6 +124,24 @@ export default function Dashboard() {
     return returned - invested;
   }, [operations]);
 
+  // Calculate monthly profit (current month only)
+  const monthlyProfit = useMemo(() => {
+    const today = new Date();
+    const monthStart = startOfMonth(today);
+    const monthEnd = endOfMonth(today);
+    const monthStartStr = format(monthStart, 'yyyy-MM-dd');
+    const monthEndStr = format(monthEnd, 'yyyy-MM-dd');
+    
+    const monthOps = operations.filter(op => 
+      op.operation_date >= monthStartStr && op.operation_date <= monthEndStr
+    );
+    
+    const invested = monthOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
+    const returned = monthOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
+    
+    return returned - invested;
+  }, [operations]);
+
   // Calculate top methods for AI context
   const topMethods = useMemo(() => {
     const profitByMethod: Record<string, { name: string; profit: number }> = {};
@@ -303,7 +321,7 @@ export default function Dashboard() {
                       goals={goals}
                       todayProfit={todayStats.todayProfit}
                       weeklyProfit={weeklyProfit}
-                      netBalance={netBalance}
+                      monthlyProfit={monthlyProfit}
                       onCreate={createGoal}
                       onUpdate={updateGoal}
                       onDelete={deleteGoal}
