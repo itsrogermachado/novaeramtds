@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Plus, Pencil, Trash2, ShoppingBag, Star, ChevronUp, ChevronDown } from 'lucide-react';
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 import { ProductFormDialog } from './ProductFormDialog';
-
 interface ProductFormData {
   category_id: string;
   name: string;
@@ -177,9 +177,12 @@ export function StoreProductsTab() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
-                      {product.status === 'active' ? 'Ativo' : 'Inativo'}
-                    </Badge>
+                    <Switch
+                      checked={product.status === 'active'}
+                      onCheckedChange={(checked) => 
+                        updateProduct(product.id, { status: checked ? 'active' : 'inactive' })
+                      }
+                    />
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
