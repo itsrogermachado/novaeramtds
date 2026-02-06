@@ -193,21 +193,12 @@ export default function Dashboard() {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex flex-col w-full bg-background">
         {/* Subtle background pattern */}
         <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-muted/30 via-background to-background pointer-events-none" />
         
-        {/* Desktop Sidebar - hidden on mobile */}
-        <div className="hidden md:block relative z-10">
-          <DashboardSidebar
-            currentTab={currentTab}
-            onTabChange={setCurrentTab}
-            onSignOut={handleSignOut}
-            newTutorialsCount={newTutorialsCount}
-          />
-        </div>
-        
-        <div className="flex-1 relative flex flex-col min-w-0">
+        {/* Unified Header - spans full width */}
+        <div className="relative z-20">
           <DashboardHeader
             onOpenNewOperation={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
             mobileNav={
@@ -219,6 +210,21 @@ export default function Dashboard() {
               />
             }
           />
+        </div>
+
+        {/* Main content area with sidebar */}
+        <div className="flex flex-1 relative">
+          {/* Desktop Sidebar - hidden on mobile */}
+          <div className="hidden md:block relative z-10">
+            <DashboardSidebar
+              currentTab={currentTab}
+              onTabChange={setCurrentTab}
+              onSignOut={handleSignOut}
+              newTutorialsCount={newTutorialsCount}
+            />
+          </div>
+          
+          <div className="flex-1 relative flex flex-col min-w-0">
 
           <main className="flex-1 p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6 overflow-auto">
             <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange}>
@@ -408,8 +414,8 @@ export default function Dashboard() {
               </Suspense>
             )}
           </main>
+          </div>
         </div>
-
         <OperationDialog
           open={operationDialogOpen}
           onOpenChange={setOperationDialogOpen}
