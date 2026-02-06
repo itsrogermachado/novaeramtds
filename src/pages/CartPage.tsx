@@ -118,12 +118,15 @@ export default function CartPage() {
   };
 
   const handleCheckout = async () => {
-    if (!email.trim()) {
+    // Use userEmail for logged in users, otherwise use input email
+    const finalEmail = isLoggedIn ? userEmail : email.trim();
+
+    if (!finalEmail) {
       toast.error('Informe seu e-mail');
       return;
     }
 
-    if (email !== confirmEmail) {
+    if (!isLoggedIn && email !== confirmEmail) {
       toast.error('Os e-mails não coincidem');
       return;
     }
@@ -148,7 +151,7 @@ export default function CartPage() {
       const { data: order, error } = await supabase
         .from('store_orders')
         .insert({
-          customer_email: email,
+          customer_email: finalEmail,
           payment_method: paymentMethod,
           status: 'pending',
           subtotal: getSubtotal(),
