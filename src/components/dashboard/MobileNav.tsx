@@ -147,16 +147,6 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
                 Links Externos
               </p>
               <a
-                href="https://novaera.space/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-all hover:bg-muted"
-              >
-                <ExternalLink className="h-5 w-5 text-muted-foreground" />
-                <span className="flex-1 font-medium">Nossa loja</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </a>
-              <a
                 href="https://check.proxynovaera.shop/"
                 target="_blank"
                 rel="noopener noreferrer"
