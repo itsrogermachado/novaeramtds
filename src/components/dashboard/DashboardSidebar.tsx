@@ -9,7 +9,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarHeader,
   SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
@@ -32,7 +31,6 @@ import {
   ChevronRight,
   DollarSign,
 } from 'lucide-react';
-import logoNovaEra from '@/assets/logo-nova-era-transparent.png';
 
 interface DashboardSidebarProps {
   currentTab: string;
@@ -108,28 +106,6 @@ export function DashboardSidebar({
       )}
       collapsible="icon"
     >
-      {/* Header with Logo - matches main header height */}
-      <SidebarHeader className="h-[65px] px-4 border-b border-border/30 flex items-center">
-        <div className={cn(
-          "flex items-center gap-3",
-          isCollapsed && "justify-center"
-        )}>
-          <img 
-            src={logoNovaEra} 
-            alt="Nova Era" 
-            className={cn(
-              "object-contain",
-              isCollapsed ? "h-8 w-8" : "h-10"
-            )}
-          />
-          {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="font-bold text-sm text-primary">Nova Era</span>
-              <span className="text-xs text-muted-foreground">Dashboard</span>
-            </div>
-          )}
-        </div>
-      </SidebarHeader>
 
       <SidebarContent className="px-2 py-4">
         {/* Main Navigation */}

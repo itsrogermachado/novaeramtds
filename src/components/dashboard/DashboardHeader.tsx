@@ -99,70 +99,76 @@ export function DashboardHeader({
       {/* Subtle background pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gold/5 via-transparent to-transparent pointer-events-none" />
       
-      <div className="relative flex items-center justify-between md:justify-end gap-2.5 sm:gap-3">
-        {/* Logo and title row - only show on mobile since sidebar has this on desktop */}
-        <div className="flex items-center gap-2.5 sm:gap-3 md:hidden">
+      <div className="relative flex items-center justify-between w-full gap-2.5 sm:gap-3">
+        {/* Left side - Logo and title */}
+        <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4">
           {/* Mobile nav trigger */}
-          {mobileNav}
+          <div className="md:hidden">
+            {mobileNav}
+          </div>
           
-          {/* Logo with glow effect - mobile only */}
+          {/* Logo with glow effect */}
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-gold/20 to-gold/10 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <img src={logo} alt="Nova Era" className="relative h-8 sm:h-9 w-auto object-contain rounded-lg shadow-elegant" />
+            <img src={logo} alt="Nova Era" className="relative h-8 sm:h-9 md:h-10 w-auto object-contain rounded-lg shadow-elegant" />
           </div>
           <div className="hidden sm:block">
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <h1 className="text-base sm:text-lg font-display font-semibold text-foreground">
+              <h1 className="text-base sm:text-lg md:text-xl font-display font-semibold text-foreground">
                 Nova Era
               </h1>
               <Sparkles className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-gold animate-pulse-glow" />
             </div>
-            <p className="text-xs text-muted-foreground hidden sm:block">
+            <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
               Painel Administrativo
             </p>
           </div>
         </div>
 
-        {/* Actions - all aligned to the right */}
-        <div className="hidden md:flex items-center gap-2 md:gap-3">
-          <Button 
-            size="sm" 
-            onClick={onOpenNewOperation} 
-            className="gap-2 btn-premium text-primary-foreground h-8"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Nova Operação</span>
-          </Button>
-
-          <Button size="sm" variant="outline" asChild className="gap-2 h-8 text-sm px-3">
-            <a href="https://check.proxynovaera.shop/" target="_blank" rel="noopener noreferrer">
-              <Shield className="h-3.5 w-3.5" />
-              <span>Consulte sua proxy</span>
-            </a>
-          </Button>
-
-          {isAdmin && (
+        {/* Right side - Actions */}
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Desktop actions */}
+          <div className="hidden md:flex items-center gap-2 md:gap-3">
             <Button 
               size="sm" 
-              variant="outline" 
-              onClick={handleBackupExport}
-              disabled={isExporting}
-              className="gap-2 h-8 text-sm px-3"
+              onClick={onOpenNewOperation} 
+              className="gap-2 btn-premium text-primary-foreground h-8"
             >
-              {isExporting ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Download className="h-3.5 w-3.5" />
-              )}
-              <span>Backup</span>
+              <Plus className="h-4 w-4" />
+              <span>Nova Operação</span>
             </Button>
-          )}
+
+            <Button size="sm" variant="outline" asChild className="gap-2 h-8 text-sm px-3">
+              <a href="https://check.proxynovaera.shop/" target="_blank" rel="noopener noreferrer">
+                <Shield className="h-3.5 w-3.5" />
+                <span>Consulte sua proxy</span>
+              </a>
+            </Button>
+
+            {isAdmin && (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={handleBackupExport}
+                disabled={isExporting}
+                className="gap-2 h-8 text-sm px-3"
+              >
+                {isExporting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Download className="h-3.5 w-3.5" />
+                )}
+                <span>Backup</span>
+              </Button>
+            )}
+          </div>
 
           <ThemeToggle />
           
+          {/* Profile Avatar - desktop only */}
           <button
             onClick={() => navigate('/profile')}
-            className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full transition-transform hover:scale-105"
+            className="hidden md:block focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full transition-transform hover:scale-105"
             title="Meu Perfil"
           >
             <Avatar className="h-8 w-8 border-2 border-border hover:border-primary transition-colors">
@@ -173,21 +179,18 @@ export function DashboardHeader({
             </Avatar>
           </button>
 
-          <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200">
+          <Button variant="ghost" size="sm" onClick={handleSignOut} className="hidden md:flex gap-2 text-muted-foreground hover:text-foreground transition-colors duration-200">
             <LogOut className="h-4 w-4" />
             Sair
           </Button>
-        </div>
 
-        {/* Mobile actions */}
-        <div className="flex md:hidden items-center gap-2">
+          {/* Mobile action */}
           <Button 
             size="sm" 
             onClick={onOpenNewOperation} 
-            className="gap-2 btn-premium text-primary-foreground h-9"
+            className="md:hidden gap-2 btn-premium text-primary-foreground h-9"
           >
             <Plus className="h-4 w-4" />
-            <span>Nova Operação</span>
           </Button>
         </div>
       </div>
