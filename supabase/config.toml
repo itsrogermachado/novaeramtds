@@ -8,3 +8,24 @@ verify_jwt = false
 
 [functions.create-team-operator]
 verify_jwt = false
+
+[functions.validate-coupon]
+verify_jwt = false
+
+[functions.misticpay-webhook]
+verify_jwt = false
+
+[functions.check-order-status]
+verify_jwt = false
+
+[functions.get-order-delivery]
+verify_jwt = false
+
+[functions.guest-orders]
+verify_jwt = false
+
+[functions.store-create-order]
+verify_jwt = false
+
+[functions.misticpay-create-pix]
+verify_jwt = false
