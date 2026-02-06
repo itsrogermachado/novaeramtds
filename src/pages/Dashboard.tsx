@@ -37,7 +37,6 @@ const StoreProductsTab = lazy(() => import('@/components/dashboard/StoreProducts
 const StoreCouponsTab = lazy(() => import('@/components/dashboard/StoreCouponsTab').then(m => ({ default: m.StoreCouponsTab })));
 const StoreSalesTab = lazy(() => import('@/components/dashboard/StoreSalesTab').then(m => ({ default: m.StoreSalesTab })));
 
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { TrendingUp, TrendingDown, Wallet, Receipt } from 'lucide-react';
 
 // Tab loading fallback
@@ -192,8 +191,7 @@ export default function Dashboard() {
   }
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex flex-col w-full bg-background">
+    <div className="min-h-screen flex flex-col w-full bg-background">
         {/* Subtle background pattern */}
         <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-muted/30 via-background to-background pointer-events-none" />
         
@@ -440,6 +438,6 @@ export default function Dashboard() {
           }}
         />
       </div>
-    </SidebarProvider>
+    </div>
   );
 }
