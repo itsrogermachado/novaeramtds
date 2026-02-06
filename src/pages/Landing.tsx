@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { BarChart3, FileText, Shield, ArrowRight, ChevronUp, Store } from 'lucide-react';
+import { BarChart3, FileText, Shield, ArrowRight, ChevronUp, Store, Package } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import InlineLoginPanel from '@/components/landing/InlineLoginPanel';
 import { StoreCategoriesSection } from '@/components/store/StoreCategoriesSection';
@@ -189,6 +189,15 @@ export default function Landing() {
 
                 {/* Store Categories */}
                 <StoreCategoriesSection hideHeader />
+
+                {/* Order Lookup Link */}
+                <button
+                  onClick={() => navigate('/meus-pedidos')}
+                  className="mt-4 xs:mt-6 w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border border-border bg-muted/50 hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground"
+                >
+                  <Package className="h-4 w-4" />
+                  <span>Consultar meus pedidos</span>
+                </button>
               </div>
             </div>
           </div>
