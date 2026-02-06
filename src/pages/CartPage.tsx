@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useValidateCoupon } from '@/hooks/useStoreCoupons';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { CartButton } from '@/components/store/CartButton';
 import { ThemeToggle } from '@/components/dashboard/ThemeToggle';
 import { PixCheckout } from '@/components/store/PixCheckout';
+import { DeliveredProductsView } from '@/components/store/DeliveredProductsView';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import logo from '@/assets/logo-nova-era-3d.png';
 import { 
@@ -20,8 +22,17 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface DeliveredItem {
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  delivered_content: string[];
+  post_sale_instructions?: string;
+}
+
 export default function CartPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { 
     items, 
     removeItem, 
@@ -36,6 +47,10 @@ export default function CartPage() {
     itemCount,
   } = useCart();
 
+  // If user is logged in, use their email
+  const userEmail = user?.email || '';
+  const isLoggedIn = !!user;
+
   const [email, setEmail] = useState('');
   const [confirmEmail, setConfirmEmail] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('pix');
@@ -44,7 +59,17 @@ export default function CartPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPixCheckout, setShowPixCheckout] = useState(false);
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
+  const [deliveredItems, setDeliveredItems] = useState<DeliveredItem[]>([]);
+  const [showDeliveredProducts, setShowDeliveredProducts] = useState(false);
   const { validateCoupon, isValidating } = useValidateCoupon();
+
+  // Pre-fill email for logged in users
+  useEffect(() => {
+    if (userEmail && !email) {
+      setEmail(userEmail);
+      setConfirmEmail(userEmail);
+    }
+  }, [userEmail, email]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -148,12 +173,56 @@ export default function CartPage() {
     }
   };
 
-  const handlePaymentConfirmed = () => {
+  const handlePaymentConfirmed = async () => {
     setShowPixCheckout(false);
+    
+    // Fetch the order with delivered items
+    if (currentOrderId) {
+      try {
+        const { data: order } = await supabase
+          .from('store_orders')
+          .select('delivered_items, status')
+          .eq('id', currentOrderId)
+          .single();
+
+        if (order?.delivered_items && Array.isArray(order.delivered_items) && order.delivered_items.length > 0) {
+          setDeliveredItems(order.delivered_items as unknown as DeliveredItem[]);
+          setShowDeliveredProducts(true);
+        } else if (order?.status === 'delivered' || order?.status === 'paid') {
+          // No delivered items yet, redirect based on user type
+          if (isLoggedIn) {
+            clearCart();
+            toast.success('Pagamento confirmado! Verifique seus pedidos.');
+            navigate('/dashboard');
+          } else {
+            clearCart();
+            toast.success('Pagamento confirmado! Obrigado pela compra.');
+            navigate('/');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching delivered items:', error);
+        clearCart();
+        toast.success('Pagamento confirmado! Obrigado pela compra.');
+        navigate('/');
+      }
+    } else {
+      clearCart();
+      navigate('/');
+    }
+  };
+
+  const handleDeliveredClose = () => {
+    setShowDeliveredProducts(false);
+    setDeliveredItems([]);
     setCurrentOrderId(null);
     clearCart();
-    toast.success('Pagamento confirmado! Obrigado pela compra.');
-    navigate('/');
+    
+    if (isLoggedIn) {
+      navigate('/dashboard');
+    } else {
+      navigate('/');
+    }
   };
 
   const handlePixCancel = () => {
@@ -230,35 +299,45 @@ export default function CartPage() {
                 </div>
               </RadioGroup>
 
-              {/* Email Fields */}
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="email" className="text-sm text-muted-foreground">
-                    Informe o seu e-mail
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="mt-1.5"
-                  />
+              {/* Email Fields - Only show for non-logged users */}
+              {isLoggedIn ? (
+                <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                  <p className="text-xs text-muted-foreground mb-1">E-mail vinculado</p>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    <span className="text-sm font-medium">{userEmail}</span>
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="confirmEmail" className="text-sm text-muted-foreground">
-                    Informe novamente o seu e-mail
-                  </Label>
-                  <Input
-                    id="confirmEmail"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={confirmEmail}
-                    onChange={(e) => setConfirmEmail(e.target.value)}
-                    className="mt-1.5"
-                  />
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="email" className="text-sm text-muted-foreground">
+                      Informe o seu e-mail
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="confirmEmail" className="text-sm text-muted-foreground">
+                      Informe novamente o seu e-mail
+                    </Label>
+                    <Input
+                      id="confirmEmail"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={confirmEmail}
+                      onChange={(e) => setConfirmEmail(e.target.value)}
+                      className="mt-1.5"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Coupon Section */}
@@ -495,6 +574,17 @@ export default function CartPage() {
               onCancel={handlePixCancel}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delivered Products Dialog */}
+      <Dialog open={showDeliveredProducts} onOpenChange={(open) => !open && handleDeliveredClose()}>
+        <DialogContent className="sm:max-w-lg">
+          <DeliveredProductsView
+            deliveredItems={deliveredItems}
+            onClose={handleDeliveredClose}
+            showOrdersLink={!isLoggedIn}
+          />
         </DialogContent>
       </Dialog>
     </div>
