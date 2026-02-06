@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
+import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, subYears } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
@@ -15,15 +15,21 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle
 } from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Search, Package, Eye, CheckCircle, XCircle, Clock, Loader2, RefreshCw,
-  ShoppingCart, Users
+  ShoppingCart, Users, Trash2, Calendar
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CustomerAnalytics } from './CustomerAnalytics';
+
+type DateRange = 'today' | 'month' | 'all';
 
 interface OrderItem {
   product_id: string;
@@ -51,8 +57,11 @@ interface Order {
 export function StoreSalesTab() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<DateRange>('month');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: orders = [], isLoading, refetch } = useQuery({
     queryKey: ['store-orders'],
@@ -115,7 +124,60 @@ export function StoreSalesTab() {
     }
   };
 
-  const filteredOrders = orders.filter(order => {
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('store_orders')
+        .delete()
+        .eq('id', orderToDelete.id);
+
+      if (error) throw error;
+
+      toast.success('Pedido excluído!');
+      refetch();
+      setOrderToDelete(null);
+      setSelectedOrder(null);
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      toast.error('Erro ao excluir pedido');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Date filtering logic
+  const getDateFilteredOrders = (allOrders: Order[]) => {
+    const now = new Date();
+    
+    switch (dateRange) {
+      case 'today': {
+        const start = startOfDay(now);
+        const end = endOfDay(now);
+        return allOrders.filter(order => {
+          const orderDate = new Date(order.created_at);
+          return orderDate >= start && orderDate <= end;
+        });
+      }
+      case 'month': {
+        const start = startOfMonth(now);
+        const end = endOfMonth(now);
+        return allOrders.filter(order => {
+          const orderDate = new Date(order.created_at);
+          return orderDate >= start && orderDate <= end;
+        });
+      }
+      case 'all':
+      default:
+        return allOrders;
+    }
+  };
+
+  const dateFilteredOrders = getDateFilteredOrders(orders);
+
+  const filteredOrders = dateFilteredOrders.filter(order => {
     const matchesSearch = search === '' || 
       order.customer_email.toLowerCase().includes(search.toLowerCase()) ||
       order.id.toLowerCase().includes(search.toLowerCase());
@@ -125,11 +187,11 @@ export function StoreSalesTab() {
     return matchesSearch && matchesStatus;
   });
 
-  const totalRevenue = orders
+  const totalRevenue = dateFilteredOrders
     .filter(o => o.status === 'paid' || o.status === 'delivered')
     .reduce((sum, o) => sum + o.total, 0);
 
-  const totalPending = orders
+  const totalPending = dateFilteredOrders
     .filter(o => o.status === 'pending')
     .reduce((sum, o) => sum + o.total, 0);
 
@@ -143,11 +205,28 @@ export function StoreSalesTab() {
 
   return (
     <div className="space-y-6">
+      {/* Date Range Selector */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Calendar className="h-4 w-4 text-muted-foreground" />
+        <div className="flex gap-1">
+          {(['today', 'month', 'all'] as DateRange[]).map((range) => (
+            <Button
+              key={range}
+              variant={dateRange === range ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setDateRange(range)}
+            >
+              {range === 'today' ? 'Hoje' : range === 'month' ? 'Mês' : 'Total'}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-xl border border-border bg-card">
           <p className="text-sm text-muted-foreground">Total de Pedidos</p>
-          <p className="text-2xl font-bold text-foreground">{orders.length}</p>
+          <p className="text-2xl font-bold text-foreground">{dateFilteredOrders.length}</p>
         </div>
         <div className="p-4 rounded-xl border border-border bg-card">
           <p className="text-sm text-muted-foreground">Receita Total</p>
@@ -160,7 +239,7 @@ export function StoreSalesTab() {
         <div className="p-4 rounded-xl border border-border bg-card">
           <p className="text-sm text-muted-foreground">Pagos</p>
           <p className="text-2xl font-bold text-foreground">
-            {orders.filter(o => o.status === 'paid' || o.status === 'delivered').length}
+            {dateFilteredOrders.filter(o => o.status === 'paid' || o.status === 'delivered').length}
           </p>
         </div>
       </div>
@@ -248,13 +327,23 @@ export function StoreSalesTab() {
                         {getStatusBadge(order.status)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setSelectedOrder(order)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setSelectedOrder(order)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => setOrderToDelete(order)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -266,7 +355,7 @@ export function StoreSalesTab() {
 
         {/* Customers Tab */}
         <TabsContent value="customers" className="mt-4">
-          <CustomerAnalytics orders={orders} />
+          <CustomerAnalytics orders={dateFilteredOrders} />
         </TabsContent>
       </Tabs>
 
@@ -364,11 +453,59 @@ export function StoreSalesTab() {
                     ))}
                   </div>
                 </div>
+
+                <Separator />
+
+                {/* Delete Button */}
+                <Button
+                  variant="destructive"
+                  className="w-full gap-2"
+                  onClick={() => {
+                    setOrderToDelete(selectedOrder);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Excluir Pedido
+                </Button>
               </div>
             </ScrollArea>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!orderToDelete} onOpenChange={() => setOrderToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Pedido</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.
+              {orderToDelete && (
+                <span className="block mt-2 font-medium text-foreground">
+                  Pedido: {orderToDelete.id.slice(0, 8)}... - {formatCurrency(orderToDelete.total)}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteOrder}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Excluindo...
+                </>
+              ) : (
+                'Excluir'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
