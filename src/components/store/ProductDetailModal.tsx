@@ -32,14 +32,18 @@ export function ProductDetailModal({
 
   if (!product) return null;
 
-  const isOutOfStock = !product.stock || product.stock.trim() === '';
-  const stockLines = product.stock?.split('\n').filter(line => line.trim()) || [];
-  const availableStock = product.product_type === 'lines' ? stockLines.length : (product.stock ? 1 : 0);
+  // Verificar estoque de forma segura (sem expor conteúdo)
+  const hasStock = 'hasStock' in product ? product.hasStock : (product.stock && product.stock.trim() !== '');
+  const isOutOfStock = !hasStock;
+  
+  // Para quantidade disponível, usamos um valor padrão alto para produtos sem contagem exposta
+  // O backend validará a quantidade real no momento da compra
+  const availableStock = product.max_quantity && product.max_quantity > 0 ? product.max_quantity : 99;
   
   const minQty = product.min_quantity || 1;
   const maxQty = product.max_quantity && product.max_quantity > 0 
-    ? Math.min(product.max_quantity, availableStock) 
-    : availableStock;
+    ? product.max_quantity 
+    : 99;
 
   const hasComparisonPrice = product.comparison_price && 
     product.comparison_price !== '0' && 
@@ -211,7 +215,7 @@ export function ProductDetailModal({
 
                   {!isOutOfStock && (
                     <p className="text-xs text-muted-foreground">
-                      {availableStock} disponíve{availableStock === 1 ? 'l' : 'is'}
+                      Estoque disponível
                     </p>
                   )}
 
@@ -337,8 +341,8 @@ export function ProductDetailModal({
                   <h3 className="font-semibold text-foreground text-sm sm:text-base">Produtos Similares</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
                     {filteredRelated.map((related) => {
-                      const relatedOutOfStock = !related.stock || related.stock.trim() === '';
-                      
+                      const relatedHasStock = 'hasStock' in related ? related.hasStock : (related.stock && related.stock.trim() !== '');
+                      const relatedOutOfStock = !relatedHasStock;
                       return (
                         <div
                           key={related.id}

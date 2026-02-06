@@ -663,6 +663,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_product_stock: { Args: { product_id: string }; Returns: boolean }
+      get_product_stock_count: { Args: { product_id: string }; Returns: number }
       get_team_operator_ids: {
         Args: { _manager_id: string }
         Returns: string[]
