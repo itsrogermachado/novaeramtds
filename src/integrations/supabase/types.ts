@@ -365,6 +365,7 @@ export type Database = {
           coupon_code: string | null
           created_at: string
           customer_email: string
+          delivered_items: Json | null
           discount_amount: number
           id: string
           items: Json
@@ -382,6 +383,7 @@ export type Database = {
           coupon_code?: string | null
           created_at?: string
           customer_email: string
+          delivered_items?: Json | null
           discount_amount?: number
           id?: string
           items?: Json
@@ -399,6 +401,7 @@ export type Database = {
           coupon_code?: string | null
           created_at?: string
           customer_email?: string
+          delivered_items?: Json | null
           discount_amount?: number
           id?: string
           items?: Json

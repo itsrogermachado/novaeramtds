@@ -16,6 +16,22 @@ interface MisticPayWebhook {
   fee: number;
 }
 
+interface OrderItem {
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
+interface DeliveredItem {
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  delivered_content: string[];
+  post_sale_instructions?: string;
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -61,6 +77,15 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Check if order was already processed
+    if (order.status === 'paid' || order.status === 'delivered') {
+      console.log('Order already processed:', order.id);
+      return new Response(
+        JSON.stringify({ success: true, message: 'Order already processed' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Map MisticPay status to our order status
     let orderStatus = order.status;
     if (status === 'COMPLETO') {
@@ -69,7 +94,71 @@ Deno.serve(async (req) => {
       orderStatus = 'failed';
     }
 
-    // Update order status
+    // If payment is complete, process delivery
+    const deliveredItems: DeliveredItem[] = [];
+    
+    if (status === 'COMPLETO') {
+      const items = order.items as OrderItem[];
+      
+      for (const item of items) {
+        // Get current product stock
+        const { data: product, error: productError } = await supabase
+          .from('store_products')
+          .select('id, name, stock, product_type, post_sale_instructions')
+          .eq('id', item.product_id)
+          .single();
+
+        if (productError || !product) {
+          console.error('Product not found:', item.product_id);
+          continue;
+        }
+
+        const deliveredContent: string[] = [];
+        let newStock = product.stock || '';
+
+        if (product.product_type === 'lines' && product.stock) {
+          // Split stock into lines and take the required quantity
+          const stockLines = product.stock.split('\n').filter((line: string) => line.trim());
+          const linesToDeliver = stockLines.slice(0, item.quantity);
+          const remainingLines = stockLines.slice(item.quantity);
+          
+          deliveredContent.push(...linesToDeliver);
+          newStock = remainingLines.join('\n');
+          
+          console.log(`Delivering ${linesToDeliver.length} lines for product ${product.name}`);
+        } else if (product.stock) {
+          // For non-line products, deliver the full stock content
+          deliveredContent.push(product.stock);
+          // Clear stock after delivery if quantity matches
+          newStock = '';
+        }
+
+        // Update product stock
+        const { error: updateStockError } = await supabase
+          .from('store_products')
+          .update({ 
+            stock: newStock,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', product.id);
+
+        if (updateStockError) {
+          console.error('Error updating stock:', updateStockError);
+        }
+
+        deliveredItems.push({
+          product_id: item.product_id,
+          product_name: item.product_name,
+          quantity: item.quantity,
+          delivered_content: deliveredContent,
+          post_sale_instructions: product.post_sale_instructions || undefined,
+        });
+      }
+
+      orderStatus = 'delivered';
+    }
+
+    // Update order status and delivered items
     const updateData: Record<string, unknown> = {
       status: orderStatus,
       updated_at: new Date().toISOString(),
@@ -77,6 +166,7 @@ Deno.serve(async (req) => {
 
     if (status === 'COMPLETO') {
       updateData.paid_at = new Date().toISOString();
+      updateData.delivered_items = deliveredItems;
     }
 
     const { error: updateError } = await supabase
@@ -89,10 +179,10 @@ Deno.serve(async (req) => {
       throw updateError;
     }
 
-    console.log(`Order ${order.id} updated to status: ${orderStatus}`);
+    console.log(`Order ${order.id} updated to status: ${orderStatus}, delivered ${deliveredItems.length} items`);
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Order updated successfully' }),
+      JSON.stringify({ success: true, message: 'Order processed successfully', deliveredItems: deliveredItems.length }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
