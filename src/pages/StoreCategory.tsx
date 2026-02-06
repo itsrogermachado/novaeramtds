@@ -157,6 +157,8 @@ export default function StoreCategory() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => {
               const isOutOfStock = !product.stock || product.stock.trim() === '';
+              const stockLines = product.stock?.split('\n').filter(line => line.trim()) || [];
+              const availableStock = product.product_type === 'lines' ? stockLines.length : (product.stock ? 1 : 0);
               
               return (
                 <div
@@ -180,10 +182,22 @@ export default function StoreCategory() {
                     {product.name}
                   </h3>
                   {product.short_description && (
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                       {product.short_description}
                     </p>
                   )}
+                  
+                  {/* Stock indicator */}
+                  <div className="flex items-center gap-1.5 mb-3 text-xs">
+                    {isOutOfStock ? (
+                      <span className="text-muted-foreground">Sem estoque</span>
+                    ) : (
+                      <span className="text-primary font-medium">
+                        {availableStock} em estoque
+                      </span>
+                    )}
+                  </div>
+                  
                   <div className="flex items-center justify-between mt-auto pt-2">
                     <span className="font-bold text-lg" style={{ color: 'hsl(220 25% 20%)' }}>
                       R$ {product.price}
