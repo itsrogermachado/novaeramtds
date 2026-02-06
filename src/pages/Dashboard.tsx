@@ -36,6 +36,7 @@ const StoreCategoriesTab = lazy(() => import('@/components/dashboard/StoreCatego
 const StoreProductsTab = lazy(() => import('@/components/dashboard/StoreProductsTab').then(m => ({ default: m.StoreProductsTab })));
 const StoreCouponsTab = lazy(() => import('@/components/dashboard/StoreCouponsTab').then(m => ({ default: m.StoreCouponsTab })));
 const StoreSalesTab = lazy(() => import('@/components/dashboard/StoreSalesTab').then(m => ({ default: m.StoreSalesTab })));
+const MyOrdersTab = lazy(() => import('@/components/dashboard/MyOrdersTab').then(m => ({ default: m.MyOrdersTab })));
 
 import { TrendingUp, TrendingDown, Wallet, Receipt } from 'lucide-react';
 
@@ -392,6 +393,14 @@ export default function Dashboard() {
               <Suspense fallback={<TabLoader />}>
                 <div className="animate-fade-in">
                   <StoreSalesTab />
+                </div>
+              </Suspense>
+            )}
+
+            {currentTab === 'my-orders' && (
+              <Suspense fallback={<TabLoader />}>
+                <div className="animate-fade-in">
+                  <MyOrdersTab />
                 </div>
               </Suspense>
             )}

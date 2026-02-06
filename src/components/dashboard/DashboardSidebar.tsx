@@ -37,6 +37,7 @@ const mainNavItems = [
   { id: 'surebet', label: 'Surebet', icon: Calculator },
   { id: 'team', label: 'Meu Time', icon: Users },
   { id: 'store', label: 'Loja', icon: ShoppingBag },
+  { id: 'my-orders', label: 'Meus Pedidos', icon: Package },
 ];
 
 const adminNavItems = [
