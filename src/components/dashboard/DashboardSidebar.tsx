@@ -108,8 +108,8 @@ export function DashboardSidebar({
       )}
       collapsible="icon"
     >
-      {/* Header with Logo */}
-      <SidebarHeader className="p-4 border-b border-border/30">
+      {/* Header with Logo - matches main header height */}
+      <SidebarHeader className="h-[65px] px-4 border-b border-border/30 flex items-center">
         <div className={cn(
           "flex items-center gap-3",
           isCollapsed && "justify-center"

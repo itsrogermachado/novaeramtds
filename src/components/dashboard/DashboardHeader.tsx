@@ -95,7 +95,7 @@ export function DashboardHeader({
   };
   
   return (
-    <header className="relative header-gradient border-b border-border px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 overflow-hidden">
+    <header className="relative header-gradient border-b border-border px-3 sm:px-4 md:px-6 h-[65px] flex items-center overflow-hidden">
       {/* Subtle background pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gold/5 via-transparent to-transparent pointer-events-none" />
       
