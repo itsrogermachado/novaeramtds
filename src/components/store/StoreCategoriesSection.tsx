@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { StoreProductWithCategory } from '@/hooks/useStoreProducts';
 import { Button } from '@/components/ui/button';
 import { ProductDetailModal } from './ProductDetailModal';
+import { useCart } from '@/contexts/CartContext';
 
 interface StoreCategoriesSectionProps {
   hideHeader?: boolean;
@@ -17,6 +18,7 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<StoreProductWithCategory | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const { addItem } = useCart();
 
   const handleCategoryClick = async (category: StoreCategory) => {
     if (expandedCategory === category.id) {
@@ -46,9 +48,18 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
     setIsLoadingProducts(false);
   };
 
-  const handleBuy = (product: StoreProductWithCategory) => {
+  const handleProductClick = (product: StoreProductWithCategory) => {
     setSelectedProduct(product);
     setShowModal(true);
+  };
+
+  const handleQuickAdd = (product: StoreProductWithCategory, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (product.cta_url) {
+      window.open(product.cta_url, '_blank', 'noopener,noreferrer');
+    } else {
+      addItem(product, 1);
+    }
   };
 
   const handleSelectRelatedProduct = (product: StoreProductWithCategory) => {
@@ -187,7 +198,8 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
                           <div
                             key={product.id}
                             className={`p-4 rounded-lg bg-white/70 border border-white/80 
-                                       hover:bg-white/90 transition-colors ${isOutOfStock ? 'opacity-70' : ''}`}
+                                       hover:bg-white/90 transition-colors cursor-pointer ${isOutOfStock ? 'opacity-70' : ''}`}
+                            onClick={() => handleProductClick(product)}
                           >
                             <div className="flex items-start gap-3">
                               {/* Product Image */}
@@ -222,7 +234,7 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
                                 ) : (
                                   <Button
                                     size="sm"
-                                    onClick={() => handleBuy(product)}
+                                    onClick={(e) => handleQuickAdd(product, e)}
                                     className="gap-1.5 h-7 text-xs"
                                   >
                                     {product.cta_url ? (
@@ -233,7 +245,7 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
                                     ) : (
                                       <>
                                         <ShoppingCart className="h-3 w-3" />
-                                        Comprar
+                                        Adicionar
                                       </>
                                     )}
                                   </Button>

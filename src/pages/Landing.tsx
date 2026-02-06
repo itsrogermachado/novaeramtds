@@ -5,6 +5,7 @@ import { BarChart3, FileText, Shield, ArrowRight, ChevronUp, Store } from 'lucid
 import { useEffect, useState } from 'react';
 import InlineLoginPanel from '@/components/landing/InlineLoginPanel';
 import { StoreCategoriesSection } from '@/components/store/StoreCategoriesSection';
+import { CartButton } from '@/components/store/CartButton';
 
 export default function Landing() {
   const { user, isLoading } = useAuth();
@@ -60,8 +61,8 @@ export default function Landing() {
       <div className="auth-noise" />
 
       <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Centered Logo at Top */}
-        <div className="flex justify-center pt-3 sm:pt-4 lg:pt-6">
+        {/* Centered Logo at Top with Cart Button */}
+        <div className="flex justify-center pt-3 sm:pt-4 lg:pt-6 relative">
           <div className="ne-logo-wrap">
             <div className="ne-logo-glow" />
             <img 
@@ -69,6 +70,10 @@ export default function Landing() {
               alt="Nova Era" 
               className="ne-logo"
             />
+          </div>
+          {/* Cart Button - Fixed position on right */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+            <CartButton variant="outline" size="icon" />
           </div>
         </div>
 
