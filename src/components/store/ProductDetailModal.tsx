@@ -10,6 +10,7 @@ import { useCart } from '@/contexts/CartContext';
 import { Minus, Plus, ShoppingCart, Sparkles, Package, ExternalLink, CreditCard, Zap } from 'lucide-react';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { toast } from 'sonner';
+import { LinkifiedText } from './LinkifiedText';
 
 interface ProductDetailModalProps {
   product: StoreProductWithCategory | null;
@@ -177,7 +178,9 @@ export function ProductDetailModal({
                 <div className="space-y-2 sm:space-y-3">
                   <h3 className="font-semibold text-foreground text-sm sm:text-base">Descrição</h3>
                   <div className="text-xs sm:text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                    {product.long_description || product.short_description || 'Sem descrição disponível.'}
+                    <LinkifiedText 
+                      text={product.long_description || product.short_description || 'Sem descrição disponível.'} 
+                    />
                   </div>
                 </div>
 
