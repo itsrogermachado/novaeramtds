@@ -61,7 +61,7 @@ export default function Landing() {
 
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Centered Logo at Top */}
-        <div className="flex justify-center pt-4 sm:pt-6 lg:pt-8">
+        <div className="flex justify-center pt-3 sm:pt-4 lg:pt-6">
           <div className="ne-logo-wrap">
             <div className="ne-logo-glow" />
             <img 
@@ -73,7 +73,7 @@ export default function Landing() {
         </div>
 
         {/* Two-Column Cards Layout */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-0 p-4 sm:p-6 lg:px-12 lg:pt-2 lg:pb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-0 p-4 sm:p-6 lg:px-12 lg:py-2">
           
           {/* LEFT SIDE - Dashboard Access */}
           <div className="flex flex-col items-center lg:items-end lg:pr-8">
