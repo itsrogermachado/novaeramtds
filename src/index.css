@@ -614,6 +614,15 @@
   overflow: hidden;
 }
 
+.dark .auth-bg {
+  background: linear-gradient(
+    135deg, 
+    hsl(220 25% 8%) 0%, 
+    hsl(220 25% 6%) 50%,
+    hsl(220 25% 10%) 100%
+  );
+}
+
 /* Diagonal silver lines overlay */
 .auth-spotlight {
   position: absolute;
@@ -650,6 +659,37 @@
   z-index: 0;
 }
 
+.dark .auth-spotlight {
+  background: 
+    linear-gradient(
+      -35deg,
+      transparent 0%,
+      transparent 40%,
+      hsl(220 15% 25% / 0.3) 42%,
+      hsl(220 15% 20% / 0.15) 44%,
+      transparent 46%,
+      transparent 100%
+    ),
+    linear-gradient(
+      -35deg,
+      transparent 0%,
+      transparent 55%,
+      hsl(220 15% 25% / 0.2) 57%,
+      hsl(220 15% 20% / 0.1) 59%,
+      transparent 61%,
+      transparent 100%
+    ),
+    linear-gradient(
+      -35deg,
+      transparent 0%,
+      transparent 70%,
+      hsl(220 15% 25% / 0.25) 72%,
+      hsl(220 15% 20% / 0.12) 74%,
+      transparent 76%,
+      transparent 100%
+    );
+}
+
 /* Secondary ambient silver glow */
 .auth-ambient {
   position: absolute;
@@ -667,6 +707,14 @@
   z-index: 0;
 }
 
+.dark .auth-ambient {
+  background: radial-gradient(
+    ellipse,
+    hsl(220 30% 20% / 0.4) 0%,
+    transparent 60%
+  );
+}
+
 /* Subtle noise texture overlay */
 .auth-noise {
   position: absolute;
@@ -675,6 +723,10 @@
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 1;
+}
+
+.dark .auth-noise {
+  opacity: 0.03;
 }
 
 /* ============================================ */
@@ -722,6 +774,15 @@
   z-index: 1;
 }
 
+.dark .ne-logo-glow {
+  background: radial-gradient(
+    ellipse at center,
+    hsl(220 30% 30% / 0.3) 0%,
+    hsl(220 25% 20% / 0.15) 40%,
+    transparent 70%
+  );
+}
+
 /* ============================================ */
 /* Minimal Glass Card                          */
 /* ============================================ */
@@ -735,6 +796,15 @@
     0 1px 0 hsl(0 0% 100%),
     0 25px 60px -15px hsl(220 20% 50% / 0.15),
     0 10px 30px -10px hsl(220 20% 50% / 0.1);
+}
+
+.dark .auth-card-minimal {
+  background: hsl(220 25% 12% / 0.85);
+  border: 1px solid hsl(220 20% 22%);
+  box-shadow: 
+    0 1px 0 hsl(220 25% 18% / 0.5),
+    0 25px 60px -15px hsl(0 0% 0% / 0.4),
+    0 10px 30px -10px hsl(0 0% 0% / 0.3);
 }
 
 /* ============================================ */
@@ -754,14 +824,29 @@
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.dark .auth-input-minimal {
+  background: hsl(220 25% 15%);
+  border: 1px solid hsl(220 20% 25%);
+  color: hsl(220 15% 95%);
+}
+
 .auth-input-minimal::placeholder {
   color: hsl(220 10% 50%);
   font-weight: 400;
 }
 
+.dark .auth-input-minimal::placeholder {
+  color: hsl(220 15% 55%);
+}
+
 .auth-input-minimal:hover {
   border-color: hsl(220 15% 70%);
   background: hsl(0 0% 100%);
+}
+
+.dark .auth-input-minimal:hover {
+  border-color: hsl(220 20% 35%);
+  background: hsl(220 25% 18%);
 }
 
 .auth-input-minimal:focus {
@@ -771,14 +856,28 @@
   background: hsl(0 0% 100%);
 }
 
+.dark .auth-input-minimal:focus {
+  border-color: hsl(220 30% 60%);
+  box-shadow: 0 0 0 3px hsl(220 30% 60% / 0.2);
+  background: hsl(220 25% 18%);
+}
+
 /* Icon elegant silver */
 .auth-icon-minimal {
   color: hsl(220 10% 50%);
   transition: color 0.2s ease;
 }
 
+.dark .auth-icon-minimal {
+  color: hsl(220 15% 55%);
+}
+
 .auth-icon-minimal.auth-icon-active {
   color: hsl(220 20% 35%);
+}
+
+.dark .auth-icon-minimal.auth-icon-active {
+  color: hsl(220 15% 80%);
 }
 
 /* Toggle elegant */
@@ -787,9 +886,18 @@
   transition: all 0.2s ease;
 }
 
+.dark .auth-toggle-minimal {
+  color: hsl(220 15% 55%);
+}
+
 .auth-toggle-minimal:hover {
   color: hsl(220 15% 35%);
   background: hsl(220 15% 90%);
+}
+
+.dark .auth-toggle-minimal:hover {
+  color: hsl(220 15% 90%);
+  background: hsl(220 20% 20%);
 }
 
 /* ============================================ */
@@ -818,6 +926,18 @@
     inset 0 1px 0 hsl(0 0% 100% / 0.1);
 }
 
+.dark .auth-btn-minimal {
+  background: linear-gradient(
+    135deg,
+    hsl(220 15% 85%) 0%,
+    hsl(220 15% 75%) 100%
+  );
+  color: hsl(220 25% 10%);
+  box-shadow: 
+    0 4px 15px hsl(0 0% 0% / 0.35),
+    inset 0 1px 0 hsl(0 0% 100% / 0.2);
+}
+
 .auth-btn-minimal::before {
   content: '';
   position: absolute;
@@ -831,6 +951,14 @@
   transition: opacity 0.25s ease;
 }
 
+.dark .auth-btn-minimal::before {
+  background: linear-gradient(
+    135deg,
+    hsl(220 15% 95%) 0%,
+    hsl(220 15% 85%) 100%
+  );
+}
+
 .auth-btn-minimal:hover::before {
   opacity: 1;
 }
@@ -840,6 +968,12 @@
   box-shadow: 
     0 10px 30px hsl(220 20% 20% / 0.35),
     inset 0 1px 0 hsl(0 0% 100% / 0.15);
+}
+
+.dark .auth-btn-minimal:hover {
+  box-shadow: 
+    0 10px 30px hsl(0 0% 0% / 0.5),
+    inset 0 1px 0 hsl(0 0% 100% / 0.3);
 }
 
 .auth-btn-minimal:active {
