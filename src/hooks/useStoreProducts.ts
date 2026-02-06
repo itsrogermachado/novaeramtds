@@ -3,20 +3,34 @@
  import { useAuth } from '@/contexts/AuthContext';
  import { toast } from 'sonner';
  
- export interface StoreProduct {
-   id: string;
-   category_id: string;
-   name: string;
-   short_description: string | null;
-   long_description: string | null;
-   price: string;
-   status: 'active' | 'inactive';
-   cta_url: string | null;
-   image_url: string | null;
-   display_order: number;
-   created_at: string;
-   updated_at: string;
- }
+export interface StoreProduct {
+  id: string;
+  category_id: string;
+  name: string;
+  short_description: string | null;
+  long_description: string | null;
+  price: string;
+  comparison_price: string | null;
+  slug: string | null;
+  video_url: string | null;
+  delivery_type: 'manual' | 'automatic';
+  product_type: 'text' | 'lines';
+  min_quantity: number;
+  max_quantity: number;
+  stock: string | null;
+  post_sale_instructions: string | null;
+  auto_open_chat: boolean;
+  is_private: boolean;
+  is_hidden: boolean;
+  hide_sold_count: boolean;
+  is_featured: boolean;
+  status: 'active' | 'inactive';
+  cta_url: string | null;
+  image_url: string | null;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
  
  export interface StoreProductWithCategory extends StoreProduct {
    store_categories?: { name: string; slug: string } | null;
