@@ -111,13 +111,19 @@ export function StoreProductsTab() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Categoria</TableHead>
                 <TableHead>Preço</TableHead>
+                <TableHead>Estoque</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product, index) => (
+              {products.map((product, index) => {
+                const stockLines = product.stock?.split('\n').filter(line => line.trim()) || [];
+                const availableStock = product.product_type === 'lines' ? stockLines.length : (product.stock ? 1 : 0);
+                const isOutOfStock = availableStock === 0;
+                
+                return (
                 <TableRow key={product.id}>
                   <TableCell>
                     <div className="flex items-center gap-1">
@@ -161,6 +167,11 @@ export function StoreProductsTab() {
                   </TableCell>
                   <TableCell>{product.price}</TableCell>
                   <TableCell>
+                    <span className={`font-medium ${isOutOfStock ? 'text-destructive' : 'text-primary'}`}>
+                      {availableStock}
+                    </span>
+                  </TableCell>
+                  <TableCell>
                     <Badge variant="outline" className="capitalize">
                       {(product as any).delivery_type === 'automatic' ? 'Automático' : 'Manual'}
                     </Badge>
@@ -190,7 +201,7 @@ export function StoreProductsTab() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              );})}
             </TableBody>
           </Table>
         )}
