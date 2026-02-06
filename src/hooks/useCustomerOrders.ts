@@ -32,9 +32,9 @@ export interface CustomerOrder {
   paid_at: string | null;
 }
 
-export function useCustomerOrders(isAdmin: boolean = false) {
+export function useCustomerOrders(showAllOrders: boolean = false) {
   return useQuery({
-    queryKey: ['customer-orders', isAdmin],
+    queryKey: ['customer-orders', showAllOrders],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -42,13 +42,19 @@ export function useCustomerOrders(isAdmin: boolean = false) {
         return [];
       }
 
-      // RLS policy handles filtering:
-      // - Admins see all orders via has_role check
-      // - Users see only their own orders via customer_email match
-      const { data, error } = await supabase
+      // Build query
+      let query = supabase
         .from('store_orders')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // When showAllOrders is false, filter by user's email
+      // This ensures users (including admins) see only their own orders
+      if (!showAllOrders && user.email) {
+        query = query.eq('customer_email', user.email);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching customer orders:', error);
