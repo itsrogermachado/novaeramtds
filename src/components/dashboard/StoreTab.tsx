@@ -168,6 +168,8 @@ export function StoreTab() {
                       <div className="space-y-3">
                         {products.map((product) => {
                           const isOutOfStock = !product.stock || product.stock.trim() === '';
+                          const stockLines = product.stock?.split('\n').filter(line => line.trim()) || [];
+                          const availableStock = product.product_type === 'lines' ? stockLines.length : (product.stock ? 1 : 0);
                           
                           return (
                             <div
@@ -197,6 +199,16 @@ export function StoreTab() {
                                       {product.short_description}
                                     </p>
                                   )}
+                                  {/* Stock indicator */}
+                                  <p className="text-xs mt-1.5">
+                                    {isOutOfStock ? (
+                                      <span className="text-muted-foreground">Sem estoque</span>
+                                    ) : (
+                                      <span className="text-primary font-medium">
+                                        {availableStock} em estoque
+                                      </span>
+                                    )}
+                                  </p>
                                 </div>
                                 <div className="flex flex-col items-end gap-2 shrink-0">
                                   <span className="font-bold text-sm text-primary">
