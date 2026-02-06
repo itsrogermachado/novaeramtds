@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, ShoppingBag, Star } from 'lucide-react';
+import { Plus, Pencil, Trash2, ShoppingBag, Star, ChevronUp, ChevronDown } from 'lucide-react';
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 import { ProductFormDialog } from './ProductFormDialog';
 
@@ -36,7 +36,7 @@ interface ProductFormData {
 }
 
 export function StoreProductsTab() {
-  const { products, isLoading, createProduct, updateProduct, deleteProduct } = useStoreProducts();
+  const { products, isLoading, createProduct, updateProduct, deleteProduct, reorderProduct } = useStoreProducts();
   const { categories } = useStoreCategories();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<StoreProductWithCategory | null>(null);
@@ -107,6 +107,7 @@ export function StoreProductsTab() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-20">Ordem</TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>Categoria</TableHead>
                 <TableHead>Preço</TableHead>
@@ -116,10 +117,39 @@ export function StoreProductsTab() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
+              {products.map((product, index) => (
                 <TableRow key={product.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        disabled={index === 0}
+                        onClick={() => reorderProduct(product.id, 'up')}
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        disabled={index === products.length - 1}
+                        onClick={() => reorderProduct(product.id, 'down')}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
+                      {product.image_url && (
+                        <img 
+                          src={product.image_url} 
+                          alt={product.name}
+                          className="w-8 h-8 rounded object-cover"
+                        />
+                      )}
                       {(product as any).is_featured && (
                         <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                       )}

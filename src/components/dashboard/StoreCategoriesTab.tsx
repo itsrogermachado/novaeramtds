@@ -9,8 +9,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
  import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Package } from 'lucide-react';
- import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
+import { Plus, Pencil, Trash2, Package, ChevronUp, ChevronDown } from 'lucide-react';
+import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
  
  function slugify(text: string): string {
    return text
@@ -39,8 +39,8 @@ import { Plus, Pencil, Trash2, Package } from 'lucide-react';
    display_order: 0,
  };
  
- export function StoreCategoriesTab() {
-   const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useStoreCategories();
+export function StoreCategoriesTab() {
+  const { categories, isLoading, createCategory, updateCategory, deleteCategory, reorderCategory } = useStoreCategories();
    const [isDialogOpen, setIsDialogOpen] = useState(false);
    const [editingCategory, setEditingCategory] = useState<StoreCategory | null>(null);
    const [formData, setFormData] = useState<CategoryFormData>(defaultFormData);
@@ -122,54 +122,77 @@ import { Plus, Pencil, Trash2, Package } from 'lucide-react';
              </p>
            </div>
          ) : (
-           <Table>
-             <TableHeader>
-               <TableRow>
-                 <TableHead className="w-12"></TableHead>
-                 <TableHead>Nome</TableHead>
-                 <TableHead>Slug</TableHead>
-                 <TableHead>Status</TableHead>
-                 <TableHead className="text-right">Ações</TableHead>
-               </TableRow>
-             </TableHeader>
-             <TableBody>
-               {categories.map((category) => (
-                 <TableRow key={category.id}>
-                   <TableCell>
-                     <span className="text-xl">{category.icon || '📦'}</span>
-                   </TableCell>
-                   <TableCell className="font-medium">{category.name}</TableCell>
-                   <TableCell className="text-muted-foreground text-sm">
-                     /loja/{category.slug}
-                   </TableCell>
-                   <TableCell>
-                     <Badge variant={category.status === 'active' ? 'default' : 'secondary'}>
-                       {category.status === 'active' ? 'Ativo' : 'Inativo'}
-                     </Badge>
-                   </TableCell>
-                   <TableCell className="text-right">
-                     <div className="flex items-center justify-end gap-2">
-                       <Button
-                         variant="ghost"
-                         size="icon"
-                         onClick={() => handleOpenEdit(category)}
-                       >
-                         <Pencil className="h-4 w-4" />
-                       </Button>
-                       <Button
-                         variant="ghost"
-                         size="icon"
-                         onClick={() => setDeleteId(category.id)}
-                         className="text-destructive hover:text-destructive"
-                       >
-                         <Trash2 className="h-4 w-4" />
-                       </Button>
-                     </div>
-                   </TableCell>
-                 </TableRow>
-               ))}
-             </TableBody>
-           </Table>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-20">Ordem</TableHead>
+                  <TableHead className="w-12"></TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {categories.map((category, index) => (
+                  <TableRow key={category.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          disabled={index === 0}
+                          onClick={() => reorderCategory(category.id, 'up')}
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          disabled={index === categories.length - 1}
+                          onClick={() => reorderCategory(category.id, 'down')}
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xl">{category.icon || '📦'}</span>
+                    </TableCell>
+                    <TableCell className="font-medium">{category.name}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      /loja/{category.slug}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={category.status === 'active' ? 'default' : 'secondary'}>
+                        {category.status === 'active' ? 'Ativo' : 'Inativo'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenEdit(category)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteId(category.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
          )}
        </CardContent>
  
