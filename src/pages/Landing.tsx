@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import logo from '@/assets/logo-nova-era-3d.png';
 import { BarChart3, FileText, Shield, ArrowRight, ChevronUp, Store } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import InlineLoginPanel from '@/components/landing/InlineLoginPanel';
@@ -61,20 +60,9 @@ export default function Landing() {
       <div className="auth-noise" />
 
       <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Centered Logo at Top with Cart Button */}
-        <div className="flex justify-center pt-3 sm:pt-4 lg:pt-6 relative">
-          <div className="ne-logo-wrap">
-            <div className="ne-logo-glow" />
-            <img 
-              src={logo} 
-              alt="Nova Era" 
-              className="ne-logo"
-            />
-          </div>
-          {/* Cart Button - Fixed position on right */}
-          <div className="absolute right-4 top-1/2 -translate-y-1/2">
-            <CartButton variant="outline" size="icon" />
-          </div>
+        {/* Cart Button - Top Right */}
+        <div className="flex justify-end pt-3 sm:pt-4 lg:pt-6 px-4">
+          <CartButton variant="outline" size="icon" />
         </div>
 
         {/* Two-Column Cards Layout */}
