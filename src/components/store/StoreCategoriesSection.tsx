@@ -4,7 +4,7 @@ import { Package, ChevronDown, ChevronUp, ShoppingCart, ExternalLink, Store } fr
 import { supabase } from '@/integrations/supabase/client';
 import { StoreProductWithCategory } from '@/hooks/useStoreProducts';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ProductDetailModal } from './ProductDetailModal';
 
 interface StoreCategoriesSectionProps {
   hideHeader?: boolean;
@@ -47,12 +47,12 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
   };
 
   const handleBuy = (product: StoreProductWithCategory) => {
-    if (product.cta_url) {
-      window.open(product.cta_url, '_blank', 'noopener,noreferrer');
-    } else {
-      setSelectedProduct(product);
-      setShowModal(true);
-    }
+    setSelectedProduct(product);
+    setShowModal(true);
+  };
+
+  const handleSelectRelatedProduct = (product: StoreProductWithCategory) => {
+    setSelectedProduct(product);
   };
 
   if (isLoading) {
@@ -252,26 +252,14 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
         })}
       </div>
 
-      {/* Placeholder Modal */}
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Comprar: {selectedProduct?.name}</DialogTitle>
-            <DialogDescription>
-              A integração de pagamento será configurada aqui futuramente.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 text-center">
-            <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground">
-              Entre em contato conosco para finalizar sua compra.
-            </p>
-          </div>
-          <Button onClick={() => setShowModal(false)} className="w-full">
-            Entendido
-          </Button>
-        </DialogContent>
-      </Dialog>
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={selectedProduct}
+        open={showModal}
+        onOpenChange={setShowModal}
+        relatedProducts={products}
+        onSelectProduct={handleSelectRelatedProduct}
+      />
     </section>
   );
 }
