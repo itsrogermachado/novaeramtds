@@ -157,12 +157,10 @@ export default function CartPage() {
           <ShoppingBag className="h-20 w-20 text-muted-foreground/30 mb-6" />
           <h1 className="text-2xl font-bold text-foreground mb-2">Carrinho vazio</h1>
           <p className="text-muted-foreground mb-6">Adicione produtos para continuar</p>
-          <Link to="/">
-            <Button className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Voltar para a loja
-            </Button>
-          </Link>
+          <Button className="gap-2" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+            Voltar para a loja
+          </Button>
         </div>
       </div>
     );
