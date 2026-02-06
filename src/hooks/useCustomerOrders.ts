@@ -32,9 +32,9 @@ export interface CustomerOrder {
   paid_at: string | null;
 }
 
-export function useCustomerOrders() {
+export function useCustomerOrders(isAdmin: boolean = false) {
   return useQuery({
-    queryKey: ['customer-orders'],
+    queryKey: ['customer-orders', isAdmin],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -42,8 +42,9 @@ export function useCustomerOrders() {
         return [];
       }
 
-      // RLS policy handles filtering by customer_email matching profiles.email
-      // No need for manual filter - RLS ensures users only see their own orders
+      // RLS policy handles filtering:
+      // - Admins see all orders via has_role check
+      // - Users see only their own orders via customer_email match
       const { data, error } = await supabase
         .from('store_orders')
         .select('*')
@@ -57,7 +58,7 @@ export function useCustomerOrders() {
       return (data || []) as unknown as CustomerOrder[];
     },
     staleTime: 0, // Always refetch to ensure fresh data per user
-    refetchOnMount: true,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: true,
   });
 }
