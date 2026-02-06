@@ -108,11 +108,33 @@ export function PixCheckout({
     }
   };
 
-  // Auto-check payment every 10 seconds when PIX is generated
+  // Use Realtime for instant payment confirmation (instead of 10s polling)
   useEffect(() => {
-    if (!pixData) return;
+    if (!pixData || !orderId) return;
 
-    const interval = setInterval(async () => {
+    // Subscribe to realtime changes on this specific order
+    const channel = supabase
+      .channel(`order-${orderId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'store_orders',
+          filter: `id=eq.${orderId}`,
+        },
+        (payload) => {
+          const newStatus = payload.new?.status;
+          if (newStatus === 'paid' || newStatus === 'delivered') {
+            toast.success('Pagamento confirmado!');
+            onPaymentConfirmed();
+          }
+        }
+      )
+      .subscribe();
+
+    // Also do an initial check in case payment was already processed
+    const checkInitialStatus = async () => {
       try {
         const { data: order } = await supabase
           .from('store_orders')
@@ -125,11 +147,14 @@ export function PixCheckout({
           onPaymentConfirmed();
         }
       } catch (err) {
-        console.error('Error auto-checking payment:', err);
+        console.error('Error checking initial status:', err);
       }
-    }, 10000);
+    };
+    checkInitialStatus();
 
-    return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [pixData, orderId, onPaymentConfirmed]);
 
   const formatCurrency = (value: number) => {
