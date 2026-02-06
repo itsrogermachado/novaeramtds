@@ -303,6 +303,63 @@ export type Database = {
         }
         Relationships: []
       }
+      store_coupons: {
+        Row: {
+          category_ids: string[] | null
+          code: string
+          created_at: string
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean
+          max_discount_amount: number
+          max_order_value: number
+          max_uses: number
+          min_order_value: number
+          product_ids: string[] | null
+          updated_at: string
+          used_count: number
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          category_ids?: string[] | null
+          code: string
+          created_at?: string
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_discount_amount?: number
+          max_order_value?: number
+          max_uses?: number
+          min_order_value?: number
+          product_ids?: string[] | null
+          updated_at?: string
+          used_count?: number
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          category_ids?: string[] | null
+          code?: string
+          created_at?: string
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_discount_amount?: number
+          max_order_value?: number
+          max_uses?: number
+          min_order_value?: number
+          product_ids?: string[] | null
+          updated_at?: string
+          used_count?: number
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       store_products: {
         Row: {
           auto_open_chat: boolean | null

@@ -25,6 +25,7 @@ import {
   Users, 
   Package, 
   ShoppingBag,
+  Ticket,
   User,
   Globe,
   LogOut,
@@ -53,6 +54,7 @@ const mainNavItems = [
 const adminNavItems = [
   { id: 'store-categories', label: 'Categorias', icon: Package },
   { id: 'store-products', label: 'Produtos', icon: ShoppingBag },
+  { id: 'store-coupons', label: 'Cupons', icon: Ticket },
   { id: 'individual', label: 'Individuais', icon: User },
   { id: 'global', label: 'Global', icon: Globe },
 ];
