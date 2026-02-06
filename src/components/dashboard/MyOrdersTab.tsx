@@ -29,7 +29,7 @@ import { ptBR } from 'date-fns/locale';
 
 export function MyOrdersTab() {
   const { isAdmin } = useAuth();
-  const { data: orders, isLoading } = useCustomerOrders();
+  const { data: orders, isLoading } = useCustomerOrders(isAdmin);
   const [selectedOrder, setSelectedOrder] = useState<CustomerOrder | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
