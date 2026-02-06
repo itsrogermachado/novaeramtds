@@ -18,7 +18,7 @@ import {
   Users,
   Globe,
   ChevronRight,
-  ExternalLink,
+  
   Shield,
   LogOut,
   UserCircle,
@@ -70,7 +70,7 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
     return user?.email?.[0]?.toUpperCase() || 'U';
   };
 
-  const navItems: NavItem[] = [
+  const memberItems: NavItem[] = [
     { id: 'my-operations', label: 'Minhas Operações', icon: <TrendingUp className="h-5 w-5" /> },
     { id: 'my-expenses', label: 'Meus Gastos', icon: <Receipt className="h-5 w-5" /> },
     { id: 'comparison', label: 'Comparativo', icon: <Scale className="h-5 w-5" /> },
@@ -78,6 +78,10 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
     { id: 'surebet', label: 'Calculadora Surebet', icon: <Calculator className="h-5 w-5" /> },
     { id: 'team', label: 'Meu Time', icon: <Users className="h-5 w-5" /> },
     { id: 'store', label: 'Loja', icon: <ShoppingBag className="h-5 w-5" /> },
+    { id: 'my-orders', label: 'Meus Pedidos', icon: <Package className="h-5 w-5" /> },
+  ];
+
+  const adminItems: NavItem[] = [
     { id: 'store-categories', label: 'Categorias da Loja', icon: <Package className="h-5 w-5" />, adminOnly: true },
     { id: 'store-products', label: 'Produtos da Loja', icon: <ShoppingBag className="h-5 w-5" />, adminOnly: true },
     { id: 'store-coupons', label: 'Cupons de Desconto', icon: <Ticket className="h-5 w-5" />, adminOnly: true },
@@ -85,8 +89,6 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
     { id: 'individual', label: 'Usuários Individuais', icon: <Users className="h-5 w-5" />, adminOnly: true },
     { id: 'global', label: 'Visão Global', icon: <Globe className="h-5 w-5" />, adminOnly: true },
   ];
-
-  const filteredItems = navItems.filter(item => !item.adminOnly || isAdmin);
 
   const handleSelect = (id: string) => {
     onTabChange(id);
@@ -112,8 +114,12 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
 
           {/* Navigation */}
           <ScrollArea className="flex-1 py-4">
+            {/* Member Section */}
             <nav className="px-3 space-y-1">
-              {filteredItems.map((item) => (
+              <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                Área do Membro
+              </p>
+              {memberItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleSelect(item.id)}
@@ -140,6 +146,40 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
                 </button>
               ))}
             </nav>
+
+            {/* Admin Section - Only for admins */}
+            {isAdmin && (
+              <nav className="px-3 mt-6 space-y-1">
+                <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                  Administração
+                </p>
+                {adminItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSelect(item.id)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-all duration-200",
+                      "active:scale-[0.98]",
+                      currentTab === item.id
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "hover:bg-muted text-foreground"
+                    )}
+                  >
+                    <span className={cn(
+                      "shrink-0",
+                      currentTab === item.id ? "text-primary-foreground" : "text-muted-foreground"
+                    )}>
+                      {item.icon}
+                    </span>
+                    <span className="flex-1 font-medium">{item.label}</span>
+                    <ChevronRight className={cn(
+                      "h-4 w-4 transition-transform",
+                      currentTab === item.id ? "text-primary-foreground" : "text-muted-foreground"
+                    )} />
+                  </button>
+                ))}
+              </nav>
+            )}
 
             {/* External Links */}
             <div className="px-3 mt-6">
