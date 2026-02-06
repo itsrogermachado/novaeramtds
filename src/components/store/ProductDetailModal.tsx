@@ -3,8 +3,10 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import { StoreProductWithCategory } from '@/hooks/useStoreProducts';
-import { Minus, Plus, ShoppingCart, Sparkles, Package, ExternalLink, CreditCard } from 'lucide-react';
+import { useValidateCoupon, StoreCoupon } from '@/hooks/useStoreCoupons';
+import { Minus, Plus, ShoppingCart, Sparkles, Package, ExternalLink, CreditCard, Ticket, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 
 interface ProductDetailModalProps {
   product: StoreProductWithCategory | null;
@@ -22,6 +24,11 @@ export function ProductDetailModal({
   onSelectProduct,
 }: ProductDetailModalProps) {
   const [quantity, setQuantity] = useState(1);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<StoreCoupon | null>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [couponError, setCouponError] = useState('');
+  const { validateCoupon, isValidating } = useValidateCoupon();
 
   if (!product) return null;
 
@@ -51,11 +58,61 @@ export function ProductDetailModal({
 
   const discount = calculateDiscount();
 
+  const getProductPrice = () => {
+    return parseFloat(product.price.replace(',', '.').replace(/[^\d.]/g, '')) * quantity;
+  };
+
+  const getFinalPrice = () => {
+    const basePrice = getProductPrice();
+    return basePrice - discountAmount;
+  };
+
   const handleQuantityChange = (delta: number) => {
     const newQty = quantity + delta;
     if (newQty >= minQty && newQty <= maxQty) {
       setQuantity(newQty);
+      // Revalidate coupon with new quantity
+      if (appliedCoupon) {
+        handleApplyCoupon(true);
+      }
     }
+  };
+
+  const handleApplyCoupon = async (silent = false) => {
+    if (!couponCode.trim() && !appliedCoupon) {
+      if (!silent) setCouponError('Digite o código do cupom');
+      return;
+    }
+
+    const codeToValidate = appliedCoupon ? appliedCoupon.code : couponCode;
+    const orderValue = getProductPrice();
+
+    const result = await validateCoupon(
+      codeToValidate,
+      orderValue,
+      product.id,
+      product.category_id
+    );
+
+    if (result.valid && result.coupon) {
+      setAppliedCoupon(result.coupon);
+      setDiscountAmount(result.discountAmount || 0);
+      setCouponError('');
+      if (!silent) setCouponCode('');
+    } else {
+      if (!silent) {
+        setCouponError(result.error || 'Cupom inválido');
+        setAppliedCoupon(null);
+        setDiscountAmount(0);
+      }
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscountAmount(0);
+    setCouponCode('');
+    setCouponError('');
   };
 
   const handleBuy = () => {
@@ -63,13 +120,17 @@ export function ProductDetailModal({
       window.open(product.cta_url, '_blank', 'noopener,noreferrer');
     } else {
       // Placeholder for purchase logic
-      console.log('Purchase:', { product, quantity });
+      console.log('Purchase:', { product, quantity, appliedCoupon, discountAmount, finalPrice: getFinalPrice() });
     }
   };
 
   const filteredRelated = relatedProducts
     .filter(p => p.id !== product.id)
     .slice(0, 4);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -211,6 +272,87 @@ export function ProductDetailModal({
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
+                  </div>
+                )}
+
+                {/* Coupon Section */}
+                {!isOutOfStock && (
+                  <div className="space-y-2 pt-2 border-t border-border">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Ticket className="h-4 w-4 text-primary" />
+                      <span className="font-medium">Cupom de desconto</span>
+                    </div>
+                    
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between p-2 bg-primary/10 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <span className="text-sm font-mono font-medium">{appliedCoupon.code}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            -{appliedCoupon.discount_type === 'percentage' 
+                              ? `${appliedCoupon.discount_value}%` 
+                              : formatCurrency(appliedCoupon.discount_value)}
+                          </Badge>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={handleRemoveCoupon}
+                          className="h-6 px-2 text-xs"
+                        >
+                          Remover
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Código do cupom"
+                          value={couponCode}
+                          onChange={(e) => {
+                            setCouponCode(e.target.value.toUpperCase());
+                            setCouponError('');
+                          }}
+                          className="uppercase text-sm"
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleApplyCoupon(false)}
+                          disabled={isValidating || !couponCode.trim()}
+                        >
+                          {isValidating ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            'Aplicar'
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {couponError && (
+                      <div className="flex items-center gap-1.5 text-xs text-destructive">
+                        <XCircle className="h-3 w-3" />
+                        {couponError}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Price Summary */}
+                {!isOutOfStock && discountAmount > 0 && (
+                  <div className="space-y-1 pt-2 border-t border-border">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Subtotal:</span>
+                      <span>{formatCurrency(getProductPrice())}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Desconto:</span>
+                      <span>-{formatCurrency(discountAmount)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg pt-1">
+                      <span>Total:</span>
+                      <span className="text-primary">{formatCurrency(getFinalPrice())}</span>
+                    </div>
                   </div>
                 )}
 

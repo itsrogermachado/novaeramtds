@@ -31,6 +31,7 @@ import { TeamTab } from '@/components/dashboard/TeamTab';
 import { AiAssistant } from '@/components/dashboard/AiAssistant';
 import { StoreCategoriesTab } from '@/components/dashboard/StoreCategoriesTab';
 import { StoreProductsTab } from '@/components/dashboard/StoreProductsTab';
+import { StoreCouponsTab } from '@/components/dashboard/StoreCouponsTab';
 
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { TrendingUp, TrendingDown, Wallet, Receipt } from 'lucide-react';
@@ -230,6 +231,7 @@ export default function Dashboard() {
                 {currentTab === 'team' && 'Meu Time'}
                 {currentTab === 'store-categories' && 'Categorias da Loja'}
                 {currentTab === 'store-products' && 'Produtos da Loja'}
+                {currentTab === 'store-coupons' && 'Cupons de Desconto'}
                 {currentTab === 'individual' && 'Usuários Individuais'}
                 {currentTab === 'global' && 'Visão Global'}
               </span>
@@ -345,6 +347,12 @@ export default function Dashboard() {
             {isAdmin && currentTab === 'store-products' && (
               <div className="animate-fade-in">
                 <StoreProductsTab />
+              </div>
+            )}
+
+            {isAdmin && currentTab === 'store-coupons' && (
+              <div className="animate-fade-in">
+                <StoreCouponsTab />
               </div>
             )}
 

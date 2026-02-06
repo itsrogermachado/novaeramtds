@@ -24,6 +24,7 @@ import {
   UserCircle,
   Package,
   ShoppingBag,
+  Ticket,
 } from 'lucide-react';
 import logo from '@/assets/logo-nova-era-elegant.jpg';
 import { cn } from '@/lib/utils';
@@ -77,6 +78,7 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
     { id: 'team', label: 'Meu Time', icon: <Users className="h-5 w-5" /> },
     { id: 'store-categories', label: 'Categorias da Loja', icon: <Package className="h-5 w-5" />, adminOnly: true },
     { id: 'store-products', label: 'Produtos da Loja', icon: <ShoppingBag className="h-5 w-5" />, adminOnly: true },
+    { id: 'store-coupons', label: 'Cupons de Desconto', icon: <Ticket className="h-5 w-5" />, adminOnly: true },
     { id: 'individual', label: 'Usuários Individuais', icon: <Users className="h-5 w-5" />, adminOnly: true },
     { id: 'global', label: 'Visão Global', icon: <Globe className="h-5 w-5" />, adminOnly: true },
   ];
