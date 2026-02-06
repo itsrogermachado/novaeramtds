@@ -18,6 +18,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const StoreCategory = lazy(() => import("./pages/StoreCategory"));
 const CartPage = lazy(() => import("./pages/CartPage"));
+const OrderLookup = lazy(() => import("./pages/OrderLookup"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -60,6 +61,7 @@ const App = () => (
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/loja/:slug" element={<StoreCategory />} />
                   <Route path="/carrinho" element={<CartPage />} />
+                  <Route path="/meus-pedidos" element={<OrderLookup />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 </Suspense>
