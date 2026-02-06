@@ -101,11 +101,30 @@ export function DashboardSidebar({
   return (
     <Sidebar 
       className={cn(
-        "border-r border-border/50 bg-card/50 backdrop-blur-xl",
+        "border-r border-border/50 bg-card/50 backdrop-blur-xl relative",
         isCollapsed ? "w-16" : "w-60"
       )}
       collapsible="icon"
     >
+      {/* Floating Collapse Button - outside the menu */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={toggleSidebar}
+        className={cn(
+          "absolute -right-3 top-[280px] z-50 h-6 w-6 rounded-full",
+          "bg-background border border-border shadow-md",
+          "hover:bg-muted text-muted-foreground hover:text-foreground",
+          "transition-all duration-200"
+        )}
+      >
+        {isCollapsed ? (
+          <ChevronRight className="h-3 w-3" />
+        ) : (
+          <ChevronLeft className="h-3 w-3" />
+        )}
+      </Button>
+
       <SidebarContent className="px-2 pt-8 pb-4">
         {/* Main Navigation */}
         <SidebarGroup>
@@ -122,28 +141,6 @@ export function DashboardSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {/* Collapse Button - positioned after main nav */}
-        <div className="px-1 mt-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleSidebar}
-            className={cn(
-              "w-full text-muted-foreground hover:text-foreground hover:bg-muted/50",
-              isCollapsed ? "justify-center" : "justify-start gap-2"
-            )}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <>
-                <ChevronLeft className="h-4 w-4" />
-                <span>Recolher</span>
-              </>
-            )}
-          </Button>
-        </div>
 
         {/* Admin Navigation */}
         {isAdmin && (
