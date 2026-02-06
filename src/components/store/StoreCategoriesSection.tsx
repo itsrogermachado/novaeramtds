@@ -66,7 +66,7 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
       <section className="w-full animate-auth-field opacity-0" style={{ animationDelay: '0.6s' }}>
         {!hideHeader && (
           <div className="text-center mb-6">
-            <h2 className="text-lg font-bold" style={{ color: 'hsl(220 25% 20%)' }}>
+            <h2 className="text-lg font-bold text-foreground">
               Loja Nova Era
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
@@ -89,8 +89,8 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
         {!hideHeader && (
           <div className="text-center mb-6">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Store className="h-5 w-5" style={{ color: 'hsl(220 25% 30%)' }} />
-              <h2 className="text-lg font-bold" style={{ color: 'hsl(220 25% 20%)' }}>
+              <Store className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-foreground">
                 Loja Nova Era
               </h2>
             </div>
@@ -100,7 +100,7 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
           </div>
         )}
         
-        <div className="p-6 rounded-xl bg-white/40 backdrop-blur-sm border border-white/60 text-center">
+        <div className="p-6 rounded-xl bg-card/60 dark:bg-card/40 backdrop-blur-sm border border-border text-center">
           <Package className="h-10 w-10 mx-auto mb-3 text-muted-foreground/50" />
           <p className="text-sm text-muted-foreground">
             Nenhuma categoria disponível ainda.
@@ -118,8 +118,8 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
       {!hideHeader && (
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Store className="h-5 w-5" style={{ color: 'hsl(220 25% 30%)' }} />
-            <h2 className="text-lg font-bold" style={{ color: 'hsl(220 25% 20%)' }}>
+            <Store className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-bold text-foreground">
               Loja Nova Era
             </h2>
           </div>
@@ -138,18 +138,15 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
               {/* Category Button */}
               <button
                 onClick={() => handleCategoryClick(category)}
-                className={`w-full group p-5 rounded-xl bg-white/50 backdrop-blur-sm border border-white/60 
-                           hover:bg-white/70 hover:shadow-lg
+                className={`w-full group p-5 rounded-xl bg-card/60 dark:bg-card/50 backdrop-blur-sm border border-border 
+                           hover:bg-card/80 dark:hover:bg-card/70 hover:shadow-lg
                            transition-all duration-200 ease-out text-left
-                           ${isExpanded ? 'bg-white/70 shadow-md rounded-b-none border-b-0' : ''}`}
+                           ${isExpanded ? 'bg-card/80 dark:bg-card/70 shadow-md rounded-b-none border-b-0' : ''}`}
               >
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">{category.icon || '📦'}</span>
                   <div className="flex-1 min-w-0">
-                    <h3 
-                      className="font-semibold text-sm group-hover:text-primary transition-colors"
-                      style={{ color: 'hsl(220 25% 20%)' }}
-                    >
+                    <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">
                       {category.name}
                     </h3>
                     {category.description && (
@@ -172,7 +169,7 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
                   isExpanded ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
                 }`}
               >
-                <div className="p-4 bg-white/60 backdrop-blur-sm border border-white/60 border-t-0 rounded-b-xl">
+                <div className="p-4 bg-card/70 dark:bg-card/60 backdrop-blur-sm border border-border border-t-0 rounded-b-xl">
                   {isLoadingProducts ? (
                     <div className="flex items-center justify-center py-6">
                       <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -192,8 +189,8 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
                         return (
                           <div
                             key={product.id}
-                            className={`p-4 rounded-lg bg-white/70 border border-white/80 
-                                       hover:bg-white/90 transition-colors cursor-pointer ${isOutOfStock ? 'opacity-70' : ''}`}
+                            className={`p-4 rounded-lg bg-card/80 dark:bg-card/70 border border-border 
+                                       hover:bg-card dark:hover:bg-card/90 transition-colors cursor-pointer ${isOutOfStock ? 'opacity-70' : ''}`}
                             onClick={() => handleProductClick(product)}
                           >
                             <div className="flex items-start gap-3">
@@ -209,7 +206,7 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
                               )}
                               
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-medium text-sm" style={{ color: 'hsl(220 25% 15%)' }}>
+                                <h4 className="font-medium text-sm text-foreground">
                                   {product.name}
                                 </h4>
                                 {product.short_description && (
@@ -219,7 +216,7 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
                                 )}
                               </div>
                               <div className="flex flex-col items-end gap-2 shrink-0">
-                                <span className="font-bold text-sm" style={{ color: 'hsl(220 25% 20%)' }}>
+                                <span className="font-bold text-sm text-foreground">
                                   {product.price}
                                 </span>
                                 {isOutOfStock ? (
