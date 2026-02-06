@@ -1,18 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarFooter,
-  useSidebar,
-} from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { NotificationBadge } from './NotificationBadge';
 import { 
   Receipt, 
@@ -31,6 +20,7 @@ import {
   ChevronRight,
   DollarSign,
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface DashboardSidebarProps {
   currentTab: string;
@@ -65,8 +55,7 @@ export function DashboardSidebar({
   newTutorialsCount 
 }: DashboardSidebarProps) {
   const { isAdmin } = useAuth();
-  const { state, toggleSidebar } = useSidebar();
-  const isCollapsed = state === 'collapsed';
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const NavItem = ({ item }: { item: typeof mainNavItems[0] }) => {
     const isActive = currentTab === item.id;
@@ -74,45 +63,43 @@ export function DashboardSidebar({
     const showBadge = item.hasBadge && newTutorialsCount > 0;
 
     return (
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          onClick={() => onTabChange(item.id)}
-          className={cn(
-            "w-full justify-start gap-3 h-11 px-3 rounded-lg transition-all duration-200",
-            "hover:bg-primary/10 hover:text-primary",
-            isActive && "bg-primary/20 text-primary font-medium border-l-2 border-primary"
-          )}
-        >
-          <Icon className={cn(
-            "h-5 w-5 shrink-0",
-            isActive ? "text-primary" : "text-muted-foreground"
-          )} />
-          {!isCollapsed && (
-            <span className="flex-1 text-left">{item.label}</span>
-          )}
-          {!isCollapsed && showBadge && (
-            <NotificationBadge count={newTutorialsCount} />
-          )}
-        </SidebarMenuButton>
-      </SidebarMenuItem>
+      <button
+        onClick={() => onTabChange(item.id)}
+        className={cn(
+          "w-full flex items-center gap-3 h-11 px-3 rounded-lg transition-all duration-200",
+          "hover:bg-primary/10 hover:text-primary",
+          isActive && "bg-primary/20 text-primary font-medium border-l-2 border-primary",
+          isCollapsed && "justify-center px-2"
+        )}
+      >
+        <Icon className={cn(
+          "h-5 w-5 shrink-0",
+          isActive ? "text-primary" : "text-muted-foreground"
+        )} />
+        {!isCollapsed && (
+          <span className="flex-1 text-left text-sm">{item.label}</span>
+        )}
+        {!isCollapsed && showBadge && (
+          <NotificationBadge count={newTutorialsCount} />
+        )}
+      </button>
     );
   };
 
   return (
-    <Sidebar 
+    <aside 
       className={cn(
-        "border-r border-border/50 bg-card/50 backdrop-blur-xl relative h-full",
+        "h-full border-r border-border/50 bg-card/50 backdrop-blur-xl flex flex-col relative transition-all duration-300",
         isCollapsed ? "w-16" : "w-60"
       )}
-      collapsible="icon"
     >
-      {/* Floating Collapse Button - outside the menu */}
+      {/* Floating Collapse Button */}
       <Button
         variant="outline"
         size="icon"
-        onClick={toggleSidebar}
+        onClick={() => setIsCollapsed(!isCollapsed)}
         className={cn(
-          "absolute -right-3 top-[280px] z-50 h-6 w-6 rounded-full",
+          "absolute -right-3 top-[200px] z-50 h-6 w-6 rounded-full",
           "bg-background border border-border shadow-md",
           "hover:bg-muted text-muted-foreground hover:text-foreground",
           "transition-all duration-200"
@@ -125,44 +112,36 @@ export function DashboardSidebar({
         )}
       </Button>
 
-      <SidebarContent className="px-2 pt-4 pb-4">
+      <ScrollArea className="flex-1 px-2 pt-4 pb-4">
         {/* Main Navigation */}
-        <SidebarGroup>
+        <div className="space-y-1">
           {!isCollapsed && (
-            <SidebarGroupLabel className="text-xs text-muted-foreground/70 uppercase tracking-wider px-3 mb-2">
+            <p className="text-xs text-muted-foreground/70 uppercase tracking-wider px-3 mb-2">
               Principal
-            </SidebarGroupLabel>
+            </p>
           )}
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {mainNavItems.map((item) => (
-                <NavItem key={item.id} item={item} />
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+          {mainNavItems.map((item) => (
+            <NavItem key={item.id} item={item} />
+          ))}
+        </div>
 
         {/* Admin Navigation */}
         {isAdmin && (
-          <SidebarGroup className="mt-6">
+          <div className="mt-6 space-y-1">
             {!isCollapsed && (
-              <SidebarGroupLabel className="text-xs text-muted-foreground/70 uppercase tracking-wider px-3 mb-2">
+              <p className="text-xs text-muted-foreground/70 uppercase tracking-wider px-3 mb-2">
                 Administração
-              </SidebarGroupLabel>
+              </p>
             )}
-            <SidebarGroupContent>
-              <SidebarMenu className="space-y-1">
-                {adminNavItems.map((item) => (
-                  <NavItem key={item.id} item={item} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+            {adminNavItems.map((item) => (
+              <NavItem key={item.id} item={item} />
+            ))}
+          </div>
         )}
-      </SidebarContent>
+      </ScrollArea>
 
       {/* Footer - Only Sign Out */}
-      <SidebarFooter className="p-3 border-t border-border/30">
+      <div className="p-3 border-t border-border/30">
         <Button
           variant="ghost"
           size="sm"
@@ -175,7 +154,7 @@ export function DashboardSidebar({
           <LogOut className="h-4 w-4" />
           {!isCollapsed && <span>Sair</span>}
         </Button>
-      </SidebarFooter>
-    </Sidebar>
+      </div>
+    </aside>
   );
 }
