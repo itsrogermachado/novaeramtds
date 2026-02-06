@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,10 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ChevronLeft, Sparkles, Image as ImageIcon, MessageCircle, Lock, EyeOff, Eye, Star } from 'lucide-react';
+import { ChevronLeft, Sparkles, Image as ImageIcon, MessageCircle, Lock, EyeOff, Eye, Star, Upload, X, Loader2 } from 'lucide-react';
 import { StoreProductWithCategory } from '@/hooks/useStoreProducts';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface StoreCategory {
   id: string;
@@ -89,6 +91,9 @@ export function ProductFormDialog({
 }: ProductFormDialogProps) {
   const [formData, setFormData] = useState<ProductFormData>(defaultFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (editingProduct) {
@@ -117,10 +122,72 @@ export function ProductFormDialog({
         image_url: editingProduct.image_url || '',
         display_order: editingProduct.display_order,
       });
+      setImagePreview(editingProduct.image_url || null);
     } else {
       setFormData({ ...defaultFormData, display_order: productsCount });
+      setImagePreview(null);
     }
   }, [editingProduct, productsCount, open]);
+
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem válida');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `products/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('products')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('products')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, image_url: publicUrl });
+      setImagePreview(publicUrl);
+      toast.success('Imagem enviada com sucesso!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Erro ao enviar imagem');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (formData.image_url && formData.image_url.includes('products')) {
+      try {
+        const urlParts = formData.image_url.split('/products/');
+        if (urlParts.length > 1) {
+          const filePath = `products/${urlParts[1]}`;
+          await supabase.storage.from('products').remove([filePath]);
+        }
+      } catch (error) {
+        console.error('Error removing image:', error);
+      }
+    }
+    setFormData({ ...formData, image_url: '' });
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -451,18 +518,78 @@ export function ProductFormDialog({
                   
                   <div className="space-y-2">
                     <Label>
-                      Imagens <span className="text-muted-foreground text-xs">(opcional)</span>
+                      Imagem <span className="text-muted-foreground text-xs">(opcional)</span>
                     </Label>
-                    <div className="border-2 border-dashed border-border rounded-lg p-6 text-center bg-background hover:bg-muted/30 transition-colors cursor-pointer">
-                      <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Escolha uma imagem da Galeria
-                      </p>
-                      <p className="text-xs text-primary mt-1">1920 × 1080</p>
-                    </div>
+                    
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageUpload(file);
+                      }}
+                    />
+
+                    {imagePreview ? (
+                      <div className="relative rounded-lg overflow-hidden border border-border">
+                        <img
+                          src={imagePreview}
+                          alt="Preview do produto"
+                          className="w-full h-40 object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploading}
+                          >
+                            <Upload className="h-4 w-4 mr-1" />
+                            Trocar
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleRemoveImage}
+                            disabled={isUploading}
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Remover
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        className={`border-2 border-dashed border-border rounded-lg p-6 text-center bg-background hover:bg-muted/30 transition-colors cursor-pointer ${isUploading ? 'pointer-events-none opacity-60' : ''}`}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="h-8 w-8 mx-auto mb-2 text-primary animate-spin" />
+                            <p className="text-sm text-muted-foreground">Enviando...</p>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                            <p className="text-sm text-muted-foreground">
+                              Clique para enviar uma imagem
+                            </p>
+                            <p className="text-xs text-primary mt-1">PNG, JPG até 5MB</p>
+                          </>
+                        )}
+                      </div>
+                    )}
+
                     <Input
                       value={formData.image_url}
-                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      onChange={(e) => {
+                        setFormData({ ...formData, image_url: e.target.value });
+                        setImagePreview(e.target.value || null);
+                      }}
                       placeholder="Ou cole uma URL de imagem..."
                       className="bg-background mt-2"
                     />
