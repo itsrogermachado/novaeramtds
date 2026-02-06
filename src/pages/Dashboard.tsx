@@ -58,7 +58,14 @@ export default function Dashboard() {
     end: endOfMonth(new Date()),
   });
 
+  // Fixed range for goals calculation - always current month regardless of filter
+  const goalsDateRange = useMemo(() => ({
+    start: startOfMonth(new Date()),
+    end: endOfMonth(new Date()),
+  }), []);
+
   const { operations, methods, isLoading: opsLoading, createOperation, updateOperation, deleteOperation, createMethod, deleteMethod } = useOperations(dateRange);
+  const { operations: goalsOperations } = useOperations(goalsDateRange);
   const { expenses, effectiveExpenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
   
@@ -92,7 +99,7 @@ export default function Dashboard() {
   const totalExpenses = effectiveExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
   const netBalance = profit - totalExpenses;
 
-  // Calculate today's stats
+  // Calculate today's stats (from filtered operations)
   const todayStats = useMemo(() => {
     const today = format(new Date(), 'yyyy-MM-dd');
     const todayOps = operations.filter(op => op.operation_date === today);
@@ -107,40 +114,39 @@ export default function Dashboard() {
     };
   }, [operations]);
 
-  // Calculate weekly profit
-  const weeklyProfit = useMemo(() => {
+  // Calculate goals profit using goalsOperations (always current month, ignores dateRange filter)
+  const goalsProfit = useMemo(() => {
     const today = new Date();
+    const todayStr = format(today, 'yyyy-MM-dd');
     const weekStart = startOfWeek(today, { weekStartsOn: 0 });
     const weekStartStr = format(weekStart, 'yyyy-MM-dd');
-    const todayStr = format(today, 'yyyy-MM-dd');
-    
-    const weekOps = operations.filter(op => 
+    const monthStartStr = format(startOfMonth(today), 'yyyy-MM-dd');
+    const monthEndStr = format(endOfMonth(today), 'yyyy-MM-dd');
+
+    // Today's profit for daily goals
+    const todayOps = goalsOperations.filter(op => op.operation_date === todayStr);
+    const todayInvested = todayOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
+    const todayReturn = todayOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
+    const todayProfit = todayReturn - todayInvested;
+
+    // Weekly profit for weekly goals
+    const weekOps = goalsOperations.filter(op => 
       op.operation_date >= weekStartStr && op.operation_date <= todayStr
     );
-    
-    const invested = weekOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
-    const returned = weekOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
-    
-    return returned - invested;
-  }, [operations]);
+    const weekInvested = weekOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
+    const weekReturn = weekOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
+    const weeklyProfit = weekReturn - weekInvested;
 
-  // Calculate monthly profit (current month only)
-  const monthlyProfit = useMemo(() => {
-    const today = new Date();
-    const monthStart = startOfMonth(today);
-    const monthEnd = endOfMonth(today);
-    const monthStartStr = format(monthStart, 'yyyy-MM-dd');
-    const monthEndStr = format(monthEnd, 'yyyy-MM-dd');
-    
-    const monthOps = operations.filter(op => 
+    // Monthly profit for monthly goals
+    const monthOps = goalsOperations.filter(op => 
       op.operation_date >= monthStartStr && op.operation_date <= monthEndStr
     );
-    
-    const invested = monthOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
-    const returned = monthOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
-    
-    return returned - invested;
-  }, [operations]);
+    const monthInvested = monthOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
+    const monthReturn = monthOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
+    const monthlyProfit = monthReturn - monthInvested;
+
+    return { todayProfit, weeklyProfit, monthlyProfit };
+  }, [goalsOperations]);
 
   // Calculate top methods for AI context
   const topMethods = useMemo(() => {
@@ -169,9 +175,9 @@ export default function Dashboard() {
     netBalance,
     operationsCount: operations.length,
     todayProfit: todayStats.todayProfit,
-    weeklyProfit,
+    weeklyProfit: goalsProfit.weeklyProfit,
     topMethods,
-  }), [profit, totalExpenses, netBalance, operations.length, todayStats.todayProfit, weeklyProfit, topMethods]);
+  }), [profit, totalExpenses, netBalance, operations.length, todayStats.todayProfit, goalsProfit.weeklyProfit, topMethods]);
 
   // Detect if viewing a single day (e.g., "Hoje")
   const isSingleDayView = useMemo(() => {
@@ -319,9 +325,9 @@ export default function Dashboard() {
                   <div className="space-y-3 md:space-y-4">
                     <GoalsCard
                       goals={goals}
-                      todayProfit={todayStats.todayProfit}
-                      weeklyProfit={weeklyProfit}
-                      monthlyProfit={monthlyProfit}
+                      todayProfit={goalsProfit.todayProfit}
+                      weeklyProfit={goalsProfit.weeklyProfit}
+                      monthlyProfit={goalsProfit.monthlyProfit}
                       onCreate={createGoal}
                       onUpdate={updateGoal}
                       onDelete={deleteGoal}
