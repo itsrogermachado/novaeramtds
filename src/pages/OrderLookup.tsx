@@ -93,16 +93,6 @@ export default function OrderLookup() {
     }
   };
 
-  const checkIfRegisteredUser = async (emailToCheck: string): Promise<boolean> => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', emailToCheck.toLowerCase().trim())
-      .maybeSingle();
-    
-    return !!data;
-  };
-
   const handleSearch = async () => {
     if (!email.trim()) {
       toast.error('Digite seu e-mail');
@@ -113,30 +103,26 @@ export default function OrderLookup() {
     setIsLoading(true);
 
     try {
-      // First check if email belongs to a registered user
-      const isRegistered = await checkIfRegisteredUser(trimmedEmail);
-      
-      if (isRegistered) {
+      // Use edge function to fetch orders for guests
+      const { data, error } = await supabase.functions.invoke('guest-orders', {
+        body: { customer_email: trimmedEmail },
+      });
+
+      if (error) throw error;
+
+      if (data?.registered) {
+        // Email belongs to a registered user
         setIsRegisteredUser(true);
         setCheckedEmail(trimmedEmail);
         setIsLoading(false);
         return;
       }
 
-      // Not a registered user, proceed with normal search
+      // Guest user - show orders
       setHasSearched(true);
+      setOrders((data?.orders || []) as Order[]);
       
-      const { data, error } = await supabase
-        .from('store_orders')
-        .select('*')
-        .eq('customer_email', trimmedEmail)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setOrders((data || []) as unknown as Order[]);
-      
-      if (data && data.length === 0) {
+      if (!data?.orders || data.orders.length === 0) {
         toast.info('Nenhum pedido encontrado para este e-mail');
       }
     } catch (error) {
