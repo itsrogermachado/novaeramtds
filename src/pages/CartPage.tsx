@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { CartButton } from '@/components/store/CartButton';
+import { ThemeToggle } from '@/components/dashboard/ThemeToggle';
 import logo from '@/assets/logo-nova-era-3d.png';
 import { 
   ArrowLeft, Minus, Plus, Trash2, Package, Ticket, 
@@ -148,8 +149,9 @@ export default function CartPage() {
         <header className="border-b border-border bg-card">
           <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="Nova Era" className="h-10 w-auto" />
+              <img src={logo} alt="Nova Era" className="h-8 sm:h-10 w-auto" />
             </Link>
+            <ThemeToggle />
           </div>
         </header>
 
@@ -172,9 +174,12 @@ export default function CartPage() {
       <header className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Nova Era" className="h-10 w-auto" />
+            <img src={logo} alt="Nova Era" className="h-8 sm:h-10 w-auto" />
           </Link>
-          <CartButton variant="outline" size="icon" />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <CartButton variant="outline" size="icon" />
+          </div>
         </div>
       </header>
 
