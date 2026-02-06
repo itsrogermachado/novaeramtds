@@ -699,7 +699,6 @@
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 15px 40px hsl(220 20% 50% / 0.15));
-  animation: ne-logo-float 6s ease-in-out infinite;
   position: relative;
   z-index: 2;
 }
@@ -721,17 +720,6 @@
   filter: blur(40px);
   pointer-events: none;
   z-index: 1;
-}
-
-@keyframes ne-logo-float {
-  0%, 100% {
-    transform: translateY(0);
-    filter: drop-shadow(0 15px 40px hsl(220 20% 50% / 0.15));
-  }
-  50% {
-    transform: translateY(-12px);
-    filter: drop-shadow(0 25px 50px hsl(220 20% 50% / 0.2));
-  }
 }
 
 /* ============================================ */
