@@ -660,9 +660,101 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      store_products_public: {
+        Row: {
+          auto_open_chat: boolean | null
+          category_id: string | null
+          comparison_price: string | null
+          created_at: string | null
+          cta_url: string | null
+          delivery_type: string | null
+          display_order: number | null
+          hide_sold_count: boolean | null
+          id: string | null
+          image_url: string | null
+          is_featured: boolean | null
+          is_hidden: boolean | null
+          is_private: boolean | null
+          long_description: string | null
+          max_quantity: number | null
+          min_quantity: number | null
+          name: string | null
+          price: string | null
+          short_description: string | null
+          slug: string | null
+          status: string | null
+          stock_available: number | null
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          auto_open_chat?: boolean | null
+          category_id?: string | null
+          comparison_price?: string | null
+          created_at?: string | null
+          cta_url?: string | null
+          delivery_type?: string | null
+          display_order?: number | null
+          hide_sold_count?: boolean | null
+          id?: string | null
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_hidden?: boolean | null
+          is_private?: boolean | null
+          long_description?: string | null
+          max_quantity?: number | null
+          min_quantity?: number | null
+          name?: string | null
+          price?: string | null
+          short_description?: string | null
+          slug?: string | null
+          status?: string | null
+          stock_available?: never
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          auto_open_chat?: boolean | null
+          category_id?: string | null
+          comparison_price?: string | null
+          created_at?: string | null
+          cta_url?: string | null
+          delivery_type?: string | null
+          display_order?: number | null
+          hide_sold_count?: boolean | null
+          id?: string | null
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_hidden?: boolean | null
+          is_private?: boolean | null
+          long_description?: string | null
+          max_quantity?: number | null
+          min_quantity?: number | null
+          name?: string | null
+          price?: string | null
+          short_description?: string | null
+          slug?: string | null
+          status?: string | null
+          stock_available?: never
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "store_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      check_product_availability: {
+        Args: { product_id: string; requested_quantity?: number }
+        Returns: Json
+      }
       check_product_stock: { Args: { product_id: string }; Returns: boolean }
       get_product_stock_count: { Args: { product_id: string }; Returns: number }
       get_team_operator_ids: {

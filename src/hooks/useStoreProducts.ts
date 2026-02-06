@@ -1,7 +1,7 @@
- import { useState, useEffect } from 'react';
- import { supabase } from '@/integrations/supabase/client';
- import { useAuth } from '@/contexts/AuthContext';
- import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
  
 export interface StoreProduct {
   id: string;
@@ -30,42 +30,112 @@ export interface StoreProduct {
   display_order: number;
   created_at: string;
   updated_at: string;
+  // Added for public view compatibility
+  stock_available?: number;
 }
  
- export interface StoreProductWithCategory extends StoreProduct {
-   store_categories?: { name: string; slug: string } | null;
- }
+export interface StoreProductWithCategory extends StoreProduct {
+  store_categories?: { name: string; slug: string } | null;
+}
+
+// Helper to calculate stock availability from product data
+export function getProductStockCount(product: StoreProduct): number {
+  // If stock_available is provided (from public view), use it
+  if (typeof product.stock_available === 'number') {
+    return product.stock_available;
+  }
+  // Otherwise calculate from stock field (admin view)
+  if (!product.stock || product.stock.trim() === '') {
+    return 0;
+  }
+  if (product.product_type === 'lines') {
+    return product.stock.split('\n').filter(line => line.trim()).length;
+  }
+  return 1;
+}
+
+export function isProductInStock(product: StoreProduct): boolean {
+  return getProductStockCount(product) > 0;
+}
  
- export function useStoreProducts(categoryId?: string, onlyActive = false) {
-   const [products, setProducts] = useState<StoreProductWithCategory[]>([]);
-   const [isLoading, setIsLoading] = useState(true);
-   const { isAdmin } = useAuth();
- 
-   const fetchProducts = async () => {
-     setIsLoading(true);
-     
-     let query = supabase
-       .from('store_products')
-       .select('*, store_categories(name, slug)')
-       .order('display_order', { ascending: true });
-     
-     if (categoryId) {
-       query = query.eq('category_id', categoryId);
-     }
-     
-     if (onlyActive) {
-       query = query.eq('status', 'active');
-     }
-     
-     const { data, error } = await query;
-     
-     if (error) {
-       console.error('Error fetching products:', error);
-     } else {
-       setProducts((data || []) as StoreProductWithCategory[]);
-     }
-     setIsLoading(false);
-   };
+export function useStoreProducts(categoryId?: string, onlyActive = false) {
+  const [products, setProducts] = useState<StoreProductWithCategory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { isAdmin, user } = useAuth();
+
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    
+    // Admins fetch from the main table to see stock content
+    // Regular users/guests fetch from the secure public view
+    if (isAdmin) {
+      let query = supabase
+        .from('store_products')
+        .select('*, store_categories(name, slug)')
+        .order('display_order', { ascending: true });
+      
+      if (categoryId) {
+        query = query.eq('category_id', categoryId);
+      }
+      
+      if (onlyActive) {
+        query = query.eq('status', 'active');
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching products:', error);
+      } else {
+        setProducts((data || []) as StoreProductWithCategory[]);
+      }
+    } else {
+      // For non-admins, use the public view that excludes sensitive stock data
+      let query = supabase
+        .from('store_products_public')
+        .select('*')
+        .order('display_order', { ascending: true });
+      
+      if (categoryId) {
+        query = query.eq('category_id', categoryId);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching products from public view:', error);
+        // Fallback: try authenticated table access if user is logged in
+        if (user) {
+          const fallbackQuery = supabase
+            .from('store_products')
+            .select('*, store_categories(name, slug)')
+            .eq('status', 'active')
+            .order('display_order', { ascending: true });
+          
+          const fallbackResult = categoryId 
+            ? await fallbackQuery.eq('category_id', categoryId)
+            : await fallbackQuery;
+          
+          if (!fallbackResult.error) {
+            setProducts((fallbackResult.data || []) as StoreProductWithCategory[]);
+          }
+        }
+      } else {
+        // Map public view data to product format
+        const mappedProducts = (data || []).map(p => ({
+          ...p,
+          stock: null, // Stock content is not exposed
+          post_sale_instructions: null, // Not exposed to public
+          product_type: 'lines' as const, // Default, not critical for display
+          delivery_type: 'automatic' as const,
+          store_categories: null, // View doesn't include join
+        })) as StoreProductWithCategory[];
+        setProducts(mappedProducts);
+      }
+    }
+    
+    setIsLoading(false);
+  };
  
    const createProduct = async (product: Omit<StoreProduct, 'id' | 'created_at' | 'updated_at'>) => {
      if (!isAdmin) {
