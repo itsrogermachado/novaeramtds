@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { StoreProductWithCategory } from '@/hooks/useStoreProducts';
+import { StoreProductWithCategory, isProductInStock, getProductStockCount } from '@/hooks/useStoreProducts';
 import { useCart } from '@/contexts/CartContext';
 import { Minus, Plus, ShoppingCart, Sparkles, Package, ExternalLink, CreditCard, Zap } from 'lucide-react';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
@@ -33,18 +33,14 @@ export function ProductDetailModal({
 
   if (!product) return null;
 
-  // Verificar estoque de forma segura (sem expor conteúdo)
-  const hasStock = 'hasStock' in product ? product.hasStock : (product.stock && product.stock.trim() !== '');
-  const isOutOfStock = !hasStock;
-  
-  // Para quantidade disponível, usamos um valor padrão alto para produtos sem contagem exposta
-  // O backend validará a quantidade real no momento da compra
-  const availableStock = product.max_quantity && product.max_quantity > 0 ? product.max_quantity : 99;
+  // Use secure stock check helper
+  const isOutOfStock = !isProductInStock(product);
+  const availableStock = getProductStockCount(product);
   
   const minQty = product.min_quantity || 1;
   const maxQty = product.max_quantity && product.max_quantity > 0 
-    ? product.max_quantity 
-    : 99;
+    ? Math.min(product.max_quantity, availableStock || 99)
+    : (availableStock || 99);
 
   const hasComparisonPrice = product.comparison_price && 
     product.comparison_price !== '0' && 

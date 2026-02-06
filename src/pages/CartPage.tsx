@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useValidateCoupon } from '@/hooks/useStoreCoupons';
+import { getProductStockCount } from '@/hooks/useStoreProducts';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,8 +77,7 @@ export default function CartPage() {
   };
 
   const getMaxQuantity = (item: typeof items[0]) => {
-    const stockLines = item.product.stock?.split('\n').filter(line => line.trim()) || [];
-    const availableStock = item.product.product_type === 'lines' ? stockLines.length : 1;
+    const availableStock = getProductStockCount(item.product);
     return item.product.max_quantity && item.product.max_quantity > 0 
       ? Math.min(item.product.max_quantity, availableStock) 
       : availableStock;
@@ -88,8 +88,7 @@ export default function CartPage() {
   };
 
   const getAvailableStock = (item: typeof items[0]) => {
-    const stockLines = item.product.stock?.split('\n').filter(line => line.trim()) || [];
-    return item.product.product_type === 'lines' ? stockLines.length : 1;
+    return getProductStockCount(item.product);
   };
 
   const handleApplyCoupon = async () => {

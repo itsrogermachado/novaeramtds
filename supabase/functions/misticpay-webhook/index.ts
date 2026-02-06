@@ -107,12 +107,6 @@ Deno.serve(async (req) => {
     }
 
     const body: MisticPayWebhook = JSON.parse(rawBody);
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Supabase credentials not configured');
-    }
-
-    const body: MisticPayWebhook = await req.json();
     console.log('Received webhook:', JSON.stringify(body));
 
     const { transactionId, status, transactionType } = body;
@@ -143,9 +137,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if order was already processed
+    // IDEMPOTENCY CHECK: If order was already processed, return success
+    // This prevents race conditions and duplicate deliveries
     if (order.status === 'paid' || order.status === 'delivered') {
-      console.log('Order already processed:', order.id);
+      console.log('Order already processed (idempotency check passed):', order.id);
       return new Response(
         JSON.stringify({ success: true, message: 'Order already processed' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -165,6 +160,42 @@ Deno.serve(async (req) => {
     
     if (status === 'COMPLETO') {
       const items = order.items as OrderItem[];
+      
+      // ATOMIC DELIVERY: Mark as paid first to prevent race condition
+      // This ensures subsequent webhook calls see the order as already processed
+      const { error: markPaidError } = await supabase
+        .from('store_orders')
+        .update({ 
+          status: 'paid',
+          paid_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', order.id)
+        .eq('status', 'pending'); // Only update if still pending (atomic check)
+
+      if (markPaidError) {
+        console.error('Error marking order as paid:', markPaidError);
+        // If this fails because status changed, it means another request processed it
+        return new Response(
+          JSON.stringify({ success: true, message: 'Order already being processed' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Re-fetch to confirm we got the lock
+      const { data: lockedOrder } = await supabase
+        .from('store_orders')
+        .select('status')
+        .eq('id', order.id)
+        .single();
+
+      if (lockedOrder?.status !== 'paid') {
+        console.log('Order was processed by another request');
+        return new Response(
+          JSON.stringify({ success: true, message: 'Order processed by another request' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       
       for (const item of items) {
         // Get current product stock
@@ -231,7 +262,6 @@ Deno.serve(async (req) => {
     };
 
     if (status === 'COMPLETO') {
-      updateData.paid_at = new Date().toISOString();
       updateData.delivered_items = deliveredItems;
     }
 
@@ -255,7 +285,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Webhook error:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
+      JSON.stringify({ error: (error as Error).message || 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

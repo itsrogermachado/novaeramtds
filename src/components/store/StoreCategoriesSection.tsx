@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useStoreCategories, StoreCategory } from '@/hooks/useStoreCategories';
 import { Package, ChevronDown, ChevronUp, ShoppingCart, Store } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { StoreProductWithCategory } from '@/hooks/useStoreProducts';
+import { StoreProductWithCategory, isProductInStock } from '@/hooks/useStoreProducts';
 import { Button } from '@/components/ui/button';
 import { ProductDetailModal } from './ProductDetailModal';
 
@@ -184,9 +184,8 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
                   ) : (
                     <div className="space-y-3">
                       {products.map((product) => {
-                        // Use hasStock property if available, otherwise check stock field
-                        const hasStock = 'hasStock' in product ? product.hasStock : (product.stock && product.stock.trim() !== '');
-                        const isOutOfStock = !hasStock;
+                        // Use secure stock check from helper
+                        const isOutOfStock = !isProductInStock(product);
                         
                         return (
                           <div

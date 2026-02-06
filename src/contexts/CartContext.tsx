@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { StoreProductWithCategory } from '@/hooks/useStoreProducts';
+import { StoreProductWithCategory, getProductStockCount } from '@/hooks/useStoreProducts';
 import { StoreCoupon } from '@/hooks/useStoreCoupons';
 import { toast } from 'sonner';
 
@@ -66,9 +66,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const getAvailableStock = (product: StoreProductWithCategory): number => {
-    if (!product.stock || product.stock.trim() === '') return 0;
-    const stockLines = product.stock.split('\n').filter(line => line.trim());
-    return product.product_type === 'lines' ? stockLines.length : 1;
+    return getProductStockCount(product);
   };
 
   const addItem = useCallback((product: StoreProductWithCategory, quantity = 1) => {

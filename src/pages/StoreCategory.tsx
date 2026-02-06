@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useStoreProducts, StoreProductWithCategory } from '@/hooks/useStoreProducts';
+import { useStoreProducts, StoreProductWithCategory, getProductStockCount, isProductInStock } from '@/hooks/useStoreProducts';
 import { StoreCategory as StoreCategoryType } from '@/hooks/useStoreCategories';
 import { ArrowLeft, Package, ShoppingCart, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -155,10 +155,9 @@ export default function StoreCategory() {
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => {
-              const isOutOfStock = !product.stock || product.stock.trim() === '';
-              const stockLines = product.stock?.split('\n').filter(line => line.trim()) || [];
-              const availableStock = product.product_type === 'lines' ? stockLines.length : (product.stock ? 1 : 0);
+          {products.map((product) => {
+              const isOutOfStock = !isProductInStock(product);
+              const availableStock = getProductStockCount(product);
               
               return (
                 <div
