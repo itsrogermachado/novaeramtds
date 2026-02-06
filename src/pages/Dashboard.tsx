@@ -213,9 +213,9 @@ export default function Dashboard() {
         </div>
 
         {/* Main content area with sidebar */}
-        <div className="flex flex-1 relative">
+        <div className="flex flex-1 relative overflow-hidden">
           {/* Desktop Sidebar - hidden on mobile */}
-          <div className="hidden md:block relative z-10">
+          <div className="hidden md:flex h-[calc(100vh-65px)] relative z-10">
             <DashboardSidebar
               currentTab={currentTab}
               onTabChange={setCurrentTab}
@@ -224,7 +224,7 @@ export default function Dashboard() {
             />
           </div>
           
-          <div className="flex-1 relative flex flex-col min-w-0">
+          <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden">
 
           <main className="flex-1 p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6 overflow-auto">
             <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange}>
