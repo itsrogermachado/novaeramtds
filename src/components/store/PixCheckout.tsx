@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Copy, CheckCircle2, Loader2, RefreshCw, 
@@ -32,42 +31,13 @@ export function PixCheckout({
   onPaymentConfirmed,
   onCancel 
 }: PixCheckoutProps) {
-  const [payerName, setPayerName] = useState('');
-  const [payerDocument, setPayerDocument] = useState('');
   const [pixData, setPixData] = useState<PixData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [checkingPayment, setCheckingPayment] = useState(false);
 
-  // Format CPF as user types
-  const formatCPF = (value: string) => {
-    const cleaned = value.replace(/\D/g, '');
-    if (cleaned.length <= 3) return cleaned;
-    if (cleaned.length <= 6) return `${cleaned.slice(0, 3)}.${cleaned.slice(3)}`;
-    if (cleaned.length <= 9) return `${cleaned.slice(0, 3)}.${cleaned.slice(3, 6)}.${cleaned.slice(6)}`;
-    return `${cleaned.slice(0, 3)}.${cleaned.slice(3, 6)}.${cleaned.slice(6, 9)}-${cleaned.slice(9, 11)}`;
-  };
-
-  const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCPF(e.target.value);
-    if (formatted.replace(/\D/g, '').length <= 11) {
-      setPayerDocument(formatted);
-    }
-  };
-
   const generatePix = async () => {
-    if (!payerName.trim()) {
-      setError('Informe seu nome completo');
-      return;
-    }
-
-    const cleanCPF = payerDocument.replace(/\D/g, '');
-    if (cleanCPF.length !== 11) {
-      setError('CPF inválido');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
 
@@ -76,8 +46,8 @@ export function PixCheckout({
         body: {
           orderId,
           amount,
-          payerName: payerName.trim(),
-          payerDocument: cleanCPF,
+          payerName: 'Cliente Nova Era',
+          payerDocument: '00000000000',
           description: `Compra Nova Era - ${customerEmail}`,
         },
       });
@@ -166,17 +136,25 @@ export function PixCheckout({
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
-  // Show form to collect payer info
-  if (!pixData) {
+  // Auto-generate PIX on mount
+  useEffect(() => {
+    if (!pixData && !isLoading && !error) {
+      generatePix();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Show loading state while generating PIX
+  if (!pixData && isLoading) {
     return (
       <div className="space-y-6">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-            <QrCode className="h-8 w-8 text-primary" />
+            <Loader2 className="h-8 w-8 text-primary animate-spin" />
           </div>
-          <h3 className="text-lg font-semibold text-foreground">Pagamento via PIX</h3>
+          <h3 className="text-lg font-semibold text-foreground">Gerando PIX...</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Informe seus dados para gerar o QR Code
+            Aguarde enquanto geramos o QR Code
           </p>
         </div>
 
@@ -184,54 +162,37 @@ export function PixCheckout({
           <p className="text-sm text-muted-foreground">Valor a pagar</p>
           <p className="text-2xl font-bold text-primary">{formatCurrency(amount)}</p>
         </div>
+      </div>
+    );
+  }
 
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="payerName">Nome completo</Label>
-            <Input
-              id="payerName"
-              placeholder="Seu nome completo"
-              value={payerName}
-              onChange={(e) => setPayerName(e.target.value)}
-              className="mt-1.5"
-            />
+  // Show error state
+  if (!pixData && error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10 mb-4">
+            <AlertCircle className="h-8 w-8 text-destructive" />
           </div>
-          <div>
-            <Label htmlFor="payerDocument">CPF</Label>
-            <Input
-              id="payerDocument"
-              placeholder="000.000.000-00"
-              value={payerDocument}
-              onChange={handleCPFChange}
-              className="mt-1.5"
-            />
-          </div>
+          <h3 className="text-lg font-semibold text-foreground">Erro ao gerar PIX</h3>
+          <p className="text-sm text-muted-foreground mt-1">{error}</p>
         </div>
-
-        {error && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            {error}
-          </div>
-        )}
 
         <div className="flex gap-3">
           <Button variant="outline" className="flex-1" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button className="flex-1" onClick={generatePix} disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Gerando...
-              </>
-            ) : (
-              'Gerar QR Code'
-            )}
+          <Button className="flex-1" onClick={generatePix}>
+            Tentar Novamente
           </Button>
         </div>
       </div>
     );
+  }
+
+  // Show loading placeholder if no data yet
+  if (!pixData) {
+    return null;
   }
 
   // Show QR Code and payment info
@@ -266,7 +227,7 @@ export function PixCheckout({
 
       {/* Copy & Paste */}
       <div className="space-y-2">
-        <Label className="text-sm text-muted-foreground">Ou copie o código PIX</Label>
+        <p className="text-sm text-muted-foreground">Ou copie o código PIX</p>
         <div className="flex gap-2">
           <Input
             readOnly
