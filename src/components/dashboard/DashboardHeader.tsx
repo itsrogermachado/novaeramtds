@@ -100,30 +100,29 @@ export function DashboardHeader({
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gold/5 via-transparent to-transparent pointer-events-none" />
       
       <div className="relative flex flex-col gap-2.5 sm:gap-3 md:flex-row md:items-center md:justify-between">
-        {/* Logo and title row */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4">
+        {/* Logo and title row - only show on mobile since sidebar has this on desktop */}
+        <div className="flex items-center justify-between md:hidden">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Mobile nav trigger */}
             {mobileNav}
             
-            {/* Logo with glow effect */}
+            {/* Logo with glow effect - mobile only */}
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-gold/20 to-gold/10 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <img src={logo} alt="Nova Era" className="relative h-8 sm:h-9 md:h-12 w-auto object-contain rounded-lg shadow-elegant" />
+              <img src={logo} alt="Nova Era" className="relative h-8 sm:h-9 w-auto object-contain rounded-lg shadow-elegant" />
             </div>
             <div className="hidden sm:block">
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <h1 className="text-base sm:text-lg md:text-xl font-display font-semibold text-foreground">
+                <h1 className="text-base sm:text-lg font-display font-semibold text-foreground">
                   Nova Era
                 </h1>
                 <Sparkles className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-gold animate-pulse-glow" />
               </div>
-              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">
+              <p className="text-xs text-muted-foreground hidden sm:block">
                 Painel Administrativo
               </p>
             </div>
           </div>
-
         </div>
 
         {/* Actions row - reorganized for mobile */}
