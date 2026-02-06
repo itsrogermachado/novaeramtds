@@ -75,20 +75,17 @@ export default function Landing() {
             <div className="w-full max-w-[460px] flex flex-col">
               
               {/* Main Card */}
-              <div className="auth-card-minimal rounded-2xl p-7 sm:p-9 w-full animate-auth-card">
+              <div className="auth-card-minimal rounded-2xl p-5 xs:p-7 sm:p-9 w-full animate-auth-card">
                 {/* Title */}
                 <h1 
-                  className="text-center text-xl sm:text-2xl font-bold mb-2 animate-auth-field opacity-0"
-                  style={{ 
-                    animationDelay: '0.3s',
-                    color: 'hsl(220 25% 15%)'
-                  }}
+                  className="text-center text-lg xs:text-xl sm:text-2xl font-bold mb-2 animate-auth-field opacity-0 text-foreground"
+                  style={{ animationDelay: '0.3s' }}
                 >
                   Bem-vindo ao Nova Era
                 </h1>
                 
                 <p 
-                  className="text-center text-sm text-muted-foreground mb-6 animate-auth-field opacity-0"
+                  className="text-center text-xs xs:text-sm text-muted-foreground mb-4 xs:mb-6 animate-auth-field opacity-0"
                   style={{ animationDelay: '0.35s' }}
                 >
                   Acesse seu dashboard para acompanhar dados, relatórios e configurações.
@@ -118,21 +115,19 @@ export default function Landing() {
                 {/* Auth Links - only show when login is closed */}
                 {!isLoginOpen && (
                   <div 
-                    className="mt-6 flex items-center justify-center gap-4 text-sm animate-auth-field opacity-0"
+                    className="mt-4 xs:mt-6 flex items-center justify-center gap-3 xs:gap-4 text-xs xs:text-sm animate-auth-field opacity-0"
                     style={{ animationDelay: '0.45s' }}
                   >
                     <button
                       onClick={() => setIsLoginOpen(true)}
-                      className="transition-colors font-medium hover:underline"
-                      style={{ color: 'hsl(220 25% 20%)' }}
+                      className="transition-colors font-medium hover:underline text-foreground"
                     >
                       Entrar
                     </button>
                     <span className="text-muted-foreground">•</span>
                     <button
                       onClick={() => navigate('/cadastro')}
-                      className="transition-colors hover:underline"
-                      style={{ color: 'hsl(220 15% 40%)' }}
+                      className="transition-colors hover:underline text-muted-foreground hover:text-foreground"
                     >
                       Criar conta
                     </button>
@@ -142,31 +137,22 @@ export default function Landing() {
 
               {/* Benefits Section */}
               <div 
-                className="mt-6 w-full grid gap-3 animate-auth-field opacity-0"
+                className="mt-4 xs:mt-6 w-full grid gap-2 xs:gap-3 animate-auth-field opacity-0"
                 style={{ animationDelay: '0.5s' }}
               >
                 {benefits.map((benefit, index) => (
                   <div 
                     key={index}
-                    className="flex items-start gap-4 p-4 rounded-xl bg-white/40 backdrop-blur-sm border border-white/60"
+                    className="flex items-start gap-3 xs:gap-4 p-3 xs:p-4 rounded-xl bg-card/60 dark:bg-card/40 backdrop-blur-sm border border-border"
                   >
-                    <div 
-                      className="p-2.5 rounded-lg shrink-0"
-                      style={{ 
-                        background: 'linear-gradient(135deg, hsl(220 15% 95%), hsl(220 10% 90%))',
-                        boxShadow: '0 2px 8px hsl(220 20% 80% / 0.3)'
-                      }}
-                    >
-                      <benefit.icon className="h-5 w-5" style={{ color: 'hsl(220 25% 30%)' }} />
+                    <div className="p-2 xs:p-2.5 rounded-lg shrink-0 bg-muted">
+                      <benefit.icon className="h-4 w-4 xs:h-5 xs:w-5 text-primary" />
                     </div>
-                    <div>
-                      <h3 
-                        className="font-semibold text-sm"
-                        style={{ color: 'hsl(220 25% 20%)' }}
-                      >
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-xs xs:text-sm text-foreground">
                         {benefit.title}
                       </h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-[10px] xs:text-xs text-muted-foreground mt-0.5 line-clamp-2">
                         {benefit.description}
                       </p>
                     </div>
@@ -176,7 +162,7 @@ export default function Landing() {
 
               {/* Footer Text */}
               <p 
-                className="mt-6 text-xs text-muted-foreground text-center animate-auth-field opacity-0"
+                className="mt-4 xs:mt-6 text-[10px] xs:text-xs text-muted-foreground text-center animate-auth-field opacity-0"
                 style={{ animationDelay: '0.55s' }}
               >
                 Acesso seguro • Dados protegidos • Interface rápida
@@ -185,22 +171,19 @@ export default function Landing() {
           </div>
 
           {/* RIGHT SIDE - Store */}
-          <div className="flex flex-col items-center lg:items-start lg:pl-8 lg:border-l lg:border-white/20">
+          <div className="flex flex-col items-center lg:items-start lg:pl-8 lg:border-l lg:border-border">
             <div className="w-full max-w-[460px] flex flex-col">
               
               {/* Store Card */}
-              <div className="auth-card-minimal rounded-2xl p-7 sm:p-9 w-full animate-auth-card">
+              <div className="auth-card-minimal rounded-2xl p-5 xs:p-7 sm:p-9 w-full animate-auth-card">
                 {/* Store Header */}
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <Store className="h-5 w-5" style={{ color: 'hsl(220 25% 30%)' }} />
-                  <h2
-                    className="text-xl sm:text-2xl font-bold"
-                    style={{ color: 'hsl(220 25% 15%)' }}
-                  >
+                  <Store className="h-4 w-4 xs:h-5 xs:w-5 text-primary" />
+                  <h2 className="text-lg xs:text-xl sm:text-2xl font-bold text-foreground">
                     Loja Nova Era
                   </h2>
                 </div>
-                <p className="text-center text-sm text-muted-foreground mb-6">
+                <p className="text-center text-xs xs:text-sm text-muted-foreground mb-4 xs:mb-6">
                   Explore produtos e serviços digitais que impulsionam sua operação.
                 </p>
 
