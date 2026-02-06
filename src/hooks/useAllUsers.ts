@@ -45,10 +45,12 @@ export function useAllUsers() {
     }
 
     const usersWithRoles: UserProfile[] = (profiles || []).map(profile => {
-      const userRole = roles?.find(r => r.user_id === profile.id);
+      const userRoles = roles?.filter(r => r.user_id === profile.id) || [];
+      // Check if user has admin role (prioritize admin over user)
+      const isAdmin = userRoles.some(r => r.role === 'admin');
       return {
         ...profile,
-        role: (userRole?.role as 'admin' | 'user') || 'user',
+        role: isAdmin ? 'admin' : 'user',
       };
     });
 
