@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
@@ -80,23 +80,48 @@ export function PixCheckout({
     }
   };
 
+  const isFinalStatus = (status?: string | null) =>
+    status === 'paid' || status === 'delivered';
+
+  const hasConfirmedRef = useRef(false);
+
+  // Reset guard when order changes
+  useEffect(() => {
+    hasConfirmedRef.current = false;
+  }, [orderId]);
+
+  const confirmPaymentOnce = useCallback(() => {
+    if (hasConfirmedRef.current) return;
+    hasConfirmedRef.current = true;
+    toast.success('Pagamento confirmado!');
+    onPaymentConfirmed();
+  }, [onPaymentConfirmed]);
+
+  const fetchOrderStatus = useCallback(async (): Promise<string | null> => {
+    if (!orderId) return null;
+
+    const { data, error } = await supabase.functions.invoke('check-order-status', {
+      body: { orderId },
+    });
+
+    if (error) throw error;
+    if (data?.success === false) return null;
+
+    return (data?.status as string | undefined) ?? null;
+  }, [orderId]);
+
   const checkPaymentStatus = async () => {
     if (!orderId) return;
 
     setCheckingPayment(true);
 
     try {
-      const { data: order, error } = await supabase
-        .from('store_orders')
-        .select('status')
-        .eq('id', orderId)
-        .single();
+      const status = await fetchOrderStatus();
 
-      if (error) throw error;
-
-      if (order.status === 'paid' || order.status === 'delivered') {
-        toast.success('Pagamento confirmado!');
-        onPaymentConfirmed();
+      if (isFinalStatus(status)) {
+        confirmPaymentOnce();
+      } else if (!status) {
+        toast.error('Pedido não encontrado ou expirado. Gere um novo PIX.');
       } else {
         toast.info('Pagamento ainda não confirmado. Tente novamente em alguns segundos.');
       }
@@ -108,54 +133,37 @@ export function PixCheckout({
     }
   };
 
-  // Use Realtime for instant payment confirmation
+  // Verificação automática (funciona para guest e logados, sem depender de acesso direto à tabela)
   useEffect(() => {
     if (!pixData || !orderId) return;
 
-    // Subscribe to realtime changes on this specific order
-    const channel = supabase
-      .channel(`order-${orderId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'store_orders',
-          filter: `id=eq.${orderId}`,
-        },
-        (payload) => {
-          const newStatus = payload.new?.status;
-          if (newStatus === 'paid' || newStatus === 'delivered') {
-            toast.success('Pagamento confirmado!');
-            onPaymentConfirmed();
-          }
-        }
-      )
-      .subscribe();
+    let canceled = false;
+    let interval: number | undefined;
 
-    // Also do an initial check in case payment was already processed
-    const checkInitialStatus = async () => {
+    const tick = async () => {
       try {
-        const { data: order } = await supabase
-          .from('store_orders')
-          .select('status')
-          .eq('id', orderId)
-          .single();
+        const status = await fetchOrderStatus();
+        if (canceled) return;
 
-        if (order?.status === 'paid' || order?.status === 'delivered') {
-          toast.success('Pagamento confirmado!');
-          onPaymentConfirmed();
+        if (isFinalStatus(status)) {
+          confirmPaymentOnce();
+          if (interval) window.clearInterval(interval);
         }
       } catch (err) {
-        console.error('Error checking initial status:', err);
+        // Evita spam de toast durante o polling
+        console.error('Error polling payment status:', err);
       }
     };
-    checkInitialStatus();
+
+    // Checagem inicial + polling rápido
+    tick();
+    interval = window.setInterval(tick, 3000);
 
     return () => {
-      supabase.removeChannel(channel);
+      canceled = true;
+      if (interval) window.clearInterval(interval);
     };
-  }, [pixData, orderId, onPaymentConfirmed]);
+  }, [pixData, orderId, fetchOrderStatus, confirmPaymentOnce]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
