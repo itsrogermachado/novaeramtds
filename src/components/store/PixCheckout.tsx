@@ -86,14 +86,15 @@ export function PixCheckout({
     setCheckingPayment(true);
 
     try {
-      // Use edge function to check status securely (no RLS bypass needed)
-      const { data, error } = await supabase.functions.invoke('check-order-status', {
-        body: { orderId },
-      });
+      const { data: order, error } = await supabase
+        .from('store_orders')
+        .select('status')
+        .eq('id', orderId)
+        .single();
 
       if (error) throw error;
 
-      if (data.status === 'paid' || data.status === 'delivered') {
+      if (order.status === 'paid' || order.status === 'delivered') {
         toast.success('Pagamento confirmado!');
         onPaymentConfirmed();
       } else {
@@ -107,40 +108,53 @@ export function PixCheckout({
     }
   };
 
-  // Use edge function for initial check and periodic polling (Realtime requires RLS access)
+  // Use Realtime for instant payment confirmation
   useEffect(() => {
     if (!pixData || !orderId) return;
 
-    // Check status via edge function
-    const checkStatus = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('check-order-status', {
-          body: { orderId },
-        });
+    // Subscribe to realtime changes on this specific order
+    const channel = supabase
+      .channel(`order-${orderId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'store_orders',
+          filter: `id=eq.${orderId}`,
+        },
+        (payload) => {
+          const newStatus = payload.new?.status;
+          if (newStatus === 'paid' || newStatus === 'delivered') {
+            toast.success('Pagamento confirmado!');
+            onPaymentConfirmed();
+          }
+        }
+      )
+      .subscribe();
 
-        if (!error && (data?.status === 'paid' || data?.status === 'delivered')) {
+    // Also do an initial check in case payment was already processed
+    const checkInitialStatus = async () => {
+      try {
+        const { data: order } = await supabase
+          .from('store_orders')
+          .select('status')
+          .eq('id', orderId)
+          .single();
+
+        if (order?.status === 'paid' || order?.status === 'delivered') {
           toast.success('Pagamento confirmado!');
           onPaymentConfirmed();
-          return true;
         }
       } catch (err) {
-        console.error('Error checking status:', err);
+        console.error('Error checking initial status:', err);
       }
-      return false;
     };
+    checkInitialStatus();
 
-    // Initial check
-    checkStatus();
-
-    // Poll every 3 seconds (faster than before, but using secure edge function)
-    const interval = setInterval(async () => {
-      const confirmed = await checkStatus();
-      if (confirmed) {
-        clearInterval(interval);
-      }
-    }, 3000);
-
-    return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [pixData, orderId, onPaymentConfirmed]);
 
   const formatCurrency = (value: number) => {
