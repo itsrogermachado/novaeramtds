@@ -126,9 +126,11 @@ export default function CartPage() {
     setCouponError('');
   };
 
+  const finalCustomerEmail = isLoggedIn ? userEmail : email.trim();
+  const canCheckout = isLoggedIn ? !!userEmail : !!email && email === confirmEmail;
+
   const handleCheckout = async () => {
-    // Use userEmail for logged in users, otherwise use input email
-    const finalEmail = isLoggedIn ? userEmail : email.trim();
+    const finalEmail = finalCustomerEmail;
 
     if (!finalEmail) {
       toast.error('Informe seu e-mail');
@@ -148,38 +150,44 @@ export default function CartPage() {
     setIsProcessing(true);
 
     try {
-      // Create order in database
-      const orderItems = items.map(item => ({
-        product_id: item.product.id,
-        product_name: item.product.name,
-        quantity: item.quantity,
-        unit_price: parseFloat(item.product.price.replace(',', '.').replace(/[^\d.]/g, '')),
-        total: parseFloat(item.product.price.replace(',', '.').replace(/[^\d.]/g, '')) * item.quantity,
-      }));
+      const orderItems = items.map(item => {
+        const unitPrice = parseFloat(item.product.price.replace(',', '.').replace(/[^\d.]/g, ''));
+        const safeUnitPrice = Number.isFinite(unitPrice) ? unitPrice : 0;
 
-      const { data: order, error } = await supabase
-        .from('store_orders')
-        .insert({
+        return {
+          product_id: item.product.id,
+          product_name: item.product.name,
+          quantity: item.quantity,
+          unit_price: safeUnitPrice,
+          total: safeUnitPrice * item.quantity,
+        };
+      });
+
+      const { data, error } = await supabase.functions.invoke('store-create-order', {
+        body: {
           customer_email: finalEmail,
           payment_method: paymentMethod,
-          status: 'pending',
           subtotal: getSubtotal(),
           discount_amount: discountAmount,
           total: getTotal(),
           coupon_code: appliedCoupon?.code || null,
           items: orderItems,
-        })
-        .select('id')
-        .single();
+        },
+      });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
-      // Open PIX checkout dialog
-      setCurrentOrderId(order.id);
+      if (!data?.orderId) {
+        throw new Error('Resposta inválida ao criar pedido');
+      }
+
+      setCurrentOrderId(data.orderId);
       setShowPixCheckout(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating order:', error);
-      toast.error('Erro ao processar pedido. Tente novamente.');
+      toast.error(error?.message || 'Erro ao processar pedido. Tente novamente.');
     } finally {
       setIsProcessing(false);
     }
@@ -550,7 +558,7 @@ export default function CartPage() {
                 className="w-full" 
                 size="lg"
                 onClick={handleCheckout}
-                disabled={isProcessing || !email || email !== confirmEmail}
+                disabled={isProcessing || !canCheckout}
               >
                 {isProcessing ? (
                   <>
@@ -581,7 +589,7 @@ export default function CartPage() {
             <PixCheckout
               orderId={currentOrderId}
               amount={getTotal()}
-              customerEmail={email}
+              customerEmail={finalCustomerEmail}
               onPaymentConfirmed={handlePaymentConfirmed}
               onCancel={handlePixCancel}
             />
