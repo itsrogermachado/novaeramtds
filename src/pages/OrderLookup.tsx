@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { ThemeToggle } from '@/components/dashboard/ThemeToggle';
 import { 
   Search, Package, ArrowLeft, Clock, CheckCircle2, 
-  XCircle, Truck, Loader2, Copy, AlertCircle, Mail
+  XCircle, Truck, Loader2, Copy, AlertCircle, Mail, Lock, LogIn
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -48,11 +48,16 @@ interface Order {
 }
 
 export default function OrderLookup() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [isRegisteredUser, setIsRegisteredUser] = useState(false);
+  const [checkedEmail, setCheckedEmail] = useState('');
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -88,20 +93,43 @@ export default function OrderLookup() {
     }
   };
 
+  const checkIfRegisteredUser = async (emailToCheck: string): Promise<boolean> => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', emailToCheck.toLowerCase().trim())
+      .maybeSingle();
+    
+    return !!data;
+  };
+
   const handleSearch = async () => {
     if (!email.trim()) {
       toast.error('Digite seu e-mail');
       return;
     }
 
+    const trimmedEmail = email.toLowerCase().trim();
     setIsLoading(true);
-    setHasSearched(true);
 
     try {
+      // First check if email belongs to a registered user
+      const isRegistered = await checkIfRegisteredUser(trimmedEmail);
+      
+      if (isRegistered) {
+        setIsRegisteredUser(true);
+        setCheckedEmail(trimmedEmail);
+        setIsLoading(false);
+        return;
+      }
+
+      // Not a registered user, proceed with normal search
+      setHasSearched(true);
+      
       const { data, error } = await supabase
         .from('store_orders')
         .select('*')
-        .eq('customer_email', email.toLowerCase().trim())
+        .eq('customer_email', trimmedEmail)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -117,6 +145,45 @@ export default function OrderLookup() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLogin = async () => {
+    if (!password.trim()) {
+      toast.error('Digite sua senha');
+      return;
+    }
+
+    setIsLoggingIn(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: checkedEmail,
+        password: password.trim(),
+      });
+
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Senha incorreta');
+        } else {
+          toast.error('Erro ao fazer login');
+        }
+        return;
+      }
+
+      toast.success('Login realizado com sucesso!');
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error logging in:', error);
+      toast.error('Erro ao fazer login');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleBackToEmailInput = () => {
+    setIsRegisteredUser(false);
+    setCheckedEmail('');
+    setPassword('');
   };
 
   return (
@@ -154,34 +221,106 @@ export default function OrderLookup() {
           </div>
         </div>
 
-        {/* Search Form */}
-        <div className="rounded-xl border border-border bg-card p-6 mb-6">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <Label htmlFor="email" className="sr-only">E-mail</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Digite o e-mail usado na compra"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-9"
-                />
+        {/* Search Form or Login Form */}
+        {isRegisteredUser ? (
+          /* Login Form for Registered Users */
+          <div className="rounded-xl border border-border bg-card p-6 mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-full bg-primary/10">
+                <LogIn className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Usuário identificado!</p>
+                <p className="text-sm text-muted-foreground">
+                  Este e-mail pertence a uma conta registrada. Faça login para acessar seus pedidos.
+                </p>
               </div>
             </div>
-            <Button onClick={handleSearch} disabled={isLoading} className="gap-2">
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Search className="h-4 w-4" />
-              )}
-              Buscar
-            </Button>
+            
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm text-muted-foreground">E-mail</Label>
+                <div className="flex items-center gap-2 mt-1 p-3 rounded-lg bg-muted/50">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">{checkedEmail}</span>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="password">Senha</Label>
+                <div className="relative mt-1">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Digite sua senha"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                    className="pl-9"
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  variant="outline" 
+                  className="flex-1" 
+                  onClick={handleBackToEmailInput}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Voltar
+                </Button>
+                <Button 
+                  className="flex-1 gap-2" 
+                  onClick={handleLogin}
+                  disabled={isLoggingIn}
+                >
+                  {isLoggingIn ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <LogIn className="h-4 w-4" />
+                  )}
+                  Entrar no Dashboard
+                </Button>
+              </div>
+
+              <p className="text-xs text-center text-muted-foreground">
+                Esqueceu a senha? <Link to="/auth" className="text-primary hover:underline">Recuperar acesso</Link>
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Normal Email Search Form */
+          <div className="rounded-xl border border-border bg-card p-6 mb-6">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <Label htmlFor="email" className="sr-only">E-mail</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Digite o e-mail usado na compra"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+              <Button onClick={handleSearch} disabled={isLoading} className="gap-2">
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )}
+                Buscar
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Results */}
         {hasSearched && !isLoading && (
