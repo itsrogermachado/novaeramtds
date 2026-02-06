@@ -369,7 +369,10 @@ export type Database = {
           id: string
           items: Json
           paid_at: string | null
+          payer_document: string | null
+          payer_name: string | null
           payment_method: string
+          payment_reference: string | null
           status: string
           subtotal: number
           total: number
@@ -383,7 +386,10 @@ export type Database = {
           id?: string
           items?: Json
           paid_at?: string | null
+          payer_document?: string | null
+          payer_name?: string | null
           payment_method?: string
+          payment_reference?: string | null
           status?: string
           subtotal?: number
           total?: number
@@ -397,7 +403,10 @@ export type Database = {
           id?: string
           items?: Json
           paid_at?: string | null
+          payer_document?: string | null
+          payer_name?: string | null
           payment_method?: string
+          payment_reference?: string | null
           status?: string
           subtotal?: number
           total?: number
