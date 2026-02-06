@@ -45,6 +45,7 @@ export function useCustomerOrders() {
       const { data, error } = await supabase
         .from('store_orders')
         .select('*')
+        .eq('customer_email', user.email)
         .order('created_at', { ascending: false });
 
       if (error) {
