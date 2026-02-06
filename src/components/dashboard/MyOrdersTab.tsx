@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCustomerOrders, CustomerOrder } from '@/hooks/useCustomerOrders';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,13 +20,15 @@ import {
   Eye,
   Copy,
   Truck,
-  AlertCircle
+  AlertCircle,
+  ShieldCheck
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function MyOrdersTab() {
+  const { isAdmin } = useAuth();
   const { data: orders, isLoading } = useCustomerOrders();
   const [selectedOrder, setSelectedOrder] = useState<CustomerOrder | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -94,9 +97,19 @@ export function MyOrdersTab() {
           <ShoppingBag className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-foreground">Meus Pedidos</h2>
+          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+            {isAdmin ? 'Todos os Pedidos' : 'Meus Pedidos'}
+            {isAdmin && (
+              <Badge variant="outline" className="gap-1 text-xs">
+                <ShieldCheck className="h-3 w-3" />
+                Admin
+              </Badge>
+            )}
+          </h2>
           <p className="text-sm text-muted-foreground">
-            Acompanhe suas compras e acesse os produtos entregues
+            {isAdmin 
+              ? 'Visualize todos os pedidos da plataforma' 
+              : 'Acompanhe suas compras e acesse os produtos entregues'}
           </p>
         </div>
       </div>
@@ -125,6 +138,12 @@ export function MyOrdersTab() {
                       {formatDate(order.created_at)}
                     </span>
                   </div>
+                  {/* Show customer email for admins */}
+                  {isAdmin && (
+                    <p className="text-sm font-medium text-primary mt-1">
+                      {order.customer_email}
+                    </p>
+                  )}
                   <div className="mt-2">
                     <p className="text-sm text-muted-foreground">
                       {order.items.length} {order.items.length === 1 ? 'produto' : 'produtos'}
