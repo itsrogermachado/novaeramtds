@@ -94,7 +94,7 @@ export function PixCheckout({
 
       if (error) throw error;
 
-      if (order.status === 'paid') {
+      if (order.status === 'paid' || order.status === 'delivered') {
         toast.success('Pagamento confirmado!');
         onPaymentConfirmed();
       } else {
@@ -120,7 +120,7 @@ export function PixCheckout({
           .eq('id', orderId)
           .single();
 
-        if (order?.status === 'paid') {
+        if (order?.status === 'paid' || order?.status === 'delivered') {
           toast.success('Pagamento confirmado!');
           onPaymentConfirmed();
         }
