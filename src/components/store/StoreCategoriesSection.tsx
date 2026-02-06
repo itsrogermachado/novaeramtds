@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useStoreCategories, StoreCategory } from '@/hooks/useStoreCategories';
-import { Package, ChevronDown, ChevronUp, ShoppingCart, ExternalLink, Store } from 'lucide-react';
+import { Package, ChevronDown, ChevronUp, ShoppingCart, Store } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { StoreProductWithCategory } from '@/hooks/useStoreProducts';
 import { Button } from '@/components/ui/button';
 import { ProductDetailModal } from './ProductDetailModal';
-import { useCart } from '@/contexts/CartContext';
 
 interface StoreCategoriesSectionProps {
   hideHeader?: boolean;
@@ -18,7 +17,6 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<StoreProductWithCategory | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const { addItem } = useCart();
 
   const handleCategoryClick = async (category: StoreCategory) => {
     if (expandedCategory === category.id) {
@@ -53,13 +51,10 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
     setShowModal(true);
   };
 
-  const handleQuickAdd = (product: StoreProductWithCategory, e: React.MouseEvent) => {
+  const handleQuickBuy = (product: StoreProductWithCategory, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (product.cta_url) {
-      window.open(product.cta_url, '_blank', 'noopener,noreferrer');
-    } else {
-      addItem(product, 1);
-    }
+    setSelectedProduct(product);
+    setShowModal(true);
   };
 
   const handleSelectRelatedProduct = (product: StoreProductWithCategory) => {
@@ -234,20 +229,11 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
                                 ) : (
                                   <Button
                                     size="sm"
-                                    onClick={(e) => handleQuickAdd(product, e)}
+                                    onClick={(e) => handleQuickBuy(product, e)}
                                     className="gap-1.5 h-7 text-xs"
                                   >
-                                    {product.cta_url ? (
-                                      <>
-                                        <ExternalLink className="h-3 w-3" />
-                                        Comprar
-                                      </>
-                                    ) : (
-                                      <>
-                                        <ShoppingCart className="h-3 w-3" />
-                                        Adicionar
-                                      </>
-                                    )}
+                                    <ShoppingCart className="h-3 w-3" />
+                                    Comprar
                                   </Button>
                                 )}
                               </div>
