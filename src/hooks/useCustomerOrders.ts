@@ -38,14 +38,15 @@ export function useCustomerOrders() {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user?.email) {
+      if (!user) {
         return [];
       }
 
+      // RLS policy handles filtering by customer_email matching profiles.email
+      // No need for manual filter - RLS ensures users only see their own orders
       const { data, error } = await supabase
         .from('store_orders')
         .select('*')
-        .eq('customer_email', user.email)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -55,5 +56,8 @@ export function useCustomerOrders() {
 
       return (data || []) as unknown as CustomerOrder[];
     },
+    staleTime: 0, // Always refetch to ensure fresh data per user
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }
