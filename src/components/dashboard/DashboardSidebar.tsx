@@ -106,8 +106,7 @@ export function DashboardSidebar({
       )}
       collapsible="icon"
     >
-
-      <SidebarContent className="px-2 pt-6 pb-4">
+      <SidebarContent className="px-2 pt-8 pb-4">
         {/* Main Navigation */}
         <SidebarGroup>
           {!isCollapsed && (
@@ -123,6 +122,28 @@ export function DashboardSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Collapse Button - positioned after main nav */}
+        <div className="px-1 mt-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleSidebar}
+            className={cn(
+              "w-full text-muted-foreground hover:text-foreground hover:bg-muted/50",
+              isCollapsed ? "justify-center" : "justify-start gap-2"
+            )}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <>
+                <ChevronLeft className="h-4 w-4" />
+                <span>Recolher</span>
+              </>
+            )}
+          </Button>
+        </div>
 
         {/* Admin Navigation */}
         {isAdmin && (
@@ -143,26 +164,8 @@ export function DashboardSidebar({
         )}
       </SidebarContent>
 
-      {/* Footer */}
-      <SidebarFooter className="p-3 border-t border-border/30 space-y-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleSidebar}
-          className={cn(
-            "w-full justify-center text-muted-foreground hover:text-foreground",
-            !isCollapsed && "justify-start gap-2"
-          )}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <>
-              <ChevronLeft className="h-4 w-4" />
-              <span>Recolher</span>
-            </>
-          )}
-        </Button>
+      {/* Footer - Only Sign Out */}
+      <SidebarFooter className="p-3 border-t border-border/30">
         <Button
           variant="ghost"
           size="sm"
