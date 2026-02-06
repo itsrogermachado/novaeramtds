@@ -77,6 +77,7 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
     { id: 'tutorials', label: 'Tutoriais', icon: <Video className="h-5 w-5" /> },
     { id: 'surebet', label: 'Calculadora Surebet', icon: <Calculator className="h-5 w-5" /> },
     { id: 'team', label: 'Meu Time', icon: <Users className="h-5 w-5" /> },
+    { id: 'store', label: 'Loja', icon: <ShoppingBag className="h-5 w-5" /> },
     { id: 'store-categories', label: 'Categorias da Loja', icon: <Package className="h-5 w-5" />, adminOnly: true },
     { id: 'store-products', label: 'Produtos da Loja', icon: <ShoppingBag className="h-5 w-5" />, adminOnly: true },
     { id: 'store-coupons', label: 'Cupons de Desconto', icon: <Ticket className="h-5 w-5" />, adminOnly: true },

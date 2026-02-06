@@ -14,7 +14,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { NotificationBadge } from './NotificationBadge';
 import { 
   Receipt, 
@@ -49,6 +48,7 @@ const mainNavItems = [
   { id: 'tutorials', label: 'Tutoriais', icon: Video, hasBadge: true },
   { id: 'surebet', label: 'Surebet', icon: Calculator },
   { id: 'team', label: 'Meu Time', icon: Users },
+  { id: 'store', label: 'Loja', icon: ShoppingBag },
 ];
 
 const adminNavItems = [

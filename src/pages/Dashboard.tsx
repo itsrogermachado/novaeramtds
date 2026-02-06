@@ -33,6 +33,7 @@ import { StoreCategoriesTab } from '@/components/dashboard/StoreCategoriesTab';
 import { StoreProductsTab } from '@/components/dashboard/StoreProductsTab';
 import { StoreCouponsTab } from '@/components/dashboard/StoreCouponsTab';
 import { StoreSalesTab } from '@/components/dashboard/StoreSalesTab';
+import { StoreTab } from '@/components/dashboard/StoreTab';
 
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { TrendingUp, TrendingDown, Wallet, Receipt } from 'lucide-react';
@@ -230,6 +231,7 @@ export default function Dashboard() {
                 {currentTab === 'tutorials' && 'Tutoriais'}
                 {currentTab === 'surebet' && 'Calculadora Surebet'}
                 {currentTab === 'team' && 'Meu Time'}
+                {currentTab === 'store' && 'Loja'}
                 {currentTab === 'store-categories' && 'Categorias da Loja'}
                 {currentTab === 'store-products' && 'Produtos da Loja'}
                 {currentTab === 'store-coupons' && 'Cupons de Desconto'}
@@ -336,6 +338,12 @@ export default function Dashboard() {
             {currentTab === 'team' && (
               <div className="animate-fade-in">
                 <TeamTab />
+              </div>
+            )}
+
+            {currentTab === 'store' && (
+              <div className="animate-fade-in">
+                <StoreTab />
               </div>
             )}
 
