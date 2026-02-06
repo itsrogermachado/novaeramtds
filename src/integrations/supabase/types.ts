@@ -305,46 +305,88 @@ export type Database = {
       }
       store_products: {
         Row: {
+          auto_open_chat: boolean | null
           category_id: string
+          comparison_price: string | null
           created_at: string
           cta_url: string | null
+          delivery_type: string | null
           display_order: number
+          hide_sold_count: boolean | null
           id: string
           image_url: string | null
+          is_featured: boolean | null
+          is_hidden: boolean | null
+          is_private: boolean | null
           long_description: string | null
+          max_quantity: number | null
+          min_quantity: number | null
           name: string
+          post_sale_instructions: string | null
           price: string
+          product_type: string | null
           short_description: string | null
+          slug: string | null
           status: string
+          stock: string | null
           updated_at: string
+          video_url: string | null
         }
         Insert: {
+          auto_open_chat?: boolean | null
           category_id: string
+          comparison_price?: string | null
           created_at?: string
           cta_url?: string | null
+          delivery_type?: string | null
           display_order?: number
+          hide_sold_count?: boolean | null
           id?: string
           image_url?: string | null
+          is_featured?: boolean | null
+          is_hidden?: boolean | null
+          is_private?: boolean | null
           long_description?: string | null
+          max_quantity?: number | null
+          min_quantity?: number | null
           name: string
+          post_sale_instructions?: string | null
           price?: string
+          product_type?: string | null
           short_description?: string | null
+          slug?: string | null
           status?: string
+          stock?: string | null
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
+          auto_open_chat?: boolean | null
           category_id?: string
+          comparison_price?: string | null
           created_at?: string
           cta_url?: string | null
+          delivery_type?: string | null
           display_order?: number
+          hide_sold_count?: boolean | null
           id?: string
           image_url?: string | null
+          is_featured?: boolean | null
+          is_hidden?: boolean | null
+          is_private?: boolean | null
           long_description?: string | null
+          max_quantity?: number | null
+          min_quantity?: number | null
           name?: string
+          post_sale_instructions?: string | null
           price?: string
+          product_type?: string | null
           short_description?: string | null
+          slug?: string | null
           status?: string
+          stock?: string | null
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: [
           {
