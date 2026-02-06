@@ -3,11 +3,10 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { StoreProductWithCategory } from '@/hooks/useStoreProducts';
-import { useValidateCoupon, StoreCoupon } from '@/hooks/useStoreCoupons';
-import { Minus, Plus, ShoppingCart, Sparkles, Package, ExternalLink, CreditCard, Ticket, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { useCart } from '@/contexts/CartContext';
+import { Minus, Plus, ShoppingCart, Sparkles, Package, ExternalLink, CreditCard, ShoppingBag } from 'lucide-react';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface ProductDetailModalProps {
@@ -26,11 +25,7 @@ export function ProductDetailModal({
   onSelectProduct,
 }: ProductDetailModalProps) {
   const [quantity, setQuantity] = useState(1);
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<StoreCoupon | null>(null);
-  const [discountAmount, setDiscountAmount] = useState(0);
-  const [couponError, setCouponError] = useState('');
-  const { validateCoupon, isValidating } = useValidateCoupon();
+  const { addItem } = useCart();
 
   if (!product) return null;
 
@@ -64,65 +59,23 @@ export function ProductDetailModal({
     return parseFloat(product.price.replace(',', '.').replace(/[^\d.]/g, '')) * quantity;
   };
 
-  const getFinalPrice = () => {
-    const basePrice = getProductPrice();
-    return basePrice - discountAmount;
-  };
-
   const handleQuantityChange = (delta: number) => {
     const newQty = quantity + delta;
     if (newQty >= minQty && newQty <= maxQty) {
       setQuantity(newQty);
-      // Revalidate coupon with new quantity
-      if (appliedCoupon) {
-        handleApplyCoupon(true);
-      }
     }
   };
 
-  const handleApplyCoupon = async (silent = false) => {
-    if (!couponCode.trim() && !appliedCoupon) {
-      if (!silent) setCouponError('Digite o código do cupom');
-      return;
-    }
-
-    const codeToValidate = appliedCoupon ? appliedCoupon.code : couponCode;
-    const orderValue = getProductPrice();
-
-    const result = await validateCoupon(
-      codeToValidate,
-      orderValue,
-      product.id,
-      product.category_id
-    );
-
-    if (result.valid && result.coupon) {
-      setAppliedCoupon(result.coupon);
-      setDiscountAmount(result.discountAmount || 0);
-      setCouponError('');
-      if (!silent) setCouponCode('');
-    } else {
-      if (!silent) {
-        setCouponError(result.error || 'Cupom inválido');
-        setAppliedCoupon(null);
-        setDiscountAmount(0);
-      }
-    }
+  const handleAddToCart = () => {
+    addItem(product, quantity);
+    onOpenChange(false);
   };
 
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setDiscountAmount(0);
-    setCouponCode('');
-    setCouponError('');
-  };
-
-  const handleBuy = () => {
+  const handleBuyNow = () => {
     if (product.cta_url) {
       window.open(product.cta_url, '_blank', 'noopener,noreferrer');
     } else {
-      // Placeholder for purchase logic
-      console.log('Purchase:', { product, quantity, appliedCoupon, discountAmount, finalPrice: getFinalPrice() });
+      addItem(product, quantity);
     }
   };
 
@@ -284,109 +237,54 @@ export function ProductDetailModal({
                     </div>
                   )}
 
-                  {/* Coupon Section */}
-                  {!isOutOfStock && (
-                    <div className="space-y-2 pt-2 border-t border-border">
-                      <div className="flex items-center gap-2 text-xs sm:text-sm">
-                        <Ticket className="h-4 w-4 text-primary" />
-                        <span className="font-medium">Cupom de desconto</span>
-                      </div>
-                      
-                      {appliedCoupon ? (
-                        <div className="flex items-center justify-between p-2 bg-primary/10 rounded-lg gap-2">
-                          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
-                            <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
-                            <span className="text-xs sm:text-sm font-mono font-medium truncate">{appliedCoupon.code}</span>
-                            <Badge variant="secondary" className="text-[10px] sm:text-xs shrink-0">
-                              -{appliedCoupon.discount_type === 'percentage' 
-                                ? `${appliedCoupon.discount_value}%` 
-                                : formatCurrency(appliedCoupon.discount_value)}
-                            </Badge>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={handleRemoveCoupon}
-                            className="h-6 px-2 text-xs shrink-0"
-                          >
-                            Remover
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Código do cupom"
-                            value={couponCode}
-                            onChange={(e) => {
-                              setCouponCode(e.target.value.toUpperCase());
-                              setCouponError('');
-                            }}
-                            className="uppercase text-xs sm:text-sm h-9"
-                          />
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleApplyCoupon(false)}
-                            disabled={isValidating || !couponCode.trim()}
-                            className="h-9 px-3"
-                          >
-                            {isValidating ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              'Aplicar'
-                            )}
-                          </Button>
-                        </div>
-                      )}
-                      
-                      {couponError && (
-                        <div className="flex items-center gap-1.5 text-xs text-destructive">
-                          <XCircle className="h-3 w-3" />
-                          {couponError}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Price Summary */}
-                  {!isOutOfStock && discountAmount > 0 && (
-                    <div className="space-y-1 pt-2 border-t border-border">
-                      <div className="flex justify-between text-xs sm:text-sm">
-                        <span className="text-muted-foreground">Subtotal:</span>
-                        <span>{formatCurrency(getProductPrice())}</span>
-                      </div>
-                      <div className="flex justify-between text-xs sm:text-sm text-success">
-                        <span>Desconto:</span>
-                        <span>-{formatCurrency(discountAmount)}</span>
-                      </div>
-                      <div className="flex justify-between font-bold text-base sm:text-lg pt-1">
+                  {/* Total for selected quantity */}
+                  {!isOutOfStock && quantity > 1 && (
+                    <div className="pt-2 border-t border-border">
+                      <div className="flex justify-between font-bold text-base sm:text-lg">
                         <span>Total:</span>
-                        <span className="text-primary">{formatCurrency(getFinalPrice())}</span>
+                        <span className="text-primary">{formatCurrency(getProductPrice())}</span>
                       </div>
                     </div>
                   )}
 
-                  {/* Buy Button */}
-                  <Button
-                    className="w-full gap-2"
-                    size="lg"
-                    disabled={isOutOfStock}
-                    onClick={handleBuy}
-                  >
-                    {isOutOfStock ? (
-                      'Esgotado'
-                    ) : product.cta_url ? (
-                      <>
-                        <ExternalLink className="h-4 w-4" />
-                        Comprar agora
-                      </>
+                  {/* Action Buttons */}
+                  <div className="space-y-2">
+                    {product.cta_url ? (
+                      <Button
+                        className="w-full gap-2"
+                        size="lg"
+                        disabled={isOutOfStock}
+                        onClick={handleBuyNow}
+                      >
+                        {isOutOfStock ? (
+                          'Esgotado'
+                        ) : (
+                          <>
+                            <ExternalLink className="h-4 w-4" />
+                            Comprar agora
+                          </>
+                        )}
+                      </Button>
                     ) : (
                       <>
-                        <ShoppingCart className="h-4 w-4" />
-                        Comprar agora
+                        <Button
+                          className="w-full gap-2"
+                          size="lg"
+                          disabled={isOutOfStock}
+                          onClick={handleAddToCart}
+                        >
+                          {isOutOfStock ? (
+                            'Esgotado'
+                          ) : (
+                            <>
+                              <ShoppingCart className="h-4 w-4" />
+                              Adicionar ao carrinho
+                            </>
+                          )}
+                        </Button>
                       </>
                     )}
-                  </Button>
+                  </div>
 
                   {/* Payment Methods */}
                   <div className="pt-2">
