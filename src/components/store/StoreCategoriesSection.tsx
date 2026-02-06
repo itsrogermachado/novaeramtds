@@ -180,59 +180,69 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {products.map((product) => (
-                        <div
-                          key={product.id}
-                          className="p-4 rounded-lg bg-white/70 border border-white/80 
-                                     hover:bg-white/90 transition-colors"
-                        >
-                          <div className="flex items-start gap-3">
-                            {/* Product Image */}
-                            {product.image_url && (
-                              <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-muted/30">
-                                <img
-                                  src={product.image_url}
-                                  alt={product.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            )}
-                            
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm" style={{ color: 'hsl(220 25% 15%)' }}>
-                                {product.name}
-                              </h4>
-                              {product.short_description && (
-                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                  {product.short_description}
-                                </p>
+                      {products.map((product) => {
+                        const isOutOfStock = !product.stock || product.stock.trim() === '';
+                        
+                        return (
+                          <div
+                            key={product.id}
+                            className={`p-4 rounded-lg bg-white/70 border border-white/80 
+                                       hover:bg-white/90 transition-colors ${isOutOfStock ? 'opacity-70' : ''}`}
+                          >
+                            <div className="flex items-start gap-3">
+                              {/* Product Image */}
+                              {product.image_url && (
+                                <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-muted/30">
+                                  <img
+                                    src={product.image_url}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
                               )}
-                            </div>
-                            <div className="flex flex-col items-end gap-2 shrink-0">
-                              <span className="font-bold text-sm" style={{ color: 'hsl(220 25% 20%)' }}>
-                                {product.price}
-                              </span>
-                              <Button
-                                size="sm"
-                                onClick={() => handleBuy(product)}
-                                className="gap-1.5 h-7 text-xs"
-                              >
-                                {product.cta_url ? (
-                                  <>
-                                    <ExternalLink className="h-3 w-3" />
-                                    Comprar
-                                  </>
-                                ) : (
-                                  <>
-                                    <ShoppingCart className="h-3 w-3" />
-                                    Comprar
-                                  </>
+                              
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-sm" style={{ color: 'hsl(220 25% 15%)' }}>
+                                  {product.name}
+                                </h4>
+                                {product.short_description && (
+                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                    {product.short_description}
+                                  </p>
                                 )}
-                              </Button>
+                              </div>
+                              <div className="flex flex-col items-end gap-2 shrink-0">
+                                <span className="font-bold text-sm" style={{ color: 'hsl(220 25% 20%)' }}>
+                                  {product.price}
+                                </span>
+                                {isOutOfStock ? (
+                                  <span className="px-3 py-1.5 text-xs font-medium rounded-md bg-muted text-muted-foreground">
+                                    Esgotado
+                                  </span>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleBuy(product)}
+                                    className="gap-1.5 h-7 text-xs"
+                                  >
+                                    {product.cta_url ? (
+                                      <>
+                                        <ExternalLink className="h-3 w-3" />
+                                        Comprar
+                                      </>
+                                    ) : (
+                                      <>
+                                        <ShoppingCart className="h-3 w-3" />
+                                        Comprar
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
