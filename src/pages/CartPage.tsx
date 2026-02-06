@@ -11,6 +11,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { CartButton } from '@/components/store/CartButton';
 import { ThemeToggle } from '@/components/dashboard/ThemeToggle';
+import { PixCheckout } from '@/components/store/PixCheckout';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import logo from '@/assets/logo-nova-era-3d.png';
 import { 
   ArrowLeft, Minus, Plus, Trash2, Package, Ticket, 
@@ -40,6 +42,8 @@ export default function CartPage() {
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showPixCheckout, setShowPixCheckout] = useState(false);
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
   const { validateCoupon, isValidating } = useValidateCoupon();
 
   const formatCurrency = (value: number) => {
@@ -116,7 +120,7 @@ export default function CartPage() {
         total: parseFloat(item.product.price.replace(',', '.').replace(/[^\d.]/g, '')) * item.quantity,
       }));
 
-      const { error } = await supabase
+      const { data: order, error } = await supabase
         .from('store_orders')
         .insert({
           customer_email: email,
@@ -127,19 +131,34 @@ export default function CartPage() {
           total: getTotal(),
           coupon_code: appliedCoupon?.code || null,
           items: orderItems,
-        });
+        })
+        .select('id')
+        .single();
 
       if (error) throw error;
 
-      toast.success('Pedido criado com sucesso!');
-      clearCart();
-      navigate('/');
+      // Open PIX checkout dialog
+      setCurrentOrderId(order.id);
+      setShowPixCheckout(true);
     } catch (error) {
       console.error('Error creating order:', error);
       toast.error('Erro ao processar pedido. Tente novamente.');
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handlePaymentConfirmed = () => {
+    setShowPixCheckout(false);
+    setCurrentOrderId(null);
+    clearCart();
+    toast.success('Pagamento confirmado! Obrigado pela compra.');
+    navigate('/');
+  };
+
+  const handlePixCancel = () => {
+    setShowPixCheckout(false);
+    // Keep the order in pending status, user can try again
   };
 
   if (items.length === 0) {
@@ -463,6 +482,21 @@ export default function CartPage() {
           </div>
         </div>
       </main>
+
+      {/* PIX Checkout Dialog */}
+      <Dialog open={showPixCheckout} onOpenChange={setShowPixCheckout}>
+        <DialogContent className="sm:max-w-md">
+          {currentOrderId && (
+            <PixCheckout
+              orderId={currentOrderId}
+              amount={getTotal()}
+              customerEmail={email}
+              onPaymentConfirmed={handlePaymentConfirmed}
+              onCancel={handlePixCancel}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
