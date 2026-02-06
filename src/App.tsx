@@ -8,7 +8,6 @@ import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
-import { CartDrawer } from "@/components/store/CartDrawer";
 
 // Lazy load pages for code splitting
 const Landing = lazy(() => import("./pages/Landing"));
@@ -18,6 +17,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const StoreCategory = lazy(() => import("./pages/StoreCategory"));
+const CartPage = lazy(() => import("./pages/CartPage"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -50,18 +50,18 @@ const App = () => (
             <CartProvider>
               <Toaster />
               <Sonner />
-              <CartDrawer />
               <BrowserRouter>
                 <Suspense fallback={<PageLoader />}>
-                  <Routes>
-                    <Route path="/" element={<Landing />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/cadastro" element={<Signup />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/loja/:slug" element={<StoreCategory />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/cadastro" element={<Signup />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/loja/:slug" element={<StoreCategory />} />
+                  <Route path="/carrinho" element={<CartPage />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
                 </Suspense>
               </BrowserRouter>
             </CartProvider>

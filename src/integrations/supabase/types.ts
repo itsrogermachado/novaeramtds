@@ -360,6 +360,51 @@ export type Database = {
         }
         Relationships: []
       }
+      store_orders: {
+        Row: {
+          coupon_code: string | null
+          created_at: string
+          customer_email: string
+          discount_amount: number
+          id: string
+          items: Json
+          paid_at: string | null
+          payment_method: string
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          coupon_code?: string | null
+          created_at?: string
+          customer_email: string
+          discount_amount?: number
+          id?: string
+          items?: Json
+          paid_at?: string | null
+          payment_method?: string
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          coupon_code?: string | null
+          created_at?: string
+          customer_email?: string
+          discount_amount?: number
+          id?: string
+          items?: Json
+          paid_at?: string | null
+          payment_method?: string
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       store_products: {
         Row: {
           auto_open_chat: boolean | null

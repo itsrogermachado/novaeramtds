@@ -32,6 +32,7 @@ import { AiAssistant } from '@/components/dashboard/AiAssistant';
 import { StoreCategoriesTab } from '@/components/dashboard/StoreCategoriesTab';
 import { StoreProductsTab } from '@/components/dashboard/StoreProductsTab';
 import { StoreCouponsTab } from '@/components/dashboard/StoreCouponsTab';
+import { StoreSalesTab } from '@/components/dashboard/StoreSalesTab';
 
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { TrendingUp, TrendingDown, Wallet, Receipt } from 'lucide-react';
@@ -353,6 +354,12 @@ export default function Dashboard() {
             {isAdmin && currentTab === 'store-coupons' && (
               <div className="animate-fade-in">
                 <StoreCouponsTab />
+              </div>
+            )}
+
+            {isAdmin && currentTab === 'store-sales' && (
+              <div className="animate-fade-in">
+                <StoreSalesTab />
               </div>
             )}
 
