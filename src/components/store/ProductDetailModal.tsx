@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,8 +7,9 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { StoreProductWithCategory } from '@/hooks/useStoreProducts';
 import { useCart } from '@/contexts/CartContext';
-import { Minus, Plus, ShoppingCart, Sparkles, Package, ExternalLink, CreditCard, ShoppingBag } from 'lucide-react';
+import { Minus, Plus, ShoppingCart, Sparkles, Package, ExternalLink, CreditCard, Zap } from 'lucide-react';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { toast } from 'sonner';
 
 interface ProductDetailModalProps {
   product: StoreProductWithCategory | null;
@@ -25,6 +27,7 @@ export function ProductDetailModal({
   onSelectProduct,
 }: ProductDetailModalProps) {
   const [quantity, setQuantity] = useState(1);
+  const navigate = useNavigate();
   const { addItem } = useCart();
 
   if (!product) return null;
@@ -68,7 +71,7 @@ export function ProductDetailModal({
 
   const handleAddToCart = () => {
     addItem(product, quantity);
-    onOpenChange(false);
+    toast.success('Produto adicionado ao carrinho!');
   };
 
   const handleBuyNow = () => {
@@ -76,6 +79,8 @@ export function ProductDetailModal({
       window.open(product.cta_url, '_blank', 'noopener,noreferrer');
     } else {
       addItem(product, quantity);
+      onOpenChange(false);
+      navigate('/carrinho');
     }
   };
 
@@ -268,6 +273,7 @@ export function ProductDetailModal({
                     ) : (
                       <>
                         <Button
+                          variant="outline"
                           className="w-full gap-2"
                           size="lg"
                           disabled={isOutOfStock}
@@ -279,6 +285,21 @@ export function ProductDetailModal({
                             <>
                               <ShoppingCart className="h-4 w-4" />
                               Adicionar ao carrinho
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          className="w-full gap-2"
+                          size="lg"
+                          disabled={isOutOfStock}
+                          onClick={handleBuyNow}
+                        >
+                          {isOutOfStock ? (
+                            'Esgotado'
+                          ) : (
+                            <>
+                              <Zap className="h-4 w-4" />
+                              Comprar
                             </>
                           )}
                         </Button>
