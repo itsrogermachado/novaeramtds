@@ -99,7 +99,16 @@ export default function CartPage() {
     }
 
     const subtotal = getSubtotal();
-    const result = await validateCoupon(couponCode, subtotal);
+    
+    // Build cart items array for category/product validation
+    const cartItems = items.map(item => ({
+      productId: item.product.id,
+      categoryId: item.product.category_id,
+      price: parseFloat(item.product.price.replace(',', '.').replace(/[^\d.]/g, '')),
+      quantity: item.quantity,
+    }));
+    
+    const result = await validateCoupon(couponCode, subtotal, cartItems);
 
     if (result.valid && result.coupon) {
       applyCoupon(result.coupon, result.discountAmount || 0);
