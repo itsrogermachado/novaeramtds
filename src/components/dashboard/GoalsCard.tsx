@@ -12,7 +12,7 @@ interface GoalsCardProps {
   goals: Goal[];
   todayProfit: number;
   weeklyProfit: number;
-  netBalance: number;
+  monthlyProfit: number;
   onCreate: (goal: { title: string; target_amount: number; goal_type: GoalType }) => Promise<{ error: Error | null }>;
   onUpdate: (id: string, goal: Partial<Goal>) => Promise<{ error: Error | null }>;
   onDelete: (id: string) => Promise<{ error: Error | null }>;
@@ -46,7 +46,7 @@ export function GoalsCard({
   goals,
   todayProfit,
   weeklyProfit,
-  netBalance,
+  monthlyProfit,
   onCreate,
   onUpdate,
   onDelete,
@@ -65,7 +65,7 @@ export function GoalsCard({
       case 'weekly':
         return weeklyProfit;
       case 'monthly':
-        return netBalance;
+        return monthlyProfit;
       default:
         return 0;
     }
