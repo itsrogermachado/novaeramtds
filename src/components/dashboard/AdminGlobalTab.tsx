@@ -1,25 +1,29 @@
 import { useMemo } from 'react';
 import { StatsCard } from './StatsCard';
 import { ProfitEvolutionChart } from './ProfitEvolutionChart';
-
-import { Operation } from '@/hooks/useOperations';
-import { Expense } from '@/hooks/useExpenses';
-import { UserProfile } from '@/hooks/useAllUsers';
+import { useOperations } from '@/hooks/useOperations';
+import { useExpenses } from '@/hooks/useExpenses';
+import { useAllUsers } from '@/hooks/useAllUsers';
 import { Receipt, Wallet, TrendingUp, Users, Trophy } from 'lucide-react';
 
 interface AdminGlobalTabProps {
-  operations: Operation[];
-  expenses: Expense[];
-  users: UserProfile[];
+  dateRange: { start: Date; end: Date };
 }
 
-export function AdminGlobalTab({ operations, expenses, users }: AdminGlobalTabProps) {
+export function AdminGlobalTab({ dateRange }: AdminGlobalTabProps) {
+  // Fetch data internally
+  const { operations, isLoading: opsLoading } = useOperations(dateRange, undefined, true);
+  const { effectiveExpenses, isLoading: expLoading } = useExpenses(dateRange, undefined, true);
+  const { users, isLoading: usersLoading } = useAllUsers();
+  
+  const isLoading = opsLoading || expLoading || usersLoading;
+
   const stats = useMemo(() => {
     const totalInvested = operations.reduce((sum, op) => sum + Number(op.invested_amount), 0);
     const totalReturn = operations.reduce((sum, op) => sum + Number(op.return_amount), 0);
     const profit = totalReturn - totalInvested;
     return { totalInvested, totalReturn, profit };
-  }, [operations, expenses]);
+  }, [operations, effectiveExpenses]);
 
   const userRankings = useMemo(() => {
     const userProfits: Record<string, { userId: string; name: string; profit: number }> = {};
@@ -42,6 +46,14 @@ export function AdminGlobalTab({ operations, expenses, users }: AdminGlobalTabPr
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

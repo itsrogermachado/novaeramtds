@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { UserProfile } from '@/hooks/useAllUsers';
-import { Operation } from '@/hooks/useOperations';
+import { useAllUsers } from '@/hooks/useAllUsers';
+import { useOperations } from '@/hooks/useOperations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -16,17 +16,17 @@ import {
 import { Users, TrendingUp, TrendingDown, Search } from 'lucide-react';
 
 interface AdminIndividualTabProps {
-  users: UserProfile[];
-  allOperations: Operation[];
-  isLoading: boolean;
+  dateRange: { start: Date; end: Date };
 }
 
-export function AdminIndividualTab({
-  users,
-  allOperations,
-  isLoading,
-}: AdminIndividualTabProps) {
+export function AdminIndividualTab({ dateRange }: AdminIndividualTabProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Fetch data internally
+  const { users, isLoading: usersLoading } = useAllUsers();
+  const { operations: allOperations, isLoading: opsLoading } = useOperations(dateRange, undefined, true);
+  
+  const isLoading = usersLoading || opsLoading;
 
   const usersProfits = useMemo(() => {
     return users
