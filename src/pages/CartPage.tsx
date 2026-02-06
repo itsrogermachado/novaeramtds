@@ -199,16 +199,17 @@ export default function CartPage() {
     // Fetch the order with delivered items
     if (currentOrderId) {
       try {
-        const { data: order } = await supabase
-          .from('store_orders')
-          .select('delivered_items, status')
-          .eq('id', currentOrderId)
-          .single();
+        // Use edge function to get delivery info (works for guests too)
+        const { data, error } = await supabase.functions.invoke('get-order-delivery', {
+          body: { orderId: currentOrderId },
+        });
 
-        if (order?.delivered_items && Array.isArray(order.delivered_items) && order.delivered_items.length > 0) {
-          setDeliveredItems(order.delivered_items as unknown as DeliveredItem[]);
+        if (error) throw error;
+
+        if (data?.delivered_items && Array.isArray(data.delivered_items) && data.delivered_items.length > 0) {
+          setDeliveredItems(data.delivered_items as DeliveredItem[]);
           setShowDeliveredProducts(true);
-        } else if (order?.status === 'delivered' || order?.status === 'paid') {
+        } else if (data?.status === 'delivered' || data?.status === 'paid') {
           // No delivered items yet, redirect based on user type
           if (isLoggedIn) {
             clearCart();
@@ -219,6 +220,11 @@ export default function CartPage() {
             toast.success('Pagamento confirmado! Obrigado pela compra.');
             navigate('/');
           }
+        } else {
+          // Still pending or other status
+          clearCart();
+          toast.success('Pagamento confirmado! Obrigado pela compra.');
+          navigate('/');
         }
       } catch (error) {
         console.error('Error fetching delivered items:', error);
