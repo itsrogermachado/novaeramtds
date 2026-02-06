@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useStoreCategories, StoreCategory } from '@/hooks/useStoreCategories';
-import { useCart } from '@/contexts/CartContext';
 import { ProductDetailModal } from '@/components/store/ProductDetailModal';
 import { CartButton } from '@/components/store/CartButton';
 import { Button } from '@/components/ui/button';
@@ -13,12 +12,10 @@ import {
   Store,
   ChevronDown,
   ChevronUp,
-  ExternalLink,
 } from 'lucide-react';
 
 export function StoreTab() {
   const { categories, isLoading: categoriesLoading } = useStoreCategories(true);
-  const { addItem } = useCart();
 
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [products, setProducts] = useState<StoreProductWithCategory[]>([]);
@@ -59,13 +56,10 @@ export function StoreTab() {
     setModalOpen(true);
   };
 
-  const handleQuickAdd = (product: StoreProductWithCategory, e: React.MouseEvent) => {
+  const handleQuickBuy = (product: StoreProductWithCategory, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (product.cta_url) {
-      window.open(product.cta_url, '_blank', 'noopener,noreferrer');
-    } else {
-      addItem(product, 1);
-    }
+    setSelectedProduct(product);
+    setModalOpen(true);
   };
 
   const handleSelectRelatedProduct = (product: StoreProductWithCategory) => {
@@ -215,20 +209,11 @@ export function StoreTab() {
                                   ) : (
                                     <Button
                                       size="sm"
-                                      onClick={(e) => handleQuickAdd(product, e)}
+                                      onClick={(e) => handleQuickBuy(product, e)}
                                       className="gap-1.5 h-7 text-xs"
                                     >
-                                      {product.cta_url ? (
-                                        <>
-                                          <ExternalLink className="h-3 w-3" />
-                                          Comprar
-                                        </>
-                                      ) : (
-                                        <>
-                                          <ShoppingCart className="h-3 w-3" />
-                                          Adicionar
-                                        </>
-                                      )}
+                                      <ShoppingCart className="h-3 w-3" />
+                                      Comprar
                                     </Button>
                                   )}
                                 </div>
