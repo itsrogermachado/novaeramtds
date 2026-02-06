@@ -153,15 +153,13 @@ interface CartItem {
   quantity: number;
 }
 
-// Hook for validating coupons on the customer side
+// Hook for validating coupons on the customer side via secure edge function
 export function useValidateCoupon() {
   const [isValidating, setIsValidating] = useState(false);
 
   /**
-   * Validates a coupon against cart items.
-   * If the coupon has category_ids or product_ids restrictions:
-   * - Only items matching those restrictions will have the discount applied
-   * - Returns the discount amount calculated on eligible items only
+   * Validates a coupon against cart items using secure edge function.
+   * The edge function validates server-side without exposing coupon data.
    * 
    * @param code - Coupon code
    * @param orderValue - Total order value (used for min/max order validation)
@@ -181,97 +179,38 @@ export function useValidateCoupon() {
     setIsValidating(true);
 
     try {
-      const { data, error } = await supabase
-        .from('store_coupons')
-        .select('*')
-        .eq('code', code.toUpperCase())
-        .eq('is_active', true)
-        .maybeSingle();
+      const { data, error } = await supabase.functions.invoke('validate-coupon', {
+        body: {
+          code,
+          orderValue,
+          cartItems,
+        },
+      });
 
       if (error) {
+        console.error('Coupon validation error:', error);
         return { valid: false, error: 'Erro ao validar cupom' };
       }
 
-      if (!data) {
-        return { valid: false, error: 'Cupom não encontrado ou inativo' };
+      if (!data.valid) {
+        return { valid: false, error: data.error || 'Cupom inválido' };
       }
 
-      const coupon = data as StoreCoupon;
-
-      // Check usage limit
-      if (coupon.max_uses > 0 && coupon.used_count >= coupon.max_uses) {
-        return { valid: false, error: 'Cupom esgotado' };
-      }
-
-      // Check validity period
-      const now = new Date();
-      if (coupon.valid_from && new Date(coupon.valid_from) > now) {
-        return { valid: false, error: 'Cupom ainda não está válido' };
-      }
-      if (coupon.valid_until && new Date(coupon.valid_until) < now) {
-        return { valid: false, error: 'Cupom expirado' };
-      }
-
-      // Check order value limits
-      if (coupon.min_order_value > 0 && orderValue < coupon.min_order_value) {
-        return { valid: false, error: `Valor mínimo do pedido: R$ ${coupon.min_order_value.toFixed(2).replace('.', ',')}` };
-      }
-      if (coupon.max_order_value > 0 && orderValue > coupon.max_order_value) {
-        return { valid: false, error: `Valor máximo do pedido: R$ ${coupon.max_order_value.toFixed(2).replace('.', ',')}` };
-      }
-
-      // Calculate eligible value based on product/category restrictions
-      let eligibleValue = orderValue;
-      const hasProductRestriction = coupon.product_ids && coupon.product_ids.length > 0;
-      const hasCategoryRestriction = coupon.category_ids && coupon.category_ids.length > 0;
-
-      if ((hasProductRestriction || hasCategoryRestriction) && cartItems && cartItems.length > 0) {
-        // Filter items that match the coupon restrictions
-        const eligibleItems = cartItems.filter(item => {
-          // If coupon has product restrictions, check if item's product is included
-          if (hasProductRestriction && coupon.product_ids!.includes(item.productId)) {
-            return true;
-          }
-          // If coupon has category restrictions, check if item's category is included
-          if (hasCategoryRestriction && coupon.category_ids!.includes(item.categoryId)) {
-            return true;
-          }
-          // If coupon has both restrictions, item must match at least one
-          // If coupon has no restrictions, all items are eligible (handled above)
-          return false;
-        });
-
-        if (eligibleItems.length === 0) {
-          return { 
-            valid: false, 
-            error: hasProductRestriction 
-              ? 'Cupom não aplicável aos produtos do carrinho' 
-              : 'Cupom não aplicável às categorias dos produtos do carrinho'
-          };
-        }
-
-        // Calculate eligible value from matching items only
-        eligibleValue = eligibleItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      }
-
-      // Calculate discount based on eligible value
-      let discountAmount = 0;
-      if (coupon.discount_type === 'percentage') {
-        discountAmount = eligibleValue * (coupon.discount_value / 100);
-      } else {
-        discountAmount = coupon.discount_value;
-      }
-
-      // Apply max discount limit
-      if (coupon.max_discount_amount > 0 && discountAmount > coupon.max_discount_amount) {
-        discountAmount = coupon.max_discount_amount;
-      }
-
-      // Ensure discount doesn't exceed eligible value
-      discountAmount = Math.min(discountAmount, eligibleValue);
-
-      return { valid: true, coupon, discountAmount, eligibleValue };
+      // Return validation result - coupon details are minimal (only what's needed)
+      return { 
+        valid: true, 
+        discountAmount: data.discountAmount,
+        eligibleValue: data.eligibleValue,
+        coupon: {
+          id: data.couponId,
+          code: code.toUpperCase(),
+          discount_type: data.discountType,
+          discount_value: data.discountValue,
+          // Other fields are not exposed by the edge function for security
+        } as StoreCoupon,
+      };
     } catch (err) {
+      console.error('Unexpected validation error:', err);
       return { valid: false, error: 'Erro inesperado ao validar cupom' };
     } finally {
       setIsValidating(false);
