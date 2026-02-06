@@ -101,21 +101,55 @@
        return { error };
      }
  
-     toast.success('Categoria removida!');
-     fetchCategories();
-     return { success: true };
-   };
- 
-   useEffect(() => {
-     fetchCategories();
-   }, [onlyActive]);
- 
-   return {
-     categories,
-     isLoading,
-     createCategory,
-     updateCategory,
-     deleteCategory,
-     refetch: fetchCategories,
-   };
- }
+    toast.success('Categoria removida!');
+    fetchCategories();
+    return { success: true };
+  };
+
+  const reorderCategory = async (id: string, direction: 'up' | 'down') => {
+    if (!isAdmin) {
+      toast.error('Apenas administradores podem reordenar categorias');
+      return { error: 'Unauthorized' };
+    }
+
+    const currentIndex = categories.findIndex(c => c.id === id);
+    if (currentIndex === -1) return { error: 'Not found' };
+    
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= categories.length) return { error: 'Out of bounds' };
+
+    const currentCategory = categories[currentIndex];
+    const targetCategory = categories[targetIndex];
+
+    // Swap display_order values
+    const updates = [
+      supabase.from('store_categories').update({ display_order: targetCategory.display_order }).eq('id', currentCategory.id),
+      supabase.from('store_categories').update({ display_order: currentCategory.display_order }).eq('id', targetCategory.id),
+    ];
+
+    const results = await Promise.all(updates);
+    const hasError = results.some(r => r.error);
+
+    if (hasError) {
+      toast.error('Erro ao reordenar categoria');
+      return { error: 'Update failed' };
+    }
+
+    fetchCategories();
+    return { success: true };
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, [onlyActive]);
+
+  return {
+    categories,
+    isLoading,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    reorderCategory,
+    refetch: fetchCategories,
+  };
+}

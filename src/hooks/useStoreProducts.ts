@@ -126,21 +126,55 @@ export interface StoreProduct {
        return { error };
      }
  
-     toast.success('Produto removido!');
-     fetchProducts();
-     return { success: true };
-   };
- 
-   useEffect(() => {
-     fetchProducts();
-   }, [categoryId, onlyActive]);
- 
-   return {
-     products,
-     isLoading,
-     createProduct,
-     updateProduct,
-     deleteProduct,
-     refetch: fetchProducts,
-   };
- }
+    toast.success('Produto removido!');
+    fetchProducts();
+    return { success: true };
+  };
+
+  const reorderProduct = async (id: string, direction: 'up' | 'down') => {
+    if (!isAdmin) {
+      toast.error('Apenas administradores podem reordenar produtos');
+      return { error: 'Unauthorized' };
+    }
+
+    const currentIndex = products.findIndex(p => p.id === id);
+    if (currentIndex === -1) return { error: 'Not found' };
+    
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= products.length) return { error: 'Out of bounds' };
+
+    const currentProduct = products[currentIndex];
+    const targetProduct = products[targetIndex];
+
+    // Swap display_order values
+    const updates = [
+      supabase.from('store_products').update({ display_order: targetProduct.display_order }).eq('id', currentProduct.id),
+      supabase.from('store_products').update({ display_order: currentProduct.display_order }).eq('id', targetProduct.id),
+    ];
+
+    const results = await Promise.all(updates);
+    const hasError = results.some(r => r.error);
+
+    if (hasError) {
+      toast.error('Erro ao reordenar produto');
+      return { error: 'Update failed' };
+    }
+
+    fetchProducts();
+    return { success: true };
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [categoryId, onlyActive]);
+
+  return {
+    products,
+    isLoading,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    reorderProduct,
+    refetch: fetchProducts,
+  };
+}
