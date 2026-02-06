@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart } from 'lucide-react';
@@ -16,13 +17,18 @@ export function CartButton({
   className = '',
   showLabel = false,
 }: CartButtonProps) {
-  const { toggleCart, itemCount } = useCart();
+  const navigate = useNavigate();
+  const { itemCount } = useCart();
+
+  const handleClick = () => {
+    navigate('/carrinho');
+  };
 
   return (
     <Button 
       variant={variant} 
       size={size}
-      onClick={toggleCart}
+      onClick={handleClick}
       className={`relative ${className}`}
     >
       <ShoppingCart className="h-4 w-4" />
