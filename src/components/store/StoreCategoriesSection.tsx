@@ -26,22 +26,30 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
       return;
     }
 
-    // Expand and fetch products
+    // Expand and fetch products from public view (accessible to all users)
     setExpandedCategory(category.id);
     setIsLoadingProducts(true);
 
     const { data, error } = await supabase
-      .from('store_products')
-      .select('*, store_categories(name, slug)')
+      .from('store_products_public')
+      .select('*')
       .eq('category_id', category.id)
-      .eq('status', 'active')
       .order('display_order', { ascending: true });
 
     if (error) {
       console.error('Error fetching products:', error);
       setProducts([]);
     } else {
-      setProducts((data || []) as StoreProductWithCategory[]);
+      // Map public view data to expected format
+      const mappedProducts = (data || []).map(p => ({
+        ...p,
+        stock: null,
+        post_sale_instructions: null,
+        product_type: 'lines' as const,
+        delivery_type: 'automatic' as const,
+        store_categories: null,
+      })) as StoreProductWithCategory[];
+      setProducts(mappedProducts);
     }
     setIsLoadingProducts(false);
   };
