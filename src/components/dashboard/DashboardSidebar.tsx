@@ -101,7 +101,7 @@ export function DashboardSidebar({
   return (
     <Sidebar 
       className={cn(
-        "border-r border-border/50 bg-card/50 backdrop-blur-xl relative",
+        "border-r border-border/50 bg-card/50 backdrop-blur-xl relative h-full",
         isCollapsed ? "w-16" : "w-60"
       )}
       collapsible="icon"
@@ -125,7 +125,7 @@ export function DashboardSidebar({
         )}
       </Button>
 
-      <SidebarContent className="px-2 pt-8 pb-4">
+      <SidebarContent className="px-2 pt-4 pb-4">
         {/* Main Navigation */}
         <SidebarGroup>
           {!isCollapsed && (
