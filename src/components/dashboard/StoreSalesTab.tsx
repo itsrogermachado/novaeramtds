@@ -17,10 +17,13 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Search, Package, Eye, CheckCircle, XCircle, Clock, Loader2, RefreshCw 
+  Search, Package, Eye, CheckCircle, XCircle, Clock, Loader2, RefreshCw,
+  ShoppingCart, Users
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { CustomerAnalytics } from './CustomerAnalytics';
 
 interface OrderItem {
   product_id: string;
@@ -162,88 +165,110 @@ export function StoreSalesTab() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por e-mail ou ID..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Filtrar por status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="pending">Pendente</SelectItem>
-            <SelectItem value="paid">Pago</SelectItem>
-            <SelectItem value="delivered">Entregue</SelectItem>
-            <SelectItem value="cancelled">Cancelado</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button variant="outline" size="icon" onClick={() => refetch()}>
-          <RefreshCw className="h-4 w-4" />
-        </Button>
-      </div>
+      {/* Tabs: Pedidos / Clientes */}
+      <Tabs defaultValue="orders" className="w-full">
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="orders" className="gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            Pedidos
+          </TabsTrigger>
+          <TabsTrigger value="customers" className="gap-2">
+            <Users className="h-4 w-4" />
+            Clientes
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Orders Table */}
-      {filteredOrders.length === 0 ? (
-        <div className="text-center py-12">
-          <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
-          <p className="text-muted-foreground">Nenhum pedido encontrado</p>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>E-mail</TableHead>
-                <TableHead>Itens</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {order.customer_email}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">
-                      {order.items.reduce((sum, item) => sum + item.quantity, 0)} itens
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-bold">
-                    {formatCurrency(order.total)}
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(order.status)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setSelectedOrder(order)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+        {/* Orders Tab */}
+        <TabsContent value="orders" className="space-y-4 mt-4">
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por e-mail ou ID..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Filtrar por status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="pending">Pendente</SelectItem>
+                <SelectItem value="paid">Pago</SelectItem>
+                <SelectItem value="delivered">Entregue</SelectItem>
+                <SelectItem value="cancelled">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="icon" onClick={() => refetch()}>
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Orders Table */}
+          {filteredOrders.length === 0 ? (
+            <div className="text-center py-12">
+              <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
+              <p className="text-muted-foreground">Nenhum pedido encontrado</p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>E-mail</TableHead>
+                    <TableHead>Itens</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredOrders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {order.customer_email}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {order.items.reduce((sum, item) => sum + item.quantity, 0)} itens
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-bold">
+                        {formatCurrency(order.total)}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(order.status)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setSelectedOrder(order)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Customers Tab */}
+        <TabsContent value="customers" className="mt-4">
+          <CustomerAnalytics orders={orders} />
+        </TabsContent>
+      </Tabs>
 
       {/* Order Details Dialog */}
       <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
