@@ -1,9 +1,9 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { startOfMonth, endOfMonth, startOfWeek, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
-import { useOperations } from '@/hooks/useOperations';
-import { useExpenses } from '@/hooks/useExpenses';
+import { useOperations, Operation } from '@/hooks/useOperations';
+import { useExpenses, Expense } from '@/hooks/useExpenses';
 import { useGoals } from '@/hooks/useGoals';
 import { useAllUsers } from '@/hooks/useAllUsers';
 import { useNewTutorialsNotification } from '@/hooks/useNewTutorialsNotification';
@@ -22,23 +22,30 @@ import { ProfitEvolutionChart } from '@/components/dashboard/ProfitEvolutionChar
 import { ExpensesByCategoryChart } from '@/components/dashboard/ExpensesByCategoryChart';
 import { UpcomingExpensesCard } from '@/components/dashboard/UpcomingExpensesCard';
 import { GoalsCard } from '@/components/dashboard/GoalsCard';
-import { AdminIndividualTab } from '@/components/dashboard/AdminIndividualTab';
-import { AdminGlobalTab } from '@/components/dashboard/AdminGlobalTab';
 import { ComparisonTab } from '@/components/dashboard/ComparisonTab';
-import { TutorialsTab } from '@/components/dashboard/TutorialsTab';
-import { SurebetCalculator } from '@/components/dashboard/SurebetCalculator';
-import { TeamTab } from '@/components/dashboard/TeamTab';
 import { AiAssistant } from '@/components/dashboard/AiAssistant';
-import { StoreCategoriesTab } from '@/components/dashboard/StoreCategoriesTab';
-import { StoreProductsTab } from '@/components/dashboard/StoreProductsTab';
-import { StoreCouponsTab } from '@/components/dashboard/StoreCouponsTab';
-import { StoreSalesTab } from '@/components/dashboard/StoreSalesTab';
-import { StoreTab } from '@/components/dashboard/StoreTab';
+
+// Lazy load heavy/less-used tabs
+const AdminIndividualTab = lazy(() => import('@/components/dashboard/AdminIndividualTab').then(m => ({ default: m.AdminIndividualTab })));
+const AdminGlobalTab = lazy(() => import('@/components/dashboard/AdminGlobalTab').then(m => ({ default: m.AdminGlobalTab })));
+const TutorialsTab = lazy(() => import('@/components/dashboard/TutorialsTab').then(m => ({ default: m.TutorialsTab })));
+const SurebetCalculator = lazy(() => import('@/components/dashboard/SurebetCalculator').then(m => ({ default: m.SurebetCalculator })));
+const TeamTab = lazy(() => import('@/components/dashboard/TeamTab').then(m => ({ default: m.TeamTab })));
+const StoreTab = lazy(() => import('@/components/dashboard/StoreTab').then(m => ({ default: m.StoreTab })));
+const StoreCategoriesTab = lazy(() => import('@/components/dashboard/StoreCategoriesTab').then(m => ({ default: m.StoreCategoriesTab })));
+const StoreProductsTab = lazy(() => import('@/components/dashboard/StoreProductsTab').then(m => ({ default: m.StoreProductsTab })));
+const StoreCouponsTab = lazy(() => import('@/components/dashboard/StoreCouponsTab').then(m => ({ default: m.StoreCouponsTab })));
+const StoreSalesTab = lazy(() => import('@/components/dashboard/StoreSalesTab').then(m => ({ default: m.StoreSalesTab })));
 
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { TrendingUp, TrendingDown, Wallet, Receipt } from 'lucide-react';
-import { Operation } from '@/hooks/useOperations';
-import { Expense } from '@/hooks/useExpenses';
+
+// Tab loading fallback
+const TabLoader = () => (
+  <div className="flex items-center justify-center py-12">
+    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 export default function Dashboard() {
   const { user, isLoading: authLoading, isAdmin, signOut } = useAuth();
@@ -54,7 +61,7 @@ export default function Dashboard() {
   const { operations, methods, isLoading: opsLoading, createOperation, updateOperation, deleteOperation, createMethod, deleteMethod } = useOperations(dateRange);
   const { expenses, effectiveExpenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
-  const { users, isLoading: usersLoading } = useAllUsers();
+  
   
   const { newTutorialsCount, markAsViewed: markTutorialsAsViewed } = useNewTutorialsNotification();
 
@@ -66,9 +73,7 @@ export default function Dashboard() {
     }
   }, [currentTab, markTutorialsAsViewed]);
 
-  // All data for global view (showAll = true for admin)
-  const { operations: allOperations } = useOperations(dateRange, undefined, true);
-  const { effectiveExpenses: allEffectiveExpenses } = useExpenses(dateRange, undefined, true);
+  // Admin global data - only fetch when needed (tabs fetch internally)
 
   const [operationDialogOpen, setOperationDialogOpen] = useState(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
@@ -324,71 +329,83 @@ export default function Dashboard() {
             )}
 
             {currentTab === 'tutorials' && (
-              <div className="animate-fade-in">
-                <TutorialsTab />
-              </div>
+              <Suspense fallback={<TabLoader />}>
+                <div className="animate-fade-in">
+                  <TutorialsTab />
+                </div>
+              </Suspense>
             )}
 
             {currentTab === 'surebet' && (
-              <div className="animate-fade-in">
-                <SurebetCalculator />
-              </div>
+              <Suspense fallback={<TabLoader />}>
+                <div className="animate-fade-in">
+                  <SurebetCalculator />
+                </div>
+              </Suspense>
             )}
 
             {currentTab === 'team' && (
-              <div className="animate-fade-in">
-                <TeamTab />
-              </div>
+              <Suspense fallback={<TabLoader />}>
+                <div className="animate-fade-in">
+                  <TeamTab />
+                </div>
+              </Suspense>
             )}
 
             {currentTab === 'store' && (
-              <div className="animate-fade-in">
-                <StoreTab />
-              </div>
+              <Suspense fallback={<TabLoader />}>
+                <div className="animate-fade-in">
+                  <StoreTab />
+                </div>
+              </Suspense>
             )}
 
             {isAdmin && currentTab === 'store-categories' && (
-              <div className="animate-fade-in">
-                <StoreCategoriesTab />
-              </div>
+              <Suspense fallback={<TabLoader />}>
+                <div className="animate-fade-in">
+                  <StoreCategoriesTab />
+                </div>
+              </Suspense>
             )}
 
             {isAdmin && currentTab === 'store-products' && (
-              <div className="animate-fade-in">
-                <StoreProductsTab />
-              </div>
+              <Suspense fallback={<TabLoader />}>
+                <div className="animate-fade-in">
+                  <StoreProductsTab />
+                </div>
+              </Suspense>
             )}
 
             {isAdmin && currentTab === 'store-coupons' && (
-              <div className="animate-fade-in">
-                <StoreCouponsTab />
-              </div>
+              <Suspense fallback={<TabLoader />}>
+                <div className="animate-fade-in">
+                  <StoreCouponsTab />
+                </div>
+              </Suspense>
             )}
 
             {isAdmin && currentTab === 'store-sales' && (
-              <div className="animate-fade-in">
-                <StoreSalesTab />
-              </div>
+              <Suspense fallback={<TabLoader />}>
+                <div className="animate-fade-in">
+                  <StoreSalesTab />
+                </div>
+              </Suspense>
             )}
 
             {isAdmin && currentTab === 'individual' && (
-              <div className="animate-fade-in">
-                <AdminIndividualTab
-                  users={users}
-                  allOperations={allOperations}
-                  isLoading={usersLoading}
-                />
-              </div>
+              <Suspense fallback={<TabLoader />}>
+                <div className="animate-fade-in">
+                  <AdminIndividualTab dateRange={dateRange} />
+                </div>
+              </Suspense>
             )}
 
             {isAdmin && currentTab === 'global' && (
-              <div className="animate-fade-in">
-                <AdminGlobalTab
-                  operations={allOperations}
-                  expenses={allEffectiveExpenses}
-                  users={users}
-                />
-              </div>
+              <Suspense fallback={<TabLoader />}>
+                <div className="animate-fade-in">
+                  <AdminGlobalTab dateRange={dateRange} />
+                </div>
+              </Suspense>
             )}
           </main>
         </div>
