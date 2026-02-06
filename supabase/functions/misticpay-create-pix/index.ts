@@ -55,22 +55,16 @@ Deno.serve(async (req) => {
     const body: CreatePixRequest = await req.json();
     const { orderId, amount, payerName, payerDocument, description } = body;
 
-    if (!orderId || !amount || !payerName || !payerDocument) {
+    if (!orderId || !amount) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Clean CPF (remove formatting)
-    const cleanDocument = payerDocument.replace(/\D/g, '');
-
-    if (cleanDocument.length !== 11) {
-      return new Response(
-        JSON.stringify({ error: 'CPF inválido. Deve conter 11 dígitos.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // Use default values if not provided
+    const cleanDocument = (payerDocument || '00000000000').replace(/\D/g, '');
+    const finalPayerName = payerName?.trim() || 'Cliente Nova Era';
 
     // Get webhook URL for this function
     const webhookUrl = `${supabaseUrl}/functions/v1/misticpay-webhook`;
@@ -85,7 +79,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         amount: amount,
-        payerName: payerName,
+        payerName: finalPayerName,
         payerDocument: cleanDocument,
         transactionId: orderId,
         description: description || `Pedido ${orderId}`,
