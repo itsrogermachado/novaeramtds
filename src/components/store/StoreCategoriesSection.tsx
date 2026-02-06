@@ -186,7 +186,18 @@ export function StoreCategoriesSection({ hideHeader = false }: StoreCategoriesSe
                           className="p-4 rounded-lg bg-white/70 border border-white/80 
                                      hover:bg-white/90 transition-colors"
                         >
-                          <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            {/* Product Image */}
+                            {product.image_url && (
+                              <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-muted/30">
+                                <img
+                                  src={product.image_url}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            )}
+                            
                             <div className="flex-1 min-w-0">
                               <h4 className="font-medium text-sm" style={{ color: 'hsl(220 25% 15%)' }}>
                                 {product.name}
