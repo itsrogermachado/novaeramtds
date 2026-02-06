@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import InlineLoginPanel from '@/components/landing/InlineLoginPanel';
 import { StoreCategoriesSection } from '@/components/store/StoreCategoriesSection';
 import { CartButton } from '@/components/store/CartButton';
+import { ThemeToggle } from '@/components/dashboard/ThemeToggle';
 
 export default function Landing() {
   const { user, isLoading } = useAuth();
@@ -60,8 +61,9 @@ export default function Landing() {
       <div className="auth-noise" />
 
       <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Cart Button - Top Right */}
-        <div className="flex justify-end pt-3 sm:pt-4 lg:pt-6 px-4">
+        {/* Top Right Actions */}
+        <div className="flex items-center justify-end gap-2 pt-3 sm:pt-4 lg:pt-6 px-4">
+          <ThemeToggle />
           <CartButton variant="outline" size="icon" />
         </div>
 
