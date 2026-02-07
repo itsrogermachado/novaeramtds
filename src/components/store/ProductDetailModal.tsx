@@ -230,9 +230,19 @@ export function ProductDetailModal({
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
-                      <span className="w-10 sm:w-12 text-center font-medium text-base sm:text-lg">
-                        {quantity}
-                      </span>
+                      <input
+                        type="number"
+                        min={minQty}
+                        max={maxQty}
+                        value={quantity}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (!isNaN(val)) {
+                            setQuantity(Math.max(minQty, Math.min(val, maxQty)));
+                          }
+                        }}
+                        className="w-12 text-center font-medium text-base sm:text-lg bg-transparent border-none outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
                       <Button
                         variant="outline"
                         size="icon"

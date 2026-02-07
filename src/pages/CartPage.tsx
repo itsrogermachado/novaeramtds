@@ -493,9 +493,19 @@ export default function CartPage() {
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <span className="w-8 text-center text-sm font-medium">
-                          {item.quantity}
-                        </span>
+                        <input
+                          type="number"
+                          min={getMinQuantity(item)}
+                          max={getMaxQuantity(item)}
+                          value={item.quantity}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value, 10);
+                            if (!isNaN(val)) {
+                              updateQuantity(item.product.id, val);
+                            }
+                          }}
+                          className="w-10 text-center text-sm font-medium bg-transparent border-none outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
                         <Button
                           variant="ghost"
                           size="icon"
