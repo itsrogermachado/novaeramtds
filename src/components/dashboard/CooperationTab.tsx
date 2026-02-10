@@ -171,13 +171,6 @@ export function CooperationTab() {
                 />
                 <Input
                   type="number"
-                  placeholder="Depósito"
-                  value={acc.deposit || ''}
-                  onChange={(e) => updateChildAccount(i, 'deposit', parseFloat(e.target.value) || 0)}
-                  className="text-sm"
-                />
-                <Input
-                  type="number"
                   placeholder="Saque"
                   value={acc.withdrawal || ''}
                   onChange={(e) => updateChildAccount(i, 'withdrawal', parseFloat(e.target.value) || 0)}
