@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { subYears, startOfMonth, endOfMonth } from 'date-fns';
+import { endOfMonth } from 'date-fns';
 import { useOperations } from '@/hooks/useOperations';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useMonthlyComparison } from '@/hooks/useMonthlyComparison';
@@ -11,18 +11,33 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TrendingUp, Calendar, Trophy, BarChart3 } from 'lucide-react';
 
 export function ComparisonTab() {
-  const [monthsCount, setMonthsCount] = useState(120);
+  const [monthsCount, setMonthsCount] = useState(0); // 0 = total
 
-  // Always fetch full history (10 years) independent of Dashboard date filter
+  // Fetch full history independent of Dashboard date filter
   const fullRange = useMemo(() => ({
-    start: startOfMonth(subYears(new Date(), 10)),
+    start: new Date(2020, 0, 1), // desde o início possível do projeto
     end: endOfMonth(new Date()),
   }), []);
 
   const { operations } = useOperations(fullRange);
   const { expenses } = useExpenses(fullRange);
 
-  const { monthlyData, summary } = useMonthlyComparison(operations, expenses, monthsCount);
+  // When monthsCount is 0 (Total), calculate actual months span from earliest data
+  const effectiveMonths = useMemo(() => {
+    if (monthsCount > 0) return monthsCount;
+    const allDates = [
+      ...operations.map(op => op.operation_date),
+      ...expenses.map(exp => exp.expense_date),
+    ];
+    if (allDates.length === 0) return 6;
+    const earliest = allDates.sort()[0];
+    const earliestDate = new Date(earliest);
+    const now = new Date();
+    const diff = (now.getFullYear() - earliestDate.getFullYear()) * 12 + (now.getMonth() - earliestDate.getMonth()) + 1;
+    return Math.max(diff, 1);
+  }, [monthsCount, operations, expenses]);
+
+  const { monthlyData, summary } = useMonthlyComparison(operations, expenses, effectiveMonths);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -40,7 +55,7 @@ export function ComparisonTab() {
             <SelectItem value="6">Últimos 6 meses</SelectItem>
             <SelectItem value="12">Últimos 12 meses</SelectItem>
             <SelectItem value="24">Últimos 24 meses</SelectItem>
-            <SelectItem value="120">Total (10 anos)</SelectItem>
+            <SelectItem value="0">Total</SelectItem>
           </SelectContent>
         </Select>
       </div>
