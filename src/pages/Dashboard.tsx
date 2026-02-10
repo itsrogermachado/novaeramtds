@@ -325,6 +325,7 @@ export default function Dashboard() {
                   onUpdate={updateGoal}
                   onDelete={deleteGoal}
                 />
+                <UpcomingExpensesCard expenses={upcomingExpenses} />
               </div>
             )}
 
