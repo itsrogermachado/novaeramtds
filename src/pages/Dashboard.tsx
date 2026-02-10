@@ -359,36 +359,14 @@ export default function Dashboard() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
-                  <div className="lg:col-span-3 space-y-4 md:space-y-6">
-                    {!isSingleDayView && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                        <ProfitEvolutionChart operations={operations} />
-                        <ExpensesByCategoryChart expenses={effectiveExpenses} />
-                      </div>
-                    )}
-                    <OperationsTable
-                      operations={operations}
-                      isLoading={opsLoading}
-                      onAdd={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
-                      onEdit={(op) => { setEditingOperation(op); setOperationDialogOpen(true); }}
-                      onDelete={handleDeleteOperation}
-                    />
-                  </div>
-                  <div className="space-y-3 md:space-y-4">
-                    <GoalsCard
-                      goals={goals}
-                      todayProfit={goalsProfit.todayProfit}
-                      weeklyProfit={goalsProfit.weeklyProfit}
-                      monthlyProfit={goalsProfit.monthlyProfit}
-                      onCreate={createGoal}
-                      onUpdate={updateGoal}
-                      onDelete={deleteGoal}
-                    />
-                    <ProfitByMethodCard operations={operations} methods={methods} />
-                    <UpcomingExpensesCard expenses={upcomingExpenses} />
-                  </div>
-                </div>
+                <OperationsTable
+                  operations={operations}
+                  isLoading={opsLoading}
+                  onAdd={() => { setEditingOperation(null); setOperationDialogOpen(true); }}
+                  onEdit={(op) => { setEditingOperation(op); setOperationDialogOpen(true); }}
+                  onDelete={handleDeleteOperation}
+                />
+                <ProfitByMethodCard operations={operations} methods={methods} />
               </div>
             )}
 
