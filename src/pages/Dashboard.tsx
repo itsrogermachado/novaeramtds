@@ -53,7 +53,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const [currentTab, setCurrentTab] = useState('my-operations');
+  const [currentTab, setCurrentTab] = useState('overview');
   const [dateRange, setDateRange] = useState({
     start: startOfMonth(new Date()),
     end: endOfMonth(new Date()),
@@ -260,6 +260,7 @@ export default function Dashboard() {
             {/* Mobile section title */}
             <div className="md:hidden flex items-center gap-2 px-1">
               <span className="text-sm font-medium text-foreground">
+                {currentTab === 'overview' && 'Visão Geral'}
                 {currentTab === 'my-operations' && 'Minhas Operações'}
                 {currentTab === 'cooperation' && 'Cooperação'}
                 {currentTab === 'my-expenses' && 'Meus Gastos'}
@@ -277,6 +278,56 @@ export default function Dashboard() {
             </div>
 
             {/* Content based on current tab */}
+            {/* Overview Tab */}
+            {currentTab === 'overview' && (
+              <div className="space-y-4 md:space-y-6 animate-fade-in">
+                {/* Stats Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+                  <StatsCard 
+                    title="Operações" 
+                    value={String(operations.length)} 
+                    icon={<Receipt className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
+                    className="animation-delay-100"
+                  />
+                  <StatsCard 
+                    title="Investido" 
+                    value={formatCurrency(totalInvested)} 
+                    icon={<Wallet className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />} 
+                    className="animation-delay-200"
+                  />
+                  <StatsCard 
+                    title="Lucro" 
+                    value={formatCurrency(profit)} 
+                    trend={profit >= 0 ? 'up' : 'down'} 
+                    icon={<TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-success" />} 
+                    className="animation-delay-300"
+                  />
+                  <StatsCard 
+                    title="Gastos" 
+                    value={formatCurrency(totalExpenses)} 
+                    icon={<TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />} 
+                    className="animation-delay-400"
+                  />
+                </div>
+
+                {/* Profit Evolution Chart */}
+                {!isSingleDayView && (
+                  <ProfitEvolutionChart operations={operations} />
+                )}
+
+                {/* Goals */}
+                <GoalsCard
+                  goals={goals}
+                  todayProfit={goalsProfit.todayProfit}
+                  weeklyProfit={goalsProfit.weeklyProfit}
+                  monthlyProfit={goalsProfit.monthlyProfit}
+                  onCreate={createGoal}
+                  onUpdate={updateGoal}
+                  onDelete={deleteGoal}
+                />
+              </div>
+            )}
+
             {currentTab === 'my-operations' && (
               <div className="space-y-4 md:space-y-6 animate-fade-in">
                 {/* Stats Cards */}
