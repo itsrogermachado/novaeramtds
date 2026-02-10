@@ -111,7 +111,8 @@ export default function Dashboard() {
   // Calculate stats - use effectiveExpenses for calculations (only expenses with date <= today)
   const totalInvested = operations.reduce((sum, op) => sum + Number(op.invested_amount), 0);
   const totalReturn = operations.reduce((sum, op) => sum + Number(op.return_amount), 0);
-  const profit = totalReturn - totalInvested;
+  const operationsProfit = totalReturn - totalInvested;
+  const profit = operationsProfit + cooperationTotal;
   const totalExpenses = effectiveExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
   const netBalance = profit - totalExpenses;
 
@@ -297,7 +298,7 @@ export default function Dashboard() {
             {currentTab === 'overview' && (
               <div className="space-y-4 md:space-y-6 animate-fade-in">
                 {/* Stats Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
                   <StatsCard 
                     title="Operações" 
                     value={String(operations.length)} 
@@ -322,13 +323,6 @@ export default function Dashboard() {
                     value={formatCurrency(totalExpenses)} 
                     icon={<TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />} 
                     className="animation-delay-400"
-                  />
-                  <StatsCard 
-                    title="Cooperação" 
-                    value={formatCurrency(cooperationTotal)} 
-                    trend={cooperationTotal >= 0 ? 'up' : 'down'}
-                    icon={<Handshake className="h-4 w-4 md:h-5 md:w-5 text-primary" />} 
-                    className="animation-delay-500"
                   />
                 </div>
 
