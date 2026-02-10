@@ -31,6 +31,7 @@ interface DashboardSidebarProps {
 
 const mainNavItems = [
   { id: 'my-operations', label: 'Operações', icon: Receipt },
+  { id: 'cooperation', label: 'Cooperação', icon: Users },
   { id: 'my-expenses', label: 'Gastos', icon: Wallet },
   { id: 'comparison', label: 'Comparativo', icon: BarChart3 },
   { id: 'tutorials', label: 'Tutoriais', icon: Video, hasBadge: true },
