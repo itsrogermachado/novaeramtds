@@ -267,11 +267,18 @@ export default function Dashboard() {
           <div className="flex-1 relative flex flex-col min-w-0 overflow-hidden">
 
           <main className="flex-1 p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6 overflow-auto">
-            <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange}>
-              <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
+            {currentTab !== 'comparison' && (
+              <DateFilter dateRange={dateRange} onDateRangeChange={setDateRange}>
+                <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
+                  <AiAssistant context={aiContext} embedded />
+                </div>
+              </DateFilter>
+            )}
+            {currentTab === 'comparison' && (
+              <div className="flex items-center gap-1.5 sm:gap-2 justify-end">
                 <AiAssistant context={aiContext} embedded />
               </div>
-            </DateFilter>
+            )}
 
             {/* Mobile section title */}
             <div className="md:hidden flex items-center gap-2 px-1">
