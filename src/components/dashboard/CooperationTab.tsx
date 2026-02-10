@@ -83,6 +83,7 @@ export function CooperationTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cooperations', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['cooperations-total', user?.id] });
       toast({ title: 'Cooperação salva com sucesso!' });
       resetEditor();
     },
@@ -99,6 +100,7 @@ export function CooperationTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cooperations', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['cooperations-total', user?.id] });
       toast({ title: 'Cooperação excluída' });
     },
   });
