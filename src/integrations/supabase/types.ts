@@ -41,6 +41,36 @@ export type Database = {
         }
         Relationships: []
       }
+      cooperations: {
+        Row: {
+          child_accounts: Json
+          created_at: string
+          id: string
+          salary: number
+          total: number
+          treasure: number
+          user_id: string
+        }
+        Insert: {
+          child_accounts?: Json
+          created_at?: string
+          id?: string
+          salary?: number
+          total?: number
+          treasure?: number
+          user_id: string
+        }
+        Update: {
+          child_accounts?: Json
+          created_at?: string
+          id?: string
+          salary?: number
+          total?: number
+          treasure?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       dutching_history: {
         Row: {
           created_at: string
