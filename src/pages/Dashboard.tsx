@@ -38,7 +38,7 @@ const StoreCouponsTab = lazy(() => import('@/components/dashboard/StoreCouponsTa
 const StoreSalesTab = lazy(() => import('@/components/dashboard/StoreSalesTab').then(m => ({ default: m.StoreSalesTab })));
 const MyOrdersTab = lazy(() => import('@/components/dashboard/MyOrdersTab').then(m => ({ default: m.MyOrdersTab })));
 
-import { TrendingUp, TrendingDown, Wallet, Receipt } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Receipt, Users } from 'lucide-react';
 
 // Tab loading fallback
 const TabLoader = () => (
@@ -260,6 +260,7 @@ export default function Dashboard() {
             <div className="md:hidden flex items-center gap-2 px-1">
               <span className="text-sm font-medium text-foreground">
                 {currentTab === 'my-operations' && 'Minhas Operações'}
+                {currentTab === 'cooperation' && 'Cooperação'}
                 {currentTab === 'my-expenses' && 'Meus Gastos'}
                 {currentTab === 'comparison' && 'Comparativo'}
                 {currentTab === 'tutorials' && 'Tutoriais'}
@@ -335,6 +336,18 @@ export default function Dashboard() {
                     <ProfitByMethodCard operations={operations} methods={methods} />
                     <UpcomingExpensesCard expenses={upcomingExpenses} />
                   </div>
+                </div>
+              </div>
+            )}
+
+            {currentTab === 'cooperation' && (
+              <div className="animate-fade-in">
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h2 className="text-xl font-semibold text-foreground mb-2">Cooperação</h2>
+                  <p className="text-muted-foreground text-sm max-w-md">
+                    Em breve você poderá gerenciar suas cooperações por aqui.
+                  </p>
                 </div>
               </div>
             )}

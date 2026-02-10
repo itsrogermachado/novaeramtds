@@ -72,6 +72,7 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
 
   const memberItems: NavItem[] = [
     { id: 'my-operations', label: 'Minhas Operações', icon: <TrendingUp className="h-5 w-5" /> },
+    { id: 'cooperation', label: 'Cooperação', icon: <Users className="h-5 w-5" /> },
     { id: 'my-expenses', label: 'Meus Gastos', icon: <Receipt className="h-5 w-5" /> },
     { id: 'comparison', label: 'Comparativo', icon: <Scale className="h-5 w-5" /> },
     { id: 'tutorials', label: 'Tutoriais', icon: <Video className="h-5 w-5" /> },
