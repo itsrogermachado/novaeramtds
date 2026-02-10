@@ -348,6 +348,7 @@ export default function Dashboard() {
                   onUpdate={updateGoal}
                   onDelete={deleteGoal}
                 />
+                <ExpensesByCategoryChart expenses={effectiveExpenses} />
                 <UpcomingExpensesCard expenses={upcomingExpenses} />
               </div>
             )}
