@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { BarChart3, FileText, Shield, ArrowRight, ChevronUp, Store, Package } from 'lucide-react';
+import { BarChart3, FileText, Shield, ArrowRight, ChevronUp, Store, Package, MessageCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import InlineLoginPanel from '@/components/landing/InlineLoginPanel';
 import { StoreCategoriesSection } from '@/components/store/StoreCategoriesSection';
@@ -63,6 +63,15 @@ export default function Landing() {
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Top Right Actions */}
         <div className="flex items-center justify-end gap-2 pt-3 sm:pt-4 lg:pt-6 px-4">
+          <a
+            href="https://chat.whatsapp.com/C6KXMYWZM8S7OqKm2cvIRr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card/60 hover:bg-emerald-500/10 hover:border-emerald-500/40 text-muted-foreground hover:text-emerald-500 transition-all text-sm font-medium"
+          >
+            <MessageCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">Grupo Network</span>
+          </a>
           <ThemeToggle />
           <CartButton variant="outline" size="icon" />
         </div>
