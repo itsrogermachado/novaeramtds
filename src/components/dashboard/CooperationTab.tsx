@@ -18,6 +18,7 @@ import {
   Banknote,
   History,
   X,
+  Pencil,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -47,6 +48,7 @@ export function CooperationTab() {
 
   // Editor state
   const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [childAccounts, setChildAccounts] = useState<ChildAccount[]>([
     { name: '', deposit: 0, withdrawal: 0 },
   ]);
@@ -68,23 +70,33 @@ export function CooperationTab() {
     enabled: !!user,
   });
 
-  // Save mutation
+  // Save mutation (insert or update)
   const saveMutation = useMutation({
     mutationFn: async () => {
       const total = childAccountsTotal + treasure + salary;
-      const { error } = await supabase.from('cooperations').insert({
-        user_id: user!.id,
-        child_accounts: childAccounts as any,
-        treasure,
-        salary,
-        total,
-      });
-      if (error) throw error;
+      if (editingId) {
+        const { error } = await supabase.from('cooperations').update({
+          child_accounts: childAccounts as any,
+          treasure,
+          salary,
+          total,
+        }).eq('id', editingId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('cooperations').insert({
+          user_id: user!.id,
+          child_accounts: childAccounts as any,
+          treasure,
+          salary,
+          total,
+        });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cooperations', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['cooperations-total', user?.id] });
-      toast({ title: 'Cooperação salva com sucesso!' });
+      toast({ title: editingId ? 'Cooperação atualizada!' : 'Cooperação salva com sucesso!' });
       resetEditor();
     },
     onError: () => {
@@ -107,9 +119,19 @@ export function CooperationTab() {
 
   const resetEditor = () => {
     setIsEditing(false);
+    setEditingId(null);
     setChildAccounts([{ name: '', deposit: 0, withdrawal: 0 }]);
     setTreasure(0);
     setSalary(0);
+  };
+
+  const startEditing = (record: CooperationRecord) => {
+    const accounts = (record.child_accounts || []) as ChildAccount[];
+    setChildAccounts(accounts.length > 0 ? accounts : [{ name: '', deposit: 0, withdrawal: 0 }]);
+    setTreasure(record.treasure);
+    setSalary(record.salary);
+    setEditingId(record.id);
+    setIsEditing(true);
   };
 
   const addChildAccount = () => {
@@ -140,7 +162,7 @@ export function CooperationTab() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Handshake className="h-5 w-5 text-primary" />
-            Nova Cooperação
+            {editingId ? 'Editar Cooperação' : 'Nova Cooperação'}
           </h2>
           <Button variant="ghost" size="sm" onClick={resetEditor}>
             <X className="h-4 w-4 mr-1" /> Cancelar
@@ -268,7 +290,7 @@ export function CooperationTab() {
           disabled={saveMutation.isPending}
         >
           <Check className="h-4 w-4" />
-          {saveMutation.isPending ? 'Salvando...' : 'Cooperação Finalizada'}
+          {saveMutation.isPending ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Cooperação Finalizada'}
         </Button>
       </div>
     );
@@ -313,10 +335,18 @@ export function CooperationTab() {
                     <span className="text-sm text-muted-foreground">
                       {format(new Date(record.created_at), 'dd/MM/yyyy HH:mm')}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <span className={cn('font-bold', record.total >= 0 ? 'text-success' : 'text-destructive')}>
                         {formatCurrency(record.total)}
                       </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-primary"
+                        onClick={() => startEditing(record)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
