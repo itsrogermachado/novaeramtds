@@ -31,6 +31,7 @@ const AdminGlobalTab = lazy(() => import('@/components/dashboard/AdminGlobalTab'
 const TutorialsTab = lazy(() => import('@/components/dashboard/TutorialsTab').then(m => ({ default: m.TutorialsTab })));
 const SurebetCalculator = lazy(() => import('@/components/dashboard/SurebetCalculator').then(m => ({ default: m.SurebetCalculator })));
 const TeamTab = lazy(() => import('@/components/dashboard/TeamTab').then(m => ({ default: m.TeamTab })));
+const CooperationTab = lazy(() => import('@/components/dashboard/CooperationTab').then(m => ({ default: m.CooperationTab })));
 const StoreTab = lazy(() => import('@/components/dashboard/StoreTab').then(m => ({ default: m.StoreTab })));
 const StoreCategoriesTab = lazy(() => import('@/components/dashboard/StoreCategoriesTab').then(m => ({ default: m.StoreCategoriesTab })));
 const StoreProductsTab = lazy(() => import('@/components/dashboard/StoreProductsTab').then(m => ({ default: m.StoreProductsTab })));
@@ -341,15 +342,11 @@ export default function Dashboard() {
             )}
 
             {currentTab === 'cooperation' && (
-              <div className="animate-fade-in">
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <h2 className="text-xl font-semibold text-foreground mb-2">Cooperação</h2>
-                  <p className="text-muted-foreground text-sm max-w-md">
-                    Em breve você poderá gerenciar suas cooperações por aqui.
-                  </p>
+              <Suspense fallback={<TabLoader />}>
+                <div className="animate-fade-in">
+                  <CooperationTab />
                 </div>
-              </div>
+              </Suspense>
             )}
 
             {currentTab === 'my-expenses' && (
