@@ -409,7 +409,7 @@ export default function Dashboard() {
 
             {currentTab === 'comparison' && (
               <div className="animate-fade-in">
-                <ComparisonTab operations={operations} expenses={effectiveExpenses} />
+                <ComparisonTab />
               </div>
             )}
 

@@ -1,21 +1,27 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { subYears, startOfMonth, endOfMonth } from 'date-fns';
+import { useOperations } from '@/hooks/useOperations';
+import { useExpenses } from '@/hooks/useExpenses';
 import { useMonthlyComparison } from '@/hooks/useMonthlyComparison';
 import { MonthlyComparisonChart } from './MonthlyComparisonChart';
 import { TrendLineChart } from './TrendLineChart';
 import { MonthlyStatsTable } from './MonthlyStatsTable';
 import { StatsCard } from './StatsCard';
-import { Operation } from '@/hooks/useOperations';
-import { Expense } from '@/hooks/useExpenses';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp, Calendar, Trophy, BarChart3 } from 'lucide-react';
 
-interface ComparisonTabProps {
-  operations: Operation[];
-  expenses: Expense[];
-}
+export function ComparisonTab() {
+  const [monthsCount, setMonthsCount] = useState(120);
 
-export function ComparisonTab({ operations, expenses }: ComparisonTabProps) {
-  const [monthsCount, setMonthsCount] = useState(6);
+  // Always fetch full history (10 years) independent of Dashboard date filter
+  const fullRange = useMemo(() => ({
+    start: startOfMonth(subYears(new Date(), 10)),
+    end: endOfMonth(new Date()),
+  }), []);
+
+  const { operations } = useOperations(fullRange);
+  const { expenses } = useExpenses(fullRange);
+
   const { monthlyData, summary } = useMonthlyComparison(operations, expenses, monthsCount);
 
   const formatCurrency = (value: number) =>
