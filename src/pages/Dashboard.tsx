@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { startOfMonth, endOfMonth, startOfWeek, format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +9,7 @@ import { useGoals } from '@/hooks/useGoals';
 import { useAllUsers } from '@/hooks/useAllUsers';
 import { useNewTutorialsNotification } from '@/hooks/useNewTutorialsNotification';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { MobileNav } from '@/components/dashboard/MobileNav';
@@ -39,7 +41,7 @@ const StoreCouponsTab = lazy(() => import('@/components/dashboard/StoreCouponsTa
 const StoreSalesTab = lazy(() => import('@/components/dashboard/StoreSalesTab').then(m => ({ default: m.StoreSalesTab })));
 const MyOrdersTab = lazy(() => import('@/components/dashboard/MyOrdersTab').then(m => ({ default: m.MyOrdersTab })));
 
-import { TrendingUp, TrendingDown, Wallet, Receipt, Users } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Receipt, Users, Handshake } from 'lucide-react';
 
 // Tab loading fallback
 const TabLoader = () => (
@@ -69,8 +71,21 @@ export default function Dashboard() {
   const { operations: goalsOperations } = useOperations(goalsDateRange);
   const { expenses, effectiveExpenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
-  
-  
+
+  // Fetch cooperation totals
+  const { data: cooperationTotal = 0 } = useQuery({
+    queryKey: ['cooperations-total', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cooperations')
+        .select('total')
+        .eq('user_id', user!.id);
+      if (error) throw error;
+      return (data ?? []).reduce((sum: number, r: any) => sum + Number(r.total), 0);
+    },
+    enabled: !!user,
+  });
+
   const { newTutorialsCount, markAsViewed: markTutorialsAsViewed } = useNewTutorialsNotification();
 
 
@@ -282,7 +297,7 @@ export default function Dashboard() {
             {currentTab === 'overview' && (
               <div className="space-y-4 md:space-y-6 animate-fade-in">
                 {/* Stats Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
                   <StatsCard 
                     title="Operações" 
                     value={String(operations.length)} 
@@ -307,6 +322,13 @@ export default function Dashboard() {
                     value={formatCurrency(totalExpenses)} 
                     icon={<TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />} 
                     className="animation-delay-400"
+                  />
+                  <StatsCard 
+                    title="Cooperação" 
+                    value={formatCurrency(cooperationTotal)} 
+                    trend={cooperationTotal >= 0 ? 'up' : 'down'}
+                    icon={<Handshake className="h-4 w-4 md:h-5 md:w-5 text-primary" />} 
+                    className="animation-delay-500"
                   />
                 </div>
 
