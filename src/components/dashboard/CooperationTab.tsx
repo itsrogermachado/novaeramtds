@@ -155,18 +155,18 @@ export function CooperationTab() {
           </CardHeader>
           <CardContent className="space-y-3">
             {/* Header */}
-            <div className="hidden sm:grid grid-cols-[1fr_1fr_1fr_40px] gap-2 text-xs text-muted-foreground font-medium px-1">
-              <span>Nome</span>
+            <div className="hidden sm:grid grid-cols-[1fr_1fr_40px] gap-2 text-xs text-muted-foreground font-medium px-1">
               <span>Depósito</span>
               <span>Saque</span>
               <span />
             </div>
             {childAccounts.map((acc, i) => (
-              <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_40px] gap-2 items-center">
+              <div key={i} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_40px] gap-2 items-center">
                 <Input
-                  placeholder={`Conta ${i + 1}`}
-                  value={acc.name}
-                  onChange={(e) => updateChildAccount(i, 'name', e.target.value)}
+                  type="number"
+                  placeholder="Depósito"
+                  value={acc.deposit || ''}
+                  onChange={(e) => updateChildAccount(i, 'deposit', parseFloat(e.target.value) || 0)}
                   className="text-sm"
                 />
                 <Input
