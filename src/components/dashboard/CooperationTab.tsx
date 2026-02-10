@@ -125,7 +125,7 @@ export function CooperationTab() {
   };
 
   const childAccountsTotal = useMemo(
-    () => childAccounts.reduce((sum, acc) => sum + acc.deposit - acc.withdrawal, 0),
+    () => childAccounts.reduce((sum, acc) => sum + acc.withdrawal - acc.deposit, 0),
     [childAccounts]
   );
 
@@ -310,7 +310,7 @@ export function CooperationTab() {
         <div className="space-y-3">
           {history.map((record) => {
             const accounts = (record.child_accounts || []) as ChildAccount[];
-            const accountsTotal = accounts.reduce((s, a) => s + a.deposit - a.withdrawal, 0);
+            const accountsTotal = accounts.reduce((s, a) => s + a.withdrawal - a.deposit, 0);
             return (
               <Card key={record.id} className="border-border/50 bg-card/80 backdrop-blur">
                 <CardContent className="py-4 space-y-3">
