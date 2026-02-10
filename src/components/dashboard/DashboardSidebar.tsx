@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
   DollarSign,
+  LayoutDashboard,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -30,6 +31,7 @@ interface DashboardSidebarProps {
 }
 
 const mainNavItems = [
+  { id: 'overview', label: 'Visão Geral', icon: LayoutDashboard },
   { id: 'my-operations', label: 'Operações', icon: Receipt },
   { id: 'cooperation', label: 'Cooperação', icon: Users },
   { id: 'my-expenses', label: 'Gastos', icon: Wallet },

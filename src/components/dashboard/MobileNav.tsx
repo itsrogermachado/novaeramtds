@@ -18,7 +18,7 @@ import {
   Users,
   Globe,
   ChevronRight,
-  
+  LayoutDashboard,
   Shield,
   LogOut,
   UserCircle,
@@ -71,6 +71,7 @@ export function MobileNav({ currentTab, onTabChange, onSignOut, newTutorialsCoun
   };
 
   const memberItems: NavItem[] = [
+    { id: 'overview', label: 'Visão Geral', icon: <LayoutDashboard className="h-5 w-5" /> },
     { id: 'my-operations', label: 'Minhas Operações', icon: <TrendingUp className="h-5 w-5" /> },
     { id: 'cooperation', label: 'Cooperação', icon: <Users className="h-5 w-5" /> },
     { id: 'my-expenses', label: 'Meus Gastos', icon: <Receipt className="h-5 w-5" /> },
