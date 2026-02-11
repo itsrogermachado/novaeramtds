@@ -1,0 +1,1 @@
+ALTER TABLE public.cooperations ADD COLUMN name text NOT NULL DEFAULT '';

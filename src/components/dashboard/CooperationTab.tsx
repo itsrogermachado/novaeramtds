@@ -49,6 +49,7 @@ export function CooperationTab() {
   // Editor state
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [cooperationName, setCooperationName] = useState('');
   const [childAccounts, setChildAccounts] = useState<ChildAccount[]>([
     { name: '', deposit: 0, withdrawal: 0 },
   ]);
@@ -76,6 +77,7 @@ export function CooperationTab() {
       const total = childAccountsTotal + treasure + salary;
       if (editingId) {
         const { error } = await supabase.from('cooperations').update({
+          name: cooperationName,
           child_accounts: childAccounts as any,
           treasure,
           salary,
@@ -85,6 +87,7 @@ export function CooperationTab() {
       } else {
         const { error } = await supabase.from('cooperations').insert({
           user_id: user!.id,
+          name: cooperationName,
           child_accounts: childAccounts as any,
           treasure,
           salary,
@@ -120,6 +123,7 @@ export function CooperationTab() {
   const resetEditor = () => {
     setIsEditing(false);
     setEditingId(null);
+    setCooperationName('');
     setChildAccounts([{ name: '', deposit: 0, withdrawal: 0 }]);
     setTreasure(0);
     setSalary(0);
@@ -127,6 +131,7 @@ export function CooperationTab() {
 
   const startEditing = (record: CooperationRecord) => {
     const accounts = (record.child_accounts || []) as ChildAccount[];
+    setCooperationName((record as any).name || '');
     setChildAccounts(accounts.length > 0 ? accounts : [{ name: '', deposit: 0, withdrawal: 0 }]);
     setTreasure(record.treasure);
     setSalary(record.salary);
@@ -168,6 +173,18 @@ export function CooperationTab() {
             <X className="h-4 w-4 mr-1" /> Cancelar
           </Button>
         </div>
+
+        {/* Nome da Cooperação */}
+        <Card className="border-border/50 bg-card/80 backdrop-blur">
+          <CardContent className="pt-4 pb-4">
+            <Input
+              placeholder="Nome da cooperação (ex: Parceria João)"
+              value={cooperationName}
+              onChange={(e) => setCooperationName(e.target.value)}
+              className="text-sm"
+            />
+          </CardContent>
+        </Card>
 
         {/* Contas Filhas */}
         <Card className="border-border/50 bg-card/80 backdrop-blur">
@@ -309,6 +326,23 @@ export function CooperationTab() {
         </Button>
       </div>
 
+      {/* Resultado Geral */}
+      {!isLoading && history.length > 0 && (() => {
+        const overallTotal = history.reduce((sum, r) => sum + r.total, 0);
+        return (
+          <Card className="border-primary/30 bg-primary/5 backdrop-blur">
+            <CardContent className="py-4">
+              <div className="flex justify-between items-center font-bold text-lg">
+                <span>Resultado Geral ({history.length} cooperações)</span>
+                <span className={cn(overallTotal >= 0 ? 'text-success' : 'text-destructive')}>
+                  {formatCurrency(overallTotal)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -332,9 +366,14 @@ export function CooperationTab() {
               <Card key={record.id} className="border-border/50 bg-card/80 backdrop-blur">
                 <CardContent className="py-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      {format(new Date(record.created_at), 'dd/MM/yyyy HH:mm')}
-                    </span>
+                    <div className="flex flex-col">
+                      {(record as any).name && (
+                        <span className="text-sm font-medium">{(record as any).name}</span>
+                      )}
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(record.created_at), 'dd/MM/yyyy HH:mm')}
+                      </span>
+                    </div>
                     <div className="flex items-center gap-1">
                       <span className={cn('font-bold', record.total >= 0 ? 'text-success' : 'text-destructive')}>
                         {formatCurrency(record.total)}
