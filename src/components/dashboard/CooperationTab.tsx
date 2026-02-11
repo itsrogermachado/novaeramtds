@@ -403,10 +403,16 @@ export function CooperationTab() {
                   {/* Expanded details */}
                   {isExpanded && (
                     <div className="mt-3 pt-3 border-t border-border/30 space-y-3 animate-fade-in">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
                         <div className="flex justify-between sm:flex-col sm:gap-0.5">
                           <span className="text-muted-foreground">Contas Filhas ({accounts.length})</span>
                           <span className="font-medium">{formatCurrency(accountsTotal)}</span>
+                        </div>
+                        <div className="flex justify-between sm:flex-col sm:gap-0.5">
+                          <span className="text-muted-foreground">Média/Conta</span>
+                          <span className="font-medium">
+                            {formatCurrency(accounts.length > 0 ? accounts.reduce((s, a) => s + a.deposit, 0) / accounts.length : 0)}
+                          </span>
                         </div>
                         <div className="flex justify-between sm:flex-col sm:gap-0.5">
                           <span className="text-muted-foreground">Baú</span>
