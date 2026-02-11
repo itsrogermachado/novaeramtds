@@ -46,6 +46,7 @@ export type Database = {
           child_accounts: Json
           created_at: string
           id: string
+          name: string
           salary: number
           total: number
           treasure: number
@@ -55,6 +56,7 @@ export type Database = {
           child_accounts?: Json
           created_at?: string
           id?: string
+          name?: string
           salary?: number
           total?: number
           treasure?: number
@@ -64,6 +66,7 @@ export type Database = {
           child_accounts?: Json
           created_at?: string
           id?: string
+          name?: string
           salary?: number
           total?: number
           treasure?: number
