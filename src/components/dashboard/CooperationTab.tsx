@@ -19,6 +19,9 @@ import {
   History,
   X,
   Pencil,
+  ChevronDown,
+  ChevronUp,
+  Eye,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -160,7 +163,13 @@ export function CooperationTab() {
 
   const grandTotal = childAccountsTotal + treasure + salary;
 
-  // ── Editor view ──
+  // Pagination & expand state
+  const ITEMS_PER_PAGE = 5;
+  const [showAll, setShowAll] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const visibleHistory = showAll ? history : history.slice(0, ITEMS_PER_PAGE);
+
+
   if (isEditing) {
     return (
       <div className="space-y-4 animate-fade-in">
@@ -333,7 +342,7 @@ export function CooperationTab() {
           <Card className="border-primary/30 bg-primary/5 backdrop-blur">
             <CardContent className="py-4">
               <div className="flex justify-between items-center font-bold text-lg">
-                <span>Resultado Geral ({history.length} cooperações)</span>
+                <span>Resultado Geral ({history.length})</span>
                 <span className={cn(overallTotal >= 0 ? 'text-success' : 'text-destructive')}>
                   {formatCurrency(overallTotal)}
                 </span>
@@ -358,74 +367,104 @@ export function CooperationTab() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {history.map((record) => {
+        <div className="space-y-2">
+          {visibleHistory.map((record) => {
             const accounts = (record.child_accounts || []) as ChildAccount[];
             const accountsTotal = accounts.reduce((s, a) => s + a.withdrawal - a.deposit, 0);
+            const isExpanded = expandedId === record.id;
             return (
               <Card key={record.id} className="border-border/50 bg-card/80 backdrop-blur">
-                <CardContent className="py-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      {(record as any).name && (
-                        <span className="text-sm font-medium">{(record as any).name}</span>
+                <CardContent className="py-3">
+                  {/* Compact row */}
+                  <div
+                    className="flex items-center justify-between cursor-pointer"
+                    onClick={() => setExpandedId(isExpanded ? null : record.id)}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                       )}
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(record.created_at), 'dd/MM/yyyy HH:mm')}
-                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium truncate">
+                          {(record as any).name || 'Sem nome'}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(record.created_at), 'dd/MM/yyyy')}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <span className={cn('font-bold', record.total >= 0 ? 'text-success' : 'text-destructive')}>
-                        {formatCurrency(record.total)}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-primary"
-                        onClick={() => startEditing(record)}
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                        onClick={() => deleteMutation.mutate(record.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
+                    <span className={cn('font-bold text-sm', record.total >= 0 ? 'text-success' : 'text-destructive')}>
+                      {formatCurrency(record.total)}
+                    </span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-                    <div className="flex justify-between sm:flex-col sm:gap-0.5">
-                      <span className="text-muted-foreground">Contas Filhas ({accounts.length})</span>
-                      <span className="font-medium">{formatCurrency(accountsTotal)}</span>
-                    </div>
-                    <div className="flex justify-between sm:flex-col sm:gap-0.5">
-                      <span className="text-muted-foreground">Baú</span>
-                      <span className="font-medium">{formatCurrency(record.treasure)}</span>
-                    </div>
-                    <div className="flex justify-between sm:flex-col sm:gap-0.5">
-                      <span className="text-muted-foreground">Salário</span>
-                      <span className="font-medium">{formatCurrency(record.salary)}</span>
-                    </div>
-                  </div>
-                  {accounts.length > 0 && (
-                    <div className="border-t border-border/30 pt-2 space-y-1">
-                      {accounts.map((acc, i) => (
-                        <div key={i} className="flex justify-between text-xs text-muted-foreground">
-                          <span>{acc.name || `Conta ${i + 1}`}</span>
-                          <span>
-                            D: {formatCurrency(acc.deposit)} / S: {formatCurrency(acc.withdrawal)}
-                          </span>
+
+                  {/* Expanded details */}
+                  {isExpanded && (
+                    <div className="mt-3 pt-3 border-t border-border/30 space-y-3 animate-fade-in">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                        <div className="flex justify-between sm:flex-col sm:gap-0.5">
+                          <span className="text-muted-foreground">Contas Filhas ({accounts.length})</span>
+                          <span className="font-medium">{formatCurrency(accountsTotal)}</span>
                         </div>
-                      ))}
+                        <div className="flex justify-between sm:flex-col sm:gap-0.5">
+                          <span className="text-muted-foreground">Baú</span>
+                          <span className="font-medium">{formatCurrency(record.treasure)}</span>
+                        </div>
+                        <div className="flex justify-between sm:flex-col sm:gap-0.5">
+                          <span className="text-muted-foreground">Salário</span>
+                          <span className="font-medium">{formatCurrency(record.salary)}</span>
+                        </div>
+                      </div>
+                      {accounts.length > 0 && (
+                        <div className="border-t border-border/30 pt-2 space-y-1">
+                          {accounts.map((acc, i) => (
+                            <div key={i} className="flex justify-between text-xs text-muted-foreground">
+                              <span>{acc.name || `Conta ${i + 1}`}</span>
+                              <span>
+                                D: {formatCurrency(acc.deposit)} / S: {formatCurrency(acc.withdrawal)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex justify-end gap-1 pt-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-muted-foreground hover:text-primary gap-1"
+                          onClick={(e) => { e.stopPropagation(); startEditing(record); }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" /> Editar
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-muted-foreground hover:text-destructive gap-1"
+                          onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(record.id); }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" /> Excluir
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </CardContent>
               </Card>
             );
           })}
+
+          {history.length > ITEMS_PER_PAGE && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-2"
+              onClick={() => setShowAll(!showAll)}
+            >
+              <Eye className="h-4 w-4" />
+              {showAll ? `Mostrar apenas ${ITEMS_PER_PAGE}` : `Ver todas (${history.length})`}
+            </Button>
+          )}
         </div>
       )}
     </div>
