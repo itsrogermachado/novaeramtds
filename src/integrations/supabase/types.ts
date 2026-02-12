@@ -50,6 +50,7 @@ export type Database = {
           salary: number
           total: number
           treasure: number
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -60,6 +61,7 @@ export type Database = {
           salary?: number
           total?: number
           treasure?: number
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -70,6 +72,7 @@ export type Database = {
           salary?: number
           total?: number
           treasure?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
