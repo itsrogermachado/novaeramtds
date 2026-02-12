@@ -72,7 +72,7 @@ export default function Dashboard() {
   const { expenses, effectiveExpenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
 
-  // Fetch cooperation totals filtered by date range (using created_at as the reference date)
+  // Fetch cooperation totals filtered by date range (using updated_at so edits appear on the edit date)
   const { data: cooperationTotal = 0 } = useQuery({
     queryKey: ['cooperations-total', user?.id, format(dateRange.start, 'yyyy-MM-dd'), format(dateRange.end, 'yyyy-MM-dd')],
     queryFn: async () => {
@@ -80,10 +80,10 @@ export default function Dashboard() {
       const endStr = format(dateRange.end, 'yyyy-MM-dd');
       const { data, error } = await supabase
         .from('cooperations')
-        .select('total, created_at')
+        .select('total, updated_at')
         .eq('user_id', user!.id)
-        .gte('created_at', `${startStr}T00:00:00`)
-        .lte('created_at', `${endStr}T23:59:59`);
+        .gte('updated_at', `${startStr}T00:00:00`)
+        .lte('updated_at', `${endStr}T23:59:59`);
       if (error) throw error;
       return (data ?? []).reduce((sum: number, r: any) => sum + Number(r.total), 0);
     },
