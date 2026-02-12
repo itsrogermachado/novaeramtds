@@ -392,7 +392,7 @@ export function CooperationTab() {
                           {(record as any).name || 'Sem nome'}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {format(new Date(record.updated_at || record.created_at), 'dd/MM/yyyy')}
+                          {format(new Date(record.created_at), 'dd/MM/yyyy')}
                         </span>
                       </div>
                     </div>
