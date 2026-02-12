@@ -19,6 +19,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const StoreCategory = lazy(() => import("./pages/StoreCategory"));
 const CartPage = lazy(() => import("./pages/CartPage"));
 const OrderLookup = lazy(() => import("./pages/OrderLookup"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -62,6 +64,8 @@ const App = () => (
                   <Route path="/loja/:slug" element={<StoreCategory />} />
                   <Route path="/carrinho" element={<CartPage />} />
                   <Route path="/meus-pedidos" element={<OrderLookup />} />
+                  <Route path="/esqueci-senha" element={<ForgotPassword />} />
+                  <Route path="/redefinir-senha" element={<ResetPassword />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 </Suspense>

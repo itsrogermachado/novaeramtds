@@ -199,8 +199,20 @@ export default function InlineLoginPanel({ isOpen, onClose }: InlineLoginPanelPr
           </div>
         </form>
 
+        {/* Forgot Password Link */}
+        <div className="mt-3 text-center">
+          <button
+            type="button"
+            onClick={() => navigate('/esqueci-senha')}
+            className="text-xs transition-colors hover:underline"
+            style={{ color: 'hsl(220 15% 40%)' }}
+          >
+            Esqueceu sua senha?
+          </button>
+        </div>
+
         {/* Create Account Link */}
-        <div className="mt-4 text-center">
+        <div className="mt-2 text-center">
           <button
             type="button"
             onClick={() => navigate('/cadastro')}
