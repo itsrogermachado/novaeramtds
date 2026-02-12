@@ -38,6 +38,7 @@ interface CooperationRecord {
   treasure: number;
   salary: number;
   total: number;
+  previous_total: number;
   created_at: string;
   updated_at: string;
 }
@@ -80,12 +81,16 @@ export function CooperationTab() {
     mutationFn: async () => {
       const total = childAccountsTotal + treasure + salary;
       if (editingId) {
+        // Get current total to store as previous_total before updating
+        const currentRecord = history.find(r => r.id === editingId);
+        const previousTotal = currentRecord ? currentRecord.total : 0;
         const { error } = await supabase.from('cooperations').update({
           name: cooperationName,
           child_accounts: childAccounts as any,
           treasure,
           salary,
           total,
+          previous_total: previousTotal,
         }).eq('id', editingId);
         if (error) throw error;
       } else {
@@ -96,6 +101,7 @@ export function CooperationTab() {
           treasure,
           salary,
           total,
+          previous_total: 0,
         });
         if (error) throw error;
       }
