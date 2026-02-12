@@ -72,43 +72,16 @@ export default function Dashboard() {
   const { expenses, effectiveExpenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
 
-  // Fetch cooperation totals filtered by date range
-  // Logic: created_at in range → add previous_total (value at creation)
-  //        updated_at in range AND was edited → add delta (total - previous_total)
-  //        If both dates in range, sum = previous_total + delta = total (correct)
+  // Fetch cooperation overall total (always sum ALL cooperations, regardless of date filter)
   const { data: cooperationTotal = 0 } = useQuery({
-    queryKey: ['cooperations-total', user?.id, format(dateRange.start, 'yyyy-MM-dd'), format(dateRange.end, 'yyyy-MM-dd')],
+    queryKey: ['cooperations-total', user?.id],
     queryFn: async () => {
-      const startStr = format(dateRange.start, 'yyyy-MM-dd');
-      const endStr = format(dateRange.end, 'yyyy-MM-dd');
-      const rangeStart = `${startStr}T00:00:00`;
-      const rangeEnd = `${endStr}T23:59:59`;
-
-      // Fetch all cooperations for this user (we need both dates to decide)
       const { data, error } = await supabase
         .from('cooperations')
-        .select('total, previous_total, created_at, updated_at')
+        .select('total')
         .eq('user_id', user!.id);
       if (error) throw error;
-
-      let sum = 0;
-      for (const r of data ?? []) {
-        const createdInRange = r.created_at >= rangeStart && r.created_at <= rangeEnd;
-        const wasEdited = r.updated_at !== r.created_at;
-        const updatedInRange = wasEdited && r.updated_at >= rangeStart && r.updated_at <= rangeEnd;
-
-        if (createdInRange && updatedInRange) {
-          // Both in range: show full current total
-          sum += Number(r.total);
-        } else if (createdInRange) {
-          // Only created in range: show the value it had before any edit
-          sum += wasEdited ? Number(r.previous_total) : Number(r.total);
-        } else if (updatedInRange) {
-          // Only edited in range: show just the delta
-          sum += Number(r.total) - Number(r.previous_total);
-        }
-      }
-      return sum;
+      return (data ?? []).reduce((sum: number, r: any) => sum + Number(r.total), 0);
     },
     enabled: !!user,
   });
