@@ -92,6 +92,23 @@ export default function Dashboard() {
 
   const { newTutorialsCount, markAsViewed: markTutorialsAsViewed } = useNewTutorialsNotification();
 
+  // Fetch cooperation changes for goals calculation (always current month)
+  const { data: goalsCoopChanges = [] } = useQuery({
+    queryKey: ['cooperations-goals-changes', user?.id],
+    queryFn: async () => {
+      const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
+      const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
+      const { data, error } = await supabase
+        .from('cooperation_changes')
+        .select('delta, created_at')
+        .eq('user_id', user!.id)
+        .gte('created_at', `${monthStart}T00:00:00`)
+        .lte('created_at', `${monthEnd}T23:59:59`);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
 
   // Mark tutorials as viewed when tab changes to tutorials
   useEffect(() => {
@@ -135,7 +152,7 @@ export default function Dashboard() {
     };
   }, [operations]);
 
-  // Calculate goals profit using goalsOperations (always current month, ignores dateRange filter)
+  // Calculate goals profit using goalsOperations + cooperation changes (always current month)
   const goalsProfit = useMemo(() => {
     const today = new Date();
     const todayStr = format(today, 'yyyy-MM-dd');
@@ -148,7 +165,10 @@ export default function Dashboard() {
     const todayOps = goalsOperations.filter(op => op.operation_date === todayStr);
     const todayInvested = todayOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
     const todayReturn = todayOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
-    const todayProfit = todayReturn - todayInvested;
+    const todayCoopDelta = goalsCoopChanges
+      .filter(c => c.created_at >= `${todayStr}T00:00:00` && c.created_at <= `${todayStr}T23:59:59`)
+      .reduce((sum, c) => sum + Number(c.delta), 0);
+    const todayProfit = todayReturn - todayInvested + todayCoopDelta;
 
     // Weekly profit for weekly goals
     const weekOps = goalsOperations.filter(op => 
@@ -156,7 +176,10 @@ export default function Dashboard() {
     );
     const weekInvested = weekOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
     const weekReturn = weekOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
-    const weeklyProfit = weekReturn - weekInvested;
+    const weekCoopDelta = goalsCoopChanges
+      .filter(c => c.created_at >= `${weekStartStr}T00:00:00` && c.created_at <= `${todayStr}T23:59:59`)
+      .reduce((sum, c) => sum + Number(c.delta), 0);
+    const weeklyProfit = weekReturn - weekInvested + weekCoopDelta;
 
     // Monthly profit for monthly goals
     const monthOps = goalsOperations.filter(op => 
@@ -164,10 +187,11 @@ export default function Dashboard() {
     );
     const monthInvested = monthOps.reduce((sum, op) => sum + Number(op.invested_amount), 0);
     const monthReturn = monthOps.reduce((sum, op) => sum + Number(op.return_amount), 0);
-    const monthlyProfit = monthReturn - monthInvested;
+    const monthCoopDelta = goalsCoopChanges.reduce((sum, c) => sum + Number(c.delta), 0);
+    const monthlyProfit = monthReturn - monthInvested + monthCoopDelta;
 
     return { todayProfit, weeklyProfit, monthlyProfit };
-  }, [goalsOperations]);
+  }, [goalsOperations, goalsCoopChanges]);
 
   // Calculate top methods for AI context
   const topMethods = useMemo(() => {
