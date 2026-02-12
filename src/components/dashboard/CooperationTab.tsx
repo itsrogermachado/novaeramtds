@@ -102,7 +102,7 @@ export function CooperationTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cooperations', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['cooperations-total', user?.id] });
+      queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string) === 'cooperations-total' });
       toast({ title: editingId ? 'Cooperação atualizada!' : 'Cooperação salva com sucesso!' });
       resetEditor();
     },
@@ -119,7 +119,7 @@ export function CooperationTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cooperations', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['cooperations-total', user?.id] });
+      queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string) === 'cooperations-total' });
       toast({ title: 'Cooperação excluída' });
     },
   });
