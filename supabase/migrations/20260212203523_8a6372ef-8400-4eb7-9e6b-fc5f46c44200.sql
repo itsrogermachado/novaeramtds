@@ -1,0 +1,1 @@
+ALTER TABLE public.cooperations ADD COLUMN previous_total numeric NOT NULL DEFAULT 0;

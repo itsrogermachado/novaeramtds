@@ -47,6 +47,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          previous_total: number
           salary: number
           total: number
           treasure: number
@@ -58,6 +59,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          previous_total?: number
           salary?: number
           total?: number
           treasure?: number
@@ -69,6 +71,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          previous_total?: number
           salary?: number
           total?: number
           treasure?: number
