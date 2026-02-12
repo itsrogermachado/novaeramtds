@@ -72,16 +72,20 @@ export default function Dashboard() {
   const { expenses, effectiveExpenses, upcomingExpenses, categories, isLoading: expLoading, createExpense, updateExpense, deleteExpense } = useExpenses(dateRange);
   const { goals, createGoal, updateGoal, deleteGoal } = useGoals();
 
-  // Fetch cooperation overall total (always sum ALL cooperations, regardless of date filter)
+  // Fetch cooperation total from change history, filtered by date range
   const { data: cooperationTotal = 0 } = useQuery({
-    queryKey: ['cooperations-total', user?.id],
+    queryKey: ['cooperations-total', user?.id, format(dateRange.start, 'yyyy-MM-dd'), format(dateRange.end, 'yyyy-MM-dd')],
     queryFn: async () => {
+      const startStr = format(dateRange.start, 'yyyy-MM-dd');
+      const endStr = format(dateRange.end, 'yyyy-MM-dd');
       const { data, error } = await supabase
-        .from('cooperations')
-        .select('total')
-        .eq('user_id', user!.id);
+        .from('cooperation_changes')
+        .select('delta')
+        .eq('user_id', user!.id)
+        .gte('created_at', `${startStr}T00:00:00`)
+        .lte('created_at', `${endStr}T23:59:59`);
       if (error) throw error;
-      return (data ?? []).reduce((sum: number, r: any) => sum + Number(r.total), 0);
+      return (data ?? []).reduce((sum: number, r: any) => sum + Number(r.delta), 0);
     },
     enabled: !!user,
   });

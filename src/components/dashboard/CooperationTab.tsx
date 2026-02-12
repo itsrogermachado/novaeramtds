@@ -22,6 +22,7 @@ import {
   ChevronDown,
   ChevronUp,
   Eye,
+  Clock,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -76,14 +77,37 @@ export function CooperationTab() {
     enabled: !!user,
   });
 
+  // Fetch change history for all cooperations
+  const { data: changesMap = {} } = useQuery({
+    queryKey: ['cooperation-changes', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cooperation_changes')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      const map: Record<string, Array<{ delta: number; new_total: number; description: string; created_at: string }>> = {};
+      for (const change of data ?? []) {
+        const cid = (change as any).cooperation_id;
+        if (!map[cid]) map[cid] = [];
+        map[cid].push(change as any);
+      }
+      return map;
+    },
+    enabled: !!user,
+  });
+
   // Save mutation (insert or update)
   const saveMutation = useMutation({
     mutationFn: async () => {
       const total = childAccountsTotal + treasure + salary;
       if (editingId) {
-        // Get current total to store as previous_total before updating
         const currentRecord = history.find(r => r.id === editingId);
         const previousTotal = currentRecord ? currentRecord.total : 0;
+        const delta = total - previousTotal;
+
+        // Update the cooperation record
         const { error } = await supabase.from('cooperations').update({
           name: cooperationName,
           child_accounts: childAccounts as any,
@@ -93,8 +117,21 @@ export function CooperationTab() {
           previous_total: previousTotal,
         }).eq('id', editingId);
         if (error) throw error;
+
+        // Record the change with its delta (only if there's an actual change)
+        if (delta !== 0) {
+          const { error: changeError } = await supabase.from('cooperation_changes').insert({
+            cooperation_id: editingId,
+            user_id: user!.id,
+            delta,
+            new_total: total,
+            description: `Atualização: ${cooperationName || 'Sem nome'}`,
+          });
+          if (changeError) throw changeError;
+        }
       } else {
-        const { error } = await supabase.from('cooperations').insert({
+        // Insert new cooperation
+        const { data: inserted, error } = await supabase.from('cooperations').insert({
           user_id: user!.id,
           name: cooperationName,
           child_accounts: childAccounts as any,
@@ -102,12 +139,23 @@ export function CooperationTab() {
           salary,
           total,
           previous_total: 0,
-        });
+        }).select('id').single();
         if (error) throw error;
+
+        // Record the initial creation as a change
+        const { error: changeError } = await supabase.from('cooperation_changes').insert({
+          cooperation_id: inserted.id,
+          user_id: user!.id,
+          delta: total,
+          new_total: total,
+          description: `Criação: ${cooperationName || 'Sem nome'}`,
+        });
+        if (changeError) throw changeError;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cooperations', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['cooperation-changes', user?.id] });
       queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string) === 'cooperations-total' });
       toast({ title: editingId ? 'Cooperação atualizada!' : 'Cooperação salva com sucesso!' });
       resetEditor();
@@ -125,6 +173,7 @@ export function CooperationTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cooperations', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['cooperation-changes', user?.id] });
       queryClient.invalidateQueries({ predicate: (query) => (query.queryKey[0] as string) === 'cooperations-total' });
       toast({ title: 'Cooperação excluída' });
     },
@@ -445,6 +494,22 @@ export function CooperationTab() {
                               <span>{acc.name || `Conta ${i + 1}`}</span>
                               <span>
                                 D: {formatCurrency(acc.deposit)} / S: {formatCurrency(acc.withdrawal)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {/* Change history */}
+                      {(changesMap[record.id] || []).length > 0 && (
+                        <div className="border-t border-border/30 pt-2 space-y-1">
+                          <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> Histórico de alterações
+                          </span>
+                          {(changesMap[record.id] || []).map((change, i) => (
+                            <div key={i} className="flex justify-between text-xs text-muted-foreground">
+                              <span>{format(new Date(change.created_at), 'dd/MM/yy HH:mm')} — {change.description}</span>
+                              <span className={cn('font-medium', change.delta >= 0 ? 'text-success' : 'text-destructive')}>
+                                {change.delta >= 0 ? '+' : ''}{formatCurrency(change.delta)}
                               </span>
                             </div>
                           ))}

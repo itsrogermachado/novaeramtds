@@ -41,6 +41,44 @@ export type Database = {
         }
         Relationships: []
       }
+      cooperation_changes: {
+        Row: {
+          cooperation_id: string
+          created_at: string
+          delta: number
+          description: string
+          id: string
+          new_total: number
+          user_id: string
+        }
+        Insert: {
+          cooperation_id: string
+          created_at?: string
+          delta?: number
+          description?: string
+          id?: string
+          new_total?: number
+          user_id: string
+        }
+        Update: {
+          cooperation_id?: string
+          created_at?: string
+          delta?: number
+          description?: string
+          id?: string
+          new_total?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cooperation_changes_cooperation_id_fkey"
+            columns: ["cooperation_id"]
+            isOneToOne: false
+            referencedRelation: "cooperations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cooperations: {
         Row: {
           child_accounts: Json
